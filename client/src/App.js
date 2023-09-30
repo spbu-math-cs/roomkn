@@ -11,14 +11,6 @@ import About from './pages/About';
 import SignUp from './pages/SignUp';
 import SignIn from './pages/SignIn';
 
-function PageNotFound() {
-    return (
-      <div>
-        <h2>404 Page not found</h2>
-      </div>
-    );
-  }
-
  
 function App() {
     return (
@@ -33,7 +25,6 @@ function App() {
                 {/* <Route path='/contact' element={<Contact />} />
                 <Route path='/blogs' element={<Blogs />} />
                 <Route path='/sign-up' element={<SignUp />} /> */}
-                <Route path="*" element={<PageNotFound />} status={404}></Route>
             </Routes>
         </Router>
     );
