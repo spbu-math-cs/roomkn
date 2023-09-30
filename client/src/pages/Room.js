@@ -1,5 +1,8 @@
 import { useLocation } from 'react-router-dom'
 
+import './Room.css'
+import ContentWrapper from '../components/Content';
+
 function GetRoomInfo() {
   const location = useLocation();
 
@@ -16,12 +19,14 @@ function Room() {
 
   const room_info = GetRoomInfo()
 
+  const page_name = "Аудитория " + room_info.number
+
   return (
-    <div className="RoomContent">
-        <p>
+    <ContentWrapper page_name={page_name}>
+      <div className="RoomContent">
         {room_info.number}
-        </p>
-    </div>
+      </div>
+    </ContentWrapper>
   );
 }
 

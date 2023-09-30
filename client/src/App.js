@@ -1,23 +1,27 @@
 import React from 'react';
 import './App.css';
-import Navbar from './Navbar';
 import { BrowserRouter as Router, Routes, Route }
     from 'react-router-dom';
+
+import Navbar from './components/Navbar';
+
 import List from './pages/List';
 import Room from './pages/Room';
-import About from './pages/about';
-// import Blogs from './pages/blogs';
-// import SignUp from './pages/signup';
-// import Contact from './pages/contact';
+import About from './pages/About';
+import SignUp from './pages/SignUp';
+import SignIn from './pages/SignIn';
+
  
 function App() {
     return (
         <Router>
             <Navbar />
             <Routes>
-                <Route exact path='/' exact element={<List />} />
+                <Route exact path='/' element={<List />} />
                 <Route path='/about' element={<About />} />
                 <Route path='/room/*' element={<Room />} />
+                <Route path='/sign-up' element={<SignUp />} />
+                <Route path='/sign-in' element={<SignIn />} />
                 {/* <Route path='/contact' element={<Contact />} />
                 <Route path='/blogs' element={<Blogs />} />
                 <Route path='/sign-up' element={<SignUp />} /> */}
