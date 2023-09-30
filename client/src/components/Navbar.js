@@ -1,8 +1,5 @@
 import './Navbar.css';
 import React from "react";
-import { Nav }
-    from "./NavbarElements";
-
 
 
 import { NavLink } from "react-router-dom";
@@ -18,8 +15,8 @@ const Navbar = () => {
                     <NavLink to="/about" className="navlink">
                         О нас
                     </NavLink>
-                    <NavLink to="/sign-up" className="navlink">
-                        Зарегестрироваться
+                    <NavLink to="/sign-in" className="navlink">
+                        Войти
                     </NavLink>
                 </div>
             </nav>

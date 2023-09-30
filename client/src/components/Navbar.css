@@ -1,0 +1,28 @@
+.nav {
+  background: #1E1F22;
+  height: 85px;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 calc((100vw - 1000px) / 2);
+  z-index: 12;
+}
+
+.navlink {
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  padding: 0 1rem;
+  height: 100%;
+  cursor: pointer;
+  /* &.active {
+    color: #4d4dff;
+  } */
+  font-size: 20px;
+}
+
+.navdiv {
+    display: flex;
+    align-items: center;
+    margin-right: -24px;
+}
