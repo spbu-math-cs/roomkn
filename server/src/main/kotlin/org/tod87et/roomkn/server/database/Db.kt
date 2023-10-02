@@ -1,6 +1,5 @@
 package org.tod87et.roomkn.server.database
 
-import java.sql.Connection
 import kotlinx.datetime.Instant
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -9,14 +8,21 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.sql.Connection
+import javax.sql.DataSource
 
-class Db(url: String, driver: String, user: String, password: String) {
-    private val database: Database = Database.connect(
-        url = url,
-        driver = driver,
-        user = user,
-        password = password,
+class Db private constructor(private val database: Database) {
+
+    constructor(url: String, driver: String, user: String, password: String) : this(
+        Database.connect(
+            url = url,
+            driver = driver,
+            user = user,
+            password = password,
+        )
     )
+
+    constructor(dataSource: DataSource) : this(Database.connect(dataSource))
 
     init {
         transaction(database) { SchemaUtils.create(Users, Rooms, Reservations) }
