@@ -8,6 +8,9 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.tod87et.roomkn.server.models.Reservation
+import org.tod87et.roomkn.server.models.RoomInfo
+import org.tod87et.roomkn.server.models.UserInfo
 import java.sql.Connection
 import javax.sql.DataSource
 
@@ -28,29 +31,29 @@ class Db private constructor(private val database: Database) {
         transaction(database) { SchemaUtils.create(Users, Rooms, Reservations) }
     }
 
-    fun registerUser(username: String, email: String): UserEntry = transaction(database) {
+    fun registerUser(username: String, email: String): UserInfo = transaction(database) {
         val id = Users.insert {
             it[Users.username] = username
             it[Users.email] = email
         } get Users.id
 
-        UserEntry(id, username, email)
+        UserInfo(id, username, email)
     }
 
-    fun createRoom(name: String, description: String): RoomEntry = transaction(database) {
+    fun createRoom(name: String, description: String): RoomInfo = transaction(database) {
         val id = Rooms.insert {
             it[Rooms.name] = name
             it[Rooms.description] = description
         } get Rooms.id
 
-        RoomEntry(id, name, description)
+        RoomInfo(id, name, description)
     }
 
-    fun listRooms(): List<RoomEntry> = transaction(database) {
-        Rooms.selectAll().map { RoomEntry(it[Rooms.id], it[Rooms.name], it[Rooms.description]) }
+    fun listRooms(): List<RoomInfo> = transaction(database) {
+        Rooms.selectAll().map { RoomInfo(it[Rooms.id], it[Rooms.name], it[Rooms.description]) }
     }
 
-    fun createReservation(userId: Int, roomId: Int, from: Instant, until: Instant): ReservationEntry? {
+    fun createReservation(userId: Int, roomId: Int, from: Instant, until: Instant): Reservation? {
         require(until > from) { "Until must be later than from" }
 
         return transaction(db = database, transactionIsolation = Connection.TRANSACTION_SERIALIZABLE) {
@@ -70,13 +73,13 @@ class Db private constructor(private val database: Database) {
                 it[Reservations.until] = until
             } get Reservations.id
 
-            ReservationEntry(id, userId, roomId, from, until)
+            Reservation(id, userId, roomId, from, until)
         }
     }
 
-    fun listReservation(): List<ReservationEntry> = transaction(database) {
+    fun listReservation(): List<Reservation> = transaction(database) {
         Reservations.selectAll().map {
-            ReservationEntry(
+            Reservation(
                 id = it[Reservations.id],
                 userId = it[Reservations.userId],
                 roomId = it[Reservations.roomId],
