@@ -6,7 +6,7 @@ import javax.sql.DataSource
 interface Database {
     fun getRooms(): Result<List<ShortRoomInfo>>
     fun getRoom(roomId: Int): Result<RoomInfo>
-    fun getRoomReservation(roomId: Int): Result<List<Reservation>>
+    fun getRoomReservations(roomId: Int): Result<List<Reservation>>
     fun createReservation(reserve: UnregisteredReservation): Result<Reservation>
     fun getUsers(): Result<List<ShortUserInfo>>
     fun getUser(userId: Int): Result<UserInfo>
