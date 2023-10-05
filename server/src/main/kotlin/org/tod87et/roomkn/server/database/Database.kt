@@ -5,7 +5,7 @@ import javax.sql.DataSource
 
 interface Database {
     fun getRooms(): Result<List<ShortRoomInfo>>
-    fun getRoom(): Result<RoomInfo>
+    fun getRoom(roomId: Int): Result<RoomInfo>
     fun getRoomReservation(roomId: Int): Result<List<Reservation>>
     fun createReservation(reserve: UnregisteredReservation): Result<Reservation>
     fun getUsers(): Result<List<ShortUserInfo>>
@@ -13,5 +13,8 @@ interface Database {
     fun registerUser(user: UnregisteredUserInfo): Result<UserInfo>
     fun loginUser(user: LoginUserInfo): Result<UserInfo>
 
-    fun clear(): Unit //Clear database for TEST/DEBUG purpose
+    /**
+     * Clear database for TEST/DEBUG purpose
+     */
+    fun clear(): Unit
 }
