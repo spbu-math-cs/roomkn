@@ -2,16 +2,19 @@ import { Link } from "react-router-dom"
 
 import './List.css'
 import ContentWrapper from "../components/Content"
+import Api from "../api/Api"
+
+const api = new Api()
 
 function RoomRow(room) {
 
-  const link = "/room/" + String(room.number)
+  const link = "/room/" + String(room.id)
 
   return (
     <div className="room-row">
       <div className="room-row-number">
         <Link to={link} className="room-row-link">
-          {room.number}
+          {room.id}
         </Link>
       </div>
       <div className="room-row-desc">
@@ -22,6 +25,9 @@ function RoomRow(room) {
 }
 
 function GetRoomList() {
+
+  return api.getRoomList()
+
   return [
     {
       number: 102,
