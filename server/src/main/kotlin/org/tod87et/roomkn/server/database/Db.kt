@@ -8,13 +8,11 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.tod87et.roomkn.server.models.Reservation
-import org.tod87et.roomkn.server.models.RoomInfo
-import org.tod87et.roomkn.server.models.UserInfo
+import org.tod87et.roomkn.server.models.*
 import java.sql.Connection
 import javax.sql.DataSource
 
-class Db private constructor(private val database: Database) {
+class Db private constructor(private val database: Database): org.tod87et.roomkn.server.database.Database {
 
     constructor(url: String, driver: String, user: String, password: String) : this(
         Database.connect(
@@ -87,6 +85,45 @@ class Db private constructor(private val database: Database) {
                 until = it[Reservations.until]
             )
         }
+    }
+
+    override fun getRooms(): Result<List<ShortRoomInfo>> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getRoom(roomId: Int): Result<RoomInfo> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getRoomReservations(roomId: Int): Result<List<Reservation>> {
+        TODO("Not yet implemented")
+    }
+
+    override fun createReservation(reserve: UnregisteredReservation): Result<Reservation> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getUsers(): Result<List<ShortUserInfo>> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getUser(userId: Int): Result<UserInfo> {
+        TODO("Not yet implemented")
+    }
+
+    override fun registerUser(user: UnregisteredUserInfo): Result<UserInfo> {
+        TODO("Not yet implemented")
+    }
+
+    override fun loginUser(user: LoginUserInfo): Result<UserInfo> {
+        TODO("Not yet implemented")
+    }
+
+    /**
+     * Clear database for TEST/DEBUG purpose
+     */
+    override fun clear() {
+        TODO("Not yet implemented")
     }
 
 }
