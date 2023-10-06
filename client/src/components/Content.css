@@ -11,12 +11,15 @@
     padding: 10px 25px 10px 25px;
     font-size: 30px;
     color: white;
-    /* width: 0; */
+    width: 30%;
     
     border-radius: 2px;
     border-top: 3px solid var(--idea-border-black, #1E1F22);
     border-right: 3px solid var(--idea-border-black, #1E1F22);
     border-left: 3px solid var(--idea-border-black, #1E1F22);
+
+    text-align: center;
+    /* display: flex; */
 }
 
 .content-wrapper-content-border {

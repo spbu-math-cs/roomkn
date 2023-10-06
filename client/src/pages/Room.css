@@ -1,0 +1,28 @@
+.room-wrapper {
+    display: flex;
+}
+
+.room-info {
+    width: 50%;
+    height: 100%;
+}
+
+.room-booking-form {
+    height: 100%;
+    width: 50%;
+}
+
+.room-name {
+    font-size: 30px;
+    color: white;
+}
+
+.room-desciption {
+    font-size: 20px;
+    color: white;
+}
+
+.form-input {
+    display: flex;
+    align-items: right;
+}

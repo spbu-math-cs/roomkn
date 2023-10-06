@@ -3,8 +3,22 @@
   height: 85px;
   display: flex;
   justify-content: space-between;
-  padding: 0 calc((100vw - 1000px) / 2);
+  padding: 0 calc((100vw - 1000px) / 4);
   z-index: 12;
+}
+
+.navdiv {
+  display: flex;
+  align-items: right;
+  height: 100%;
+  /* margin-left: 50%; */
+}
+
+.nav-link-wrapper {
+  width: 80%;
+  height: 100%;
+  align-items: right;
+  display: flex;
 }
 
 .navlink {
@@ -21,8 +35,13 @@
   font-size: 20px;
 }
 
-.navdiv {
-    display: flex;
-    align-items: center;
-    margin-right: -24px;
+.nav-logo-wrapper {
+  width: 20%;
+  height: 100%;
+  align-items: center;
+  display: flex;
+}
+
+.nav-logo {
+  align-items: left;
 }
