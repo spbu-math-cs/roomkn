@@ -1,19 +1,16 @@
 package org.tod87et.roomkn.server.database
 
 import kotlinx.datetime.Instant
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.tod87et.roomkn.server.models.*
 import java.sql.Connection
 import javax.sql.DataSource
+import org.tod87et.roomkn.server.database.Database as ExposedDatabase
 
-class DatabaseSession private constructor(private val database: Database):
-    org.tod87et.roomkn.server.database.Database {
+class DatabaseSession private constructor(private val database: Database) :
+    ExposedDatabase {
 
     constructor(url: String, driver: String, user: String, password: String) : this(
         Database.connect(
