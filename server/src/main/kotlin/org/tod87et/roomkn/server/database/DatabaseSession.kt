@@ -1,10 +1,21 @@
 package org.tod87et.roomkn.server.database
 
 import kotlinx.datetime.Instant
-import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.tod87et.roomkn.server.models.*
+import org.tod87et.roomkn.server.models.LoginUserInfo
+import org.tod87et.roomkn.server.models.Reservation
+import org.tod87et.roomkn.server.models.RoomInfo
+import org.tod87et.roomkn.server.models.ShortRoomInfo
+import org.tod87et.roomkn.server.models.ShortUserInfo
+import org.tod87et.roomkn.server.models.UnregisteredReservation
+import org.tod87et.roomkn.server.models.UnregisteredUserInfo
+import org.tod87et.roomkn.server.models.UserInfo
 import java.sql.Connection
 import javax.sql.DataSource
 import org.tod87et.roomkn.server.database.Database as ExposedDatabase

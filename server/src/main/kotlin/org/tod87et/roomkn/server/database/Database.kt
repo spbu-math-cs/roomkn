@@ -1,6 +1,13 @@
 package org.tod87et.roomkn.server.database
 
-import org.tod87et.roomkn.server.models.*
+import org.tod87et.roomkn.server.models.LoginUserInfo
+import org.tod87et.roomkn.server.models.Reservation
+import org.tod87et.roomkn.server.models.RoomInfo
+import org.tod87et.roomkn.server.models.ShortRoomInfo
+import org.tod87et.roomkn.server.models.ShortUserInfo
+import org.tod87et.roomkn.server.models.UnregisteredReservation
+import org.tod87et.roomkn.server.models.UnregisteredUserInfo
+import org.tod87et.roomkn.server.models.UserInfo
 
 interface Database {
     fun getRooms(): Result<List<ShortRoomInfo>>
