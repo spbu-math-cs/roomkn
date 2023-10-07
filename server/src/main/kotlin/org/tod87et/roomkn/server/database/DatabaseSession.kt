@@ -18,10 +18,10 @@ import org.tod87et.roomkn.server.models.UnregisteredUserInfo
 import org.tod87et.roomkn.server.models.UserInfo
 import java.sql.Connection
 import javax.sql.DataSource
-import org.tod87et.roomkn.server.database.Database as ExposedDatabase
+import org.tod87et.roomkn.server.database.Database as RooMknDatabase
 
 class DatabaseSession private constructor(private val database: Database) :
-    ExposedDatabase {
+    RooMknDatabase {
 
     constructor(url: String, driver: String, user: String, password: String) : this(
         Database.connect(
