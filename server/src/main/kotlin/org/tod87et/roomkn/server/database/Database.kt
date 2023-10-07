@@ -2,7 +2,7 @@ package org.tod87et.roomkn.server.database
 
 import org.tod87et.roomkn.server.models.*
 
-interface DatabaseImpl {
+interface Database {
     fun getRooms(): Result<List<ShortRoomInfo>>
     fun getRoom(roomId: Int): Result<RoomInfo>
     fun getRoomReservations(roomId: Int): Result<List<Reservation>>
