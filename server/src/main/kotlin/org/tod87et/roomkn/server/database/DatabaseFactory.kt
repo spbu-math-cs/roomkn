@@ -5,9 +5,9 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.thread
 
 object DatabaseFactory {
-    private val databaseRef = AtomicReference<Db?>(null)
+    private val databaseRef = AtomicReference<DatabaseSession?>(null)
 
-    val database: Db get() = databaseRef.get()!!
+    val database: DatabaseSession get() = databaseRef.get()!!
 
     fun init() {
         val databaseAddress = System.getenv("DB_URL")
@@ -18,7 +18,7 @@ object DatabaseFactory {
         if (databaseAddress == null) {
             val embeddedPostgres = EmbeddedPostgres.start()
             val dataSource = embeddedPostgres.postgresDatabase
-            if (databaseRef.compareAndSet(null, Db(dataSource))) {
+            if (databaseRef.compareAndSet(null, DatabaseSession(dataSource))) {
                 Runtime.getRuntime().addShutdownHook(
                     thread(start = false) {
                         embeddedPostgres.close()
@@ -30,7 +30,7 @@ object DatabaseFactory {
         } else {
             databaseRef.compareAndSet(
                 null,
-                Db(
+                DatabaseSession(
                     url = databaseAddress,
                     driver = databaseDriver,
                     user = databaseUser,

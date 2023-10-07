@@ -8,13 +8,20 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.tod87et.roomkn.server.models.LoginUserInfo
 import org.tod87et.roomkn.server.models.Reservation
 import org.tod87et.roomkn.server.models.RoomInfo
+import org.tod87et.roomkn.server.models.ShortRoomInfo
+import org.tod87et.roomkn.server.models.ShortUserInfo
+import org.tod87et.roomkn.server.models.UnregisteredReservation
+import org.tod87et.roomkn.server.models.UnregisteredUserInfo
 import org.tod87et.roomkn.server.models.UserInfo
 import java.sql.Connection
 import javax.sql.DataSource
+import org.tod87et.roomkn.server.database.Database as RooMknDatabase
 
-class Db private constructor(private val database: Database) {
+class DatabaseSession private constructor(private val database: Database) :
+    RooMknDatabase {
 
     constructor(url: String, driver: String, user: String, password: String) : this(
         Database.connect(
@@ -87,6 +94,45 @@ class Db private constructor(private val database: Database) {
                 until = it[Reservations.until]
             )
         }
+    }
+
+    override fun getRooms(): Result<List<ShortRoomInfo>> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getRoom(roomId: Int): Result<RoomInfo> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getRoomReservations(roomId: Int): Result<List<Reservation>> {
+        TODO("Not yet implemented")
+    }
+
+    override fun createReservation(reserve: UnregisteredReservation): Result<Reservation> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getUsers(): Result<List<ShortUserInfo>> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getUser(userId: Int): Result<UserInfo> {
+        TODO("Not yet implemented")
+    }
+
+    override fun registerUser(user: UnregisteredUserInfo): Result<UserInfo> {
+        TODO("Not yet implemented")
+    }
+
+    override fun loginUser(user: LoginUserInfo): Result<UserInfo> {
+        TODO("Not yet implemented")
+    }
+
+    /**
+     * Clear database for TEST/DEBUG purpose
+     */
+    override fun clear() {
+        TODO("Not yet implemented")
     }
 
 }
