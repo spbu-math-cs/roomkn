@@ -2,9 +2,7 @@ import { Link } from "react-router-dom"
 
 import './List.css'
 import ContentWrapper from "../components/Content"
-import Api from "../api/Api"
-
-const api = new Api()
+import useAPI from "../api/API"
 
 function RoomRow(room) {
 
@@ -26,18 +24,9 @@ function RoomRow(room) {
 
 function GetRoomList() {
 
-  return api.getRoomList()
+  let [result, loading, error] = useAPI('/api/v0/rooms/')
 
-  return [
-    {
-      number: 102,
-      description: "Аудитория 102 содержит проектор"
-    },
-    {
-      number: 103,
-      description: "В 103 аудитории доска - маркерная"
-    }
-  ]
+  return result
 }
 
 function List() {
@@ -46,9 +35,11 @@ function List() {
 
   const draw_list = []
 
-  rooms_list.forEach((room) => {
-    draw_list.push(RoomRow(room))
-  })
+  if (rooms_list) {
+    rooms_list.forEach((room) => {
+      draw_list.push(RoomRow(room))
+    })
+  }
 
   return (
     <ContentWrapper page_name="Список аудиторий">

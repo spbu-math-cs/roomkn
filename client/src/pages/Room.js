@@ -3,33 +3,40 @@ import { useLocation } from 'react-router-dom'
 import './Room.css'
 import ContentWrapper from '../components/Content';
 import React from 'react';
-import Api from '../api/Api';
+import useAPI from '../api/API';
 // import Form from '../components/Form'
-
-const api = new Api()
 
 function GetRoomInfo() {
   const location = useLocation();
 
   const id = location.pathname.slice(6, location.pathname.length)
 
-  const res = api.getRoomInfo(id)
+  let [result, loading, error] = useAPI('/api/v0/room/' + id + '/')
 
-  return {
-    id: id,
-    description: res.description,
-    reservations: res.reservations
+  console.log(result, loading, error)
+  if (error || loading) {
+    
+
+    return {
+      id: id,
+      description: error,
+      reservations: "sdssd"
+    }
   }
+
+  // const res = getRoomInfo(id)
+
+  return result
 }
 
 function BookRoom(name, date, from, to) {
-  let bookResultPromise = api.bookRoom(name, date, from, to)
+  // let bookResultPromise = bookRoom(name, date, from, to)
 
-  bookResultPromise.then((result) => {
-    alert(result)
-  }).catch((e) => {
-    alert(e.message)
-  })
+  // bookResultPromise.then((result) => {
+  //   alert(result)
+  // }).catch((e) => {
+  //   alert(e.message)
+  // })
 
 }
 
