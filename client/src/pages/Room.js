@@ -13,10 +13,7 @@ function GetRoomInfo() {
 
   let [result, loading, error] = useAPI('/api/v0/room/' + id + '/')
 
-  console.log(result, loading, error)
   if (error || loading) {
-    
-
     return {
       id: id,
       description: error,

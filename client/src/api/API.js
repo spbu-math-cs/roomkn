@@ -38,7 +38,6 @@ export function useAPI(url, data=null, method='GET') {
     return [result, loading, error];
 }
 
-
 function getToken() {
     const tokenString = sessionStorage.getItem('token');
     const userToken = JSON.parse(tokenString);
@@ -49,40 +48,4 @@ function saveToken(userToken) {
     sessionStorage.setItem('token', JSON.stringify(userToken));
 };
     
-
-export function getRoomList() {
-    console.log(23432)
-    // const roomListPromise = this.sendRequest('/api/v0/rooms/')
-
-    
-    var roomList = [{id: 404, description: 'Нет доступа к серверу'}]
-
-    // roomListPromise.then(result => {
-    //     console.log('room-list', result)
-    //     roomList = result.body
-    // }).catch((e) => {})
-
-    console.log('room-listgfdgdfg')
-
-    return roomList
-}
-
-function toApiTime(date, time) {
-
-}
-
-export function bookRoom(name, date, from, to) {
-
-    let from_time = this.toApiTime(date, from)
-
-    let to_time = this.toApiTime(date, to)
-
-    let reservation = {
-        from: from_time,
-        to:   to_time
-    }
-
-    return this.sendRequest('/api/v0/reserve', 'POST', reservation)
-}
-
 export default useAPI
