@@ -12,7 +12,7 @@ import org.tod87et.roomkn.server.models.*
 import java.sql.Connection
 import javax.sql.DataSource
 
-class Db private constructor(private val database: Database): org.tod87et.roomkn.server.database.Database {
+class Db private constructor(private val database: Database): DatabaseImpl {
 
     constructor(url: String, driver: String, user: String, password: String) : this(
         Database.connect(
