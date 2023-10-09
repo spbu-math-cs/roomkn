@@ -9,6 +9,20 @@ object DatabaseFactory {
 
     val database: DatabaseSession get() = databaseRef.get()!!
 
+    fun initEmbedded() {
+        val embeddedPostgres = EmbeddedPostgres.start()
+        val dataSource = embeddedPostgres.postgresDatabase
+        if (databaseRef.compareAndSet(null, DatabaseSession(dataSource))) {
+            Runtime.getRuntime().addShutdownHook(
+                thread(start = false) {
+                    embeddedPostgres.close()
+                }
+            )
+        } else {
+            embeddedPostgres.close()
+        }
+    }
+
     fun init() {
         val databaseAddress = System.getenv("DB_URL")
         val databaseDriver = System.getenv("DB_DRIVER") ?: "org.postgresql.Driver"
@@ -16,17 +30,7 @@ object DatabaseFactory {
         val databasePassword = System.getenv("DB_PASSWORD") ?: ""
 
         if (databaseAddress == null) {
-            val embeddedPostgres = EmbeddedPostgres.start()
-            val dataSource = embeddedPostgres.postgresDatabase
-            if (databaseRef.compareAndSet(null, DatabaseSession(dataSource))) {
-                Runtime.getRuntime().addShutdownHook(
-                    thread(start = false) {
-                        embeddedPostgres.close()
-                    }
-                )
-            } else {
-                embeddedPostgres.close()
-            }
+            initEmbedded()
         } else {
             databaseRef.compareAndSet(
                 null,
