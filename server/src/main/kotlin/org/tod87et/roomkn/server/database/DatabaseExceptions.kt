@@ -17,4 +17,4 @@ class ConstraintViolationException(val constraint: Constraint) : DatabaseExcepti
     }
 }
 
-class UnknownException(val originalException: Exception) : DatabaseException("Unknown: ${originalException.message}")
+class UnknownException(override val cause: Exception) : DatabaseException("Unknown: ${cause.message}")
