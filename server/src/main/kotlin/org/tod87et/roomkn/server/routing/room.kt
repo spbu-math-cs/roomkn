@@ -4,10 +4,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.server.routing.route
-import org.tod87et.roomkn.server.database.DatabaseFactory
-
-private val database get() = DatabaseFactory.database
+import org.tod87et.roomkn.server.database.DatabaseFactory.database
 
 fun Route.room() {
     rooms()
