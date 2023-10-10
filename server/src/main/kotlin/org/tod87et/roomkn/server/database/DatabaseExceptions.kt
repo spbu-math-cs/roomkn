@@ -6,11 +6,14 @@ class ConnectionException : DatabaseException("Connection exception")
 
 class ReservationException : DatabaseException("Failed to create a reservation")
 
+class MissingElementException : DatabaseException("Missing element")
+
 class ConstraintViolationException(val constraint: Constraint) : DatabaseException("Constraint violation: $constraint") {
     enum class Constraint {
         USER_ID,
         ROOM_ID,
         EMAIL,
+        USERNAME,
     }
 }
 
