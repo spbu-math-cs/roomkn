@@ -6,5 +6,6 @@ import io.ktor.server.routing.route
 fun Route.apiRouting() {
     route("/api/v0") {
         pingRouting()
+        room()
     }
 }
