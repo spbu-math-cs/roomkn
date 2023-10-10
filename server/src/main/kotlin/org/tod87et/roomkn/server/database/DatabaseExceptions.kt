@@ -6,7 +6,7 @@ class ConnectionException : DatabaseException("Connection exception")
 
 class ReservationException : DatabaseException("Failed to create a reservation")
 
-class ConstraintViolationException(val constraint: Constraint) : DatabaseException("Constraint violation") {
+class ConstraintViolationException(val constraint: Constraint) : DatabaseException("Constraint violation: $constraint") {
     enum class Constraint {
         USER_ID,
         ROOM_ID,
@@ -14,4 +14,4 @@ class ConstraintViolationException(val constraint: Constraint) : DatabaseExcepti
     }
 }
 
-class UnknownException(val originalException: Exception) : DatabaseException("Unknown")
+class UnknownException(val originalException: Exception) : DatabaseException("Unknown: ${originalException.message}")
