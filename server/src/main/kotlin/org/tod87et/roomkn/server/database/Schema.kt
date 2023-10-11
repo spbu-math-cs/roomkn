@@ -7,7 +7,7 @@ import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
 object Users : Table() {
     val id: Column<Int> = integer("id").autoIncrement()
-    val username: Column<String> = text("username")
+    val username: Column<String> = text("username").uniqueIndex("unique_users_username")
     val email: Column<String> = text("email").uniqueIndex("unique_users_email")
     override val primaryKey = PrimaryKey(id)
 }

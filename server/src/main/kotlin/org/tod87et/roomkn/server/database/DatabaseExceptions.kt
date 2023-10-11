@@ -1,17 +1,23 @@
 package org.tod87et.roomkn.server.database
 
-abstract class DatabaseException(message: String) : Exception(message)
+abstract class DatabaseException(message: String, cause: Throwable? = null) : Exception(message, cause = cause)
 
-class ConnectionException : DatabaseException("Connection exception")
+class ConnectionException(cause: Throwable) : DatabaseException("Connection exception", cause)
 
 class ReservationException : DatabaseException("Failed to create a reservation")
 
-class ConstraintViolationException(val constraint: Constraint) : DatabaseException("Constraint violation: $constraint") {
+class MissingElementException : DatabaseException("Missing element")
+
+class ConstraintViolationException(
+    val constraint: Constraint,
+    cause: Throwable,
+) : DatabaseException("Constraint violation: $constraint", cause) {
     enum class Constraint {
         USER_ID,
         ROOM_ID,
         EMAIL,
+        USERNAME,
     }
 }
 
-class UnknownException(val originalException: Exception) : DatabaseException("Unknown: ${originalException.message}")
+class UnknownException(cause: Throwable) : DatabaseException("Unknown: ${cause.message}", cause)
