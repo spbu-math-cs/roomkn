@@ -1,6 +1,6 @@
 package org.tod87et.roomkn.server.database
 
-abstract class DatabaseException(message: String, cause: Throwable? = null) : Exception(message, cause = cause)
+abstract class DatabaseException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
 class ConnectionException(cause: Throwable) : DatabaseException("Connection exception", cause)
 
