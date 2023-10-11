@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 const API_HOST = "http://127.0.0.1:8080"
 
 export function useAPI(url, data=null, method='GET') {
-
     const [result, setResult] = useState();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState();

@@ -25,7 +25,7 @@ function RoomRow(room) {
 
 function GetRoomList() {
 
-  let [result, loading, error] = callSomeAPI('/api/v0/rooms/')
+  let [result, loading, error] = useAPI('/api/v0/rooms/')
 
   return result
 }

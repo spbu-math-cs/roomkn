@@ -12,9 +12,9 @@ function GetRoomInfo() {
 
   const id = location.pathname.slice(6, location.pathname.length)
 
-  let [result, loading, error] = callSomeAPI('/api/v0/rooms/' + id)
+  let [result, loading, error] = useAPI('/api/v0/rooms/' + id)
 
-  if ((error !== 200) || loading) {
+  if (error || loading) {
     return {
       id: id,
       description: error,
@@ -107,7 +107,6 @@ function Form() {
                   
               </input>
           </div>
-          <div></div>
           <input className="form-submit" type="submit" value="Забронировать"></input>
       </form>
   )
