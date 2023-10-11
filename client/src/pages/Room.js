@@ -4,6 +4,7 @@ import './Room.css'
 import ContentWrapper from '../components/Content';
 import React from 'react';
 import useAPI from '../api/API';
+import callSomeAPI from '../api/FakeAPI';
 // import Form from '../components/Form'
 
 function GetRoomInfo() {
@@ -11,9 +12,9 @@ function GetRoomInfo() {
 
   const id = location.pathname.slice(6, location.pathname.length)
 
-  let [result, loading, error] = useAPI('/api/v0/room/' + id + '/')
+  let [result, loading, error] = callSomeAPI('/api/v0/rooms/' + id)
 
-  if (error || loading) {
+  if ((error !== 200) || loading) {
     return {
       id: id,
       description: error,
@@ -27,14 +28,32 @@ function GetRoomInfo() {
 }
 
 function BookRoom(name, date, from, to) {
-  // let bookResultPromise = bookRoom(name, date, from, to)
+   //let bookResultPromise = bookRoom(name, date, from, to)
 
-  // bookResultPromise.then((result) => {
-  //   alert(result)
-  // }).catch((e) => {
-  //   alert(e.message)
-  // })
+   //bookResultPromise.then((result) => {
+   //  alert(result)
+   //}).catch((e) => {
+   //  alert(e.message)
+   //})
 
+  const location = useLocation();
+
+  const id = location.pathname.slice(6, location.pathname.length)
+
+  // TODO instant from date and from
+
+  const reservation = {
+    user_id: name,
+    from: from,
+    until: to,
+    room_id: id
+  }
+
+  let [result, loading, error] = callSomeAPI('/api/v0/reserve', reservation, "POST")
+
+  if (error === 400) alert("Ошибка: " + result)
+  else if (error === 409) alert("Невозможно выполнить бронирование: в это время комната занята")
+  else alert("Бронирование успешно!");
 }
 
 function Form() {
