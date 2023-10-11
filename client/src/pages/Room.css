@@ -13,16 +13,30 @@
 }
 
 .room-name {
-    font-size: 30px;
+    font-size: 40px;
     color: white;
 }
 
-.room-desciption {
-    font-size: 20px;
+.room-description {
+    font-size: 30px;
     color: white;
 }
 
 .form-input {
     display: flex;
     align-items: right;
+    font-size: 30px;
+}
+
+.form-name {
+    font-size: 30px;
+}
+
+.form-field {
+    font-size: 30px;
+}
+
+.form-submit {
+    align-self: self-end;
+    font-size: 40px;
 }

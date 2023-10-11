@@ -107,6 +107,7 @@ function Form() {
                   
               </input>
           </div>
+          <div></div>
           <input className="form-submit" type="submit" value="Забронировать"></input>
       </form>
   )
@@ -124,7 +125,7 @@ function Room() {
       <div className="room-wrapper">
         <div className='room-info'>
           <div className='room-name'>{room_info.id}</div>
-          <div className='room-desciption'>{room_info.description}</div>
+          <div className='room-description'>{room_info.description}</div>
           <div className='room-books'>{room_info.reservations}</div>
         </div>
         <div className='room-booking-form'>

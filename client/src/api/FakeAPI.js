@@ -47,4 +47,11 @@ function callFakeAPI(url, data=null, method='GET') {
         if (data.room_id === 203) return ["Что за черт?", false, 400]
         if (data.room_id === 101) return [null, false, 409]
     }
+
+    // dummy response for sign-in
+
+    if (url === "/api/v0/login") {
+        if (data.username === "saturas") return [null, false, 200]
+        if (data.username === "corristo") return [null, false, 409]
+    }
 }
