@@ -1,6 +1,11 @@
-.sign-in-label {
+.authorization-label-not-authorized {
     font-size: 60px;
     color: brown;
+}
+
+.authorization-label-authorized {
+    font-size: 60px;
+    color: green;
 }
 
 .sign-in-form {

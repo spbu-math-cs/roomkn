@@ -1,8 +1,9 @@
 import "./SignIn.css";
-import React from "react";
+import React, {useContext} from "react";
 import ContentWrapper from '../components/Content';
 import { Form } from "react-router-dom";
 import callSomeAPI from "../api/FakeAPI";
+import {IsAuthorizedContext} from "../components/Auth";
 
 function SignInCall(username, password) {
 
@@ -57,10 +58,24 @@ function SignInForm() {
     );
 }
 
+function AuthorizationStatusLabel() {
+    const {isAuthorized} = useContext(IsAuthorizedContext)
+
+    if (isAuthorized) {
+        return (
+            <label className="authorization-label-authorized">Вы авторизованы в системе!</label>
+        )
+    } else {
+        return (
+            <label className="authorization-label-not-authorized">Вы не авторизованы в системе. Пожалуйста, выполните вход.</label>
+        )
+    }
+}
+
 function SignIn() {
     return (
         <>
-            <label className="sign-in-label">Вы не авторизованы в системе. Пожалуйста, выполните вход.</label>
+           <AuthorizationStatusLabel/>
             <SignInForm></SignInForm>
         </>
     )
