@@ -26,19 +26,21 @@ private fun Route.rooms() {
 //        FIXME make usable limit offset
 
         val result = database.getRooms()
+        
+        val right = offset + limit
 
-        if (limit < 0 || offset < 0)
-            call.respondText (
+        if (limit < 0 || offset < 0 || offset > right)
+            return@get call.respondText (
                 "Incorrect limit or offset",
                 status = HttpStatusCode.BadRequest
             )
 
         result.onSuccess {
-            call.respond(HttpStatusCode.OK, it.subList(offset, offset + limit))
+            call.respond(HttpStatusCode.OK, it.subList(offset, right))
         }
 
         result.onFailure {
-            call.respondText(
+            return@get call.respondText(
                 "Failed to get data from database",
                 status = HttpStatusCode.InternalServerError
             )
@@ -60,7 +62,7 @@ private fun Route.roomById() {
         }
 
         result.onFailure {
-            call.respondText(
+            return@get call.respondText(
                 "Room with this id not found",
                 status = HttpStatusCode.NotFound
             )
@@ -82,7 +84,7 @@ private fun Route.roomReservations() {
         }
 
         result.onFailure {
-            call.respondText(
+            return@get call.respondText(
                 "Room with this id not found",
                 status = HttpStatusCode.NotFound
             )

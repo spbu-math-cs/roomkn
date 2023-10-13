@@ -16,7 +16,7 @@ fun Route.reserveRouting() {
             call.respond(HttpStatusCode.Created, it)
         }
         result.onFailure {
-            call.respondText(
+            return@post call.respondText(
                 "Failed to add reservation: conflict with other reservations",
                 status = HttpStatusCode.Conflict
             )
