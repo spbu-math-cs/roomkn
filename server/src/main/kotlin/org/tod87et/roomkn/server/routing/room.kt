@@ -13,7 +13,7 @@ import org.tod87et.roomkn.server.database.DatabaseFactory.database
 fun Route.roomsRouting() {
     route("/rooms") {
         rooms()
-        roomId()
+        roomById()
         roomReservations()
     }
 }
@@ -23,10 +23,12 @@ private fun Route.rooms() {
         val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: Int.MAX_VALUE
         val offset = call.request.queryParameters["offset"]?.toIntOrNull() ?: 0
 
+//        FIXME make usable limit offset
+
         val result = database.getRooms()
 
         result.onSuccess {
-            call.respond(HttpStatusCode.OK, it)
+            call.respond(HttpStatusCode.OK, it.subList(offset, offset + limit))
         }
 
         result.onFailure {
@@ -38,7 +40,7 @@ private fun Route.rooms() {
     }
 }
 
-private fun Route.roomId() {
+private fun Route.roomById() {
     get("/{id}") {
         val id = call.parameters["id"]?.toIntOrNull() ?: return@get call.respondText(
             "Id should be int",
@@ -53,7 +55,7 @@ private fun Route.roomId() {
 
         result.onFailure {
             call.respondText(
-                "Room with this id not fount",
+                "Room with this id not found",
                 status = HttpStatusCode.NotFound
             )
         }
@@ -75,7 +77,7 @@ private fun Route.roomReservations() {
 
         result.onFailure {
             call.respondText(
-                "Room with this id not fount",
+                "Room with this id not found",
                 status = HttpStatusCode.NotFound
             )
         }

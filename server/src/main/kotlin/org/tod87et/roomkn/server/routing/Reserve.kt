@@ -17,7 +17,7 @@ fun Route.reserveRouting() {
         }
         result.onFailure {
             call.respondText(
-                "Failed to add reservation: conflict with elder reservations",
+                "Failed to add reservation: conflict with other reservations",
                 status = HttpStatusCode.Conflict
             )
         }
