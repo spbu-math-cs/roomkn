@@ -2,9 +2,9 @@ import { useLocation } from 'react-router-dom'
 
 import './Room.css'
 import ContentWrapper from '../components/Content';
-import React from 'react';
+import React, {useEffect} from 'react';
 import useAPI from '../api/API';
-import callSomeAPI from '../api/FakeAPI';
+import useSomeAPI from '../api/FakeAPI';
 // import Form from '../components/Form'
 
 function GetRoomInfo() {
@@ -12,13 +12,17 @@ function GetRoomInfo() {
 
   const id = location.pathname.slice(6, location.pathname.length)
 
-  let [result, loading, error] = useAPI('/api/v0/rooms/' + id)
+  let [triggerFetch, result, loading, error] = useSomeAPI('/api/v0/rooms/' + id)
 
-  if (error || loading) {
+    useEffect(() => triggerFetch(), [])
+
+    // doRequest()
+
+  if (error !== 200 || loading) {
     return {
       id: id,
-      description: error,
-      reservations: "sdssd"
+      description: "Status code: " + error,
+      reservations: "Result: " + result
     }
   }
 
@@ -27,18 +31,7 @@ function GetRoomInfo() {
   return result
 }
 
-function BookRoom(name, date, from, to) {
-   //let bookResultPromise = bookRoom(name, date, from, to)
-
-   //bookResultPromise.then((result) => {
-   //  alert(result)
-   //}).catch((e) => {
-   //  alert(e.message)
-   //})
-
-  const location = useLocation();
-
-  const id = location.pathname.slice(6, location.pathname.length)
+function useBookRoom(id, name, date, from, to) {
 
   // TODO instant from date and from
 
@@ -49,29 +42,33 @@ function BookRoom(name, date, from, to) {
     room_id: id
   }
 
-  let [result, loading, error] = callSomeAPI('/api/v0/reserve', reservation, "POST")
+  let [triggerFetch, result, loading, error] = useSomeAPI('/api/v0/reserve', reservation, "POST")
 
-  if (error === 400) alert("Ошибка: " + result)
-  else if (error === 409) alert("Невозможно выполнить бронирование: в это время комната занята")
-  else alert("Бронирование успешно!");
+  return [triggerFetch, result, loading, error]
 }
 
-function Form() {
+function BookingForm(room_id) {
   const [name, setName] = React.useState('');
   const [date, setDate] = React.useState('2023-10-12');
   const [from, setFrom] = React.useState('09:30');
   const [to,   setTo]   = React.useState('11:05');
 
-  // setDate("10.11.12")
+  const [triggerFetch, result, loading, error] = useBookRoom(room_id, name, date, from, to);
 
-  const handleSubmit = (e) => {
+  const HandleSubmit = (e) => {
     e.preventDefault();
-    BookRoom(name, date, from, to);
+
+      triggerFetch()
+
     console.log(name, date, from, to)
+
+      if (error === 400) alert("Ошибка: " + result)
+      else if (error === 409) alert("Невозможно выполнить бронирование: в это время комната занята")
+      else alert("Бронирование успешно!");
   };
 
   return (
-      <form className="form-wrapper" onSubmit={handleSubmit}>
+      <form className="form-wrapper" onSubmit={HandleSubmit}>
           <div className="form-name">
               Форма бронирования
           </div>
@@ -128,7 +125,7 @@ function Room() {
           <div className='room-books'>{room_info.reservations}</div>
         </div>
         <div className='room-booking-form'>
-          <Form/>
+          <BookingForm room_id={room_info.id}/>
         </div>
       </div>
     </ContentWrapper>

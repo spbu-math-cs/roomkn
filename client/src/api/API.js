@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const API_HOST = "http://127.0.0.1:8080"
 
 export function useAPI(url, data=null, method='GET') {
     const [result, setResult] = useState();
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState();
+    const [statusCode, setStatus] = useState();
+    const [fetchFlag, setFetchFlag] = useState(0)
 
     useEffect(() => {
         setLoading(true);
@@ -20,6 +21,7 @@ export function useAPI(url, data=null, method='GET') {
 
         fetch(API_HOST + url)
         .then(r => {
+            setStatus(r.status)
             if (r.ok) {
                 return r
             } else
@@ -31,21 +33,26 @@ export function useAPI(url, data=null, method='GET') {
             setLoading(false);
         })
         .catch(error => {
-            setError(error)
+            setResult(error)
+            setStatus(0)
         });
-      }, [url]);
+      }, [url, data, method, fetchFlag]);
+
+    function triggerFetch() {
+        setFetchFlag(fetchFlag + 1)
+    }
     
-    return [result, loading, error];
+    return [triggerFetch, result, loading, statusCode];
 }
 
 function getToken() {
     const tokenString = sessionStorage.getItem('token');
     const userToken = JSON.parse(tokenString);
     return userToken?.token
-};
+}
 
 function saveToken(userToken) {
     sessionStorage.setItem('token', JSON.stringify(userToken));
-};
+}
     
 export default useAPI

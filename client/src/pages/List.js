@@ -3,7 +3,8 @@ import { Link } from "react-router-dom"
 import './List.css'
 import ContentWrapper from "../components/Content"
 import useAPI from "../api/API"
-import callSomeAPI from "../api/FakeAPI"
+import useSomeAPI from "../api/FakeAPI"
+import {useEffect} from "react";
 
 function RoomRow(room) {
 
@@ -23,21 +24,16 @@ function RoomRow(room) {
   )
 }
 
-function GetRoomList() {
-
-  let [result, loading, error] = useAPI('/api/v0/rooms/')
-
-  return result
-}
-
 function List() {
 
-  const rooms_list = GetRoomList()
+  let [fetchTrigger, result, loading, error] = useSomeAPI('/api/v0/rooms/')
+
+  useEffect(() => fetchTrigger(), [])
 
   const draw_list = []
 
-  if (rooms_list) {
-    rooms_list.forEach((room) => {
+  if (error === 200 && !loading) {
+      result.forEach((room) => {
       draw_list.push(RoomRow(room))
     })
   }
