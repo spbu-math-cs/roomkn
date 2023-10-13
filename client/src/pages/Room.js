@@ -12,16 +12,16 @@ function GetRoomInfo() {
 
   const id = location.pathname.slice(6, location.pathname.length)
 
-  let [triggerFetch, result, loading, error] = useSomeAPI('/api/v0/rooms/' + id)
+  let [triggerFetch, result, loading, statusCode] = useSomeAPI('/api/v0/rooms/' + id)
 
     useEffect(() => triggerFetch(), [])
 
     // doRequest()
 
-  if (error !== 200 || loading) {
+  if (statusCode !== 200 || loading) {
     return {
       id: id,
-      description: "Status code: " + error,
+      description: "Status code: " + statusCode,
       reservations: "Result: " + result
     }
   }
@@ -42,9 +42,9 @@ function useBookRoom(id, name, date, from, to) {
     room_id: id
   }
 
-  let [triggerFetch, result, loading, error] = useSomeAPI('/api/v0/reserve', reservation, "POST")
+  let [triggerFetch, result, loading, statusCode] = useSomeAPI('/api/v0/reserve', reservation, "POST")
 
-  return [triggerFetch, result, loading, error]
+  return [triggerFetch, result, loading, statusCode]
 }
 
 function BookingForm(room_id) {
@@ -53,7 +53,7 @@ function BookingForm(room_id) {
   const [from, setFrom] = React.useState('09:30');
   const [to,   setTo]   = React.useState('11:05');
 
-  const [triggerFetch, result, loading, error] = useBookRoom(room_id, name, date, from, to);
+  const [triggerFetch, result, loading, statusCode] = useBookRoom(room_id, name, date, from, to);
 
   const HandleSubmit = (e) => {
     e.preventDefault();
@@ -62,8 +62,8 @@ function BookingForm(room_id) {
 
     console.log(name, date, from, to)
 
-      if (error === 400) alert("Ошибка: " + result)
-      else if (error === 409) alert("Невозможно выполнить бронирование: в это время комната занята")
+      if (statusCode === 400) alert("Ошибка: " + result)
+      else if (statusCode === 409) alert("Невозможно выполнить бронирование: в это время комната занята")
       else alert("Бронирование успешно!");
   };
 

@@ -26,13 +26,13 @@ function RoomRow(room) {
 
 function List() {
 
-  let [fetchTrigger, result, loading, error] = useSomeAPI('/api/v0/rooms/')
+  let [fetchTrigger, result, loading, statusCode] = useSomeAPI('/api/v0/rooms/')
 
   useEffect(() => fetchTrigger(), [])
 
   const draw_list = []
 
-  if (error === 200 && !loading) {
+  if (statusCode === 200 && !loading) {
       result.forEach((room) => {
       draw_list.push(RoomRow(room))
     })
