@@ -14,9 +14,9 @@ const NavSignIn = () => {
 
     if (isAuthorized) {
         return (
-            <div onClick={logOut} className="navlink">
+            <NavLink to="/sign-in" onClick={logOut} className="navlink">
                 Выйти
-            </div>
+            </NavLink>
         )
     } else {
         return (
