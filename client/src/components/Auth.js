@@ -1,4 +1,12 @@
-import {createContext, useState} from "react";
+import {createContext, useContext, useEffect, useState} from "react";
+import useSomeAPI from "../api/FakeAPI";
+
+
+export function AuthorizeWrapper({children}) {
+    AuthorizeByCookie()
+
+    return children
+}
 
 
 export function AuthorizationProvider({children}) {
@@ -8,10 +16,85 @@ export function AuthorizationProvider({children}) {
     return (
         <IsAuthorizedContext.Provider value={{isAuthorized, setIsAuthorized}}>
             <CurrentUserContext.Provider value={{currentUser, setCurrentUser}}>
-                {children}
+                <AuthorizeWrapper>
+                    {children}
+                </AuthorizeWrapper>
             </CurrentUserContext.Provider>
         </IsAuthorizedContext.Provider>
     )
+}
+
+export function AuthorizeByCookie() {
+    const {setIsAuthorized} = useContext(IsAuthorizedContext)
+    const {setCurrentUser} = useContext(CurrentUserContext)
+
+    // document.cookie = "roomkn=234325"
+    const {result, statusCode, headers, triggerFetch} = useSomeAPI("/api/v0/auth/validate-token", null, "POST")
+
+    useEffect(() => {
+        triggerFetch()
+
+        if (statusCode === 200) {
+            const userData = {
+                user_id: result?.id,
+                csrf_token: headers['X-CSRF-Token']
+            }
+            console.log(userData)
+            setCurrentUser(userData)
+            saveUserData(userData)
+            setIsAuthorized(true)
+        } else {
+            setIsAuthorized(false)
+            setCurrentUser(null)
+        }
+    }, [result?.id, headers])
+
+}
+
+export function useAuthorize(username, password) {
+    const user = {
+        username: username,
+        password: password
+    }
+
+    const {setIsAuthorized} = useContext(IsAuthorizedContext)
+    const {setCurrentUser} = useContext(CurrentUserContext)
+
+    const {result, statusCode, headers, triggerFetch} = useSomeAPI("/api/v0/login", user, "POST")
+
+    function authorize() {
+        triggerFetch()
+        console.log(statusCode)
+        if (statusCode === 200) {
+            const userData = {
+                user_id: username,
+                csrf_token: headers['X-CSRF-Token']
+            }
+
+            setCurrentUser(userData)
+            saveUserData(userData)
+            setIsAuthorized(true)
+        } else {
+            setIsAuthorized(false)
+            setCurrentUser(null)
+        }
+    }
+
+    return {result, statusCode, headers, authorize}
+}
+
+export function getUserData() {
+    const dataString = sessionStorage.getItem('roomkn');
+    return JSON.parse(dataString)
+}
+
+export function getCSRFToken() {
+    return getUserData?.crsf_token
+}
+
+export function saveUserData(userData) {
+    console.log(userData, JSON.stringify(userData))
+    sessionStorage.setItem('roomkn', JSON.stringify(userData));
 }
 
 export const IsAuthorizedContext = createContext(false)

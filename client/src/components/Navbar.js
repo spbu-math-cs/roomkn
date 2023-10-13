@@ -6,11 +6,15 @@ import { NavLink } from "react-router-dom";
 import {IsAuthorizedContext} from "./Auth";
 
 const NavSignIn = () => {
-    const {isAuthorized} = useContext(IsAuthorizedContext)
+    const {isAuthorized, setIsAuthorized} = useContext(IsAuthorizedContext)
+
+    const logOut = () => {
+        setIsAuthorized(false)
+    }
 
     if (isAuthorized) {
         return (
-            <div className="navlink">
+            <div onClick={logOut} className="navlink">
                 Выйти
             </div>
         )

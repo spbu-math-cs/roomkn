@@ -2,9 +2,10 @@ import { useLocation } from 'react-router-dom'
 
 import './Room.css'
 import ContentWrapper from '../components/Content';
-import React, {useEffect} from 'react';
+import React, {useContext, useEffect} from 'react';
 import useAPI from '../api/API';
 import useSomeAPI from '../api/FakeAPI';
+import {CurrentUserContext} from "../components/Auth";
 // import Form from '../components/Form'
 
 function GetRoomInfo() {
@@ -54,6 +55,11 @@ function BookingForm(room_id) {
   const [to,   setTo]   = React.useState('11:05');
 
   const [triggerFetch, result, loading, statusCode] = useBookRoom(room_id, name, date, from, to);
+
+  const {currentUser} = useContext(CurrentUserContext)
+  useEffect(() => {
+      setName(currentUser?.user_id)
+  }, [])
 
   const HandleSubmit = (e) => {
     e.preventDefault();

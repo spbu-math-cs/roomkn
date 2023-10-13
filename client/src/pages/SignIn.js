@@ -2,36 +2,28 @@ import "./SignIn.css";
 import React, {useContext} from "react";
 import ContentWrapper from '../components/Content';
 import { Form } from "react-router-dom";
-import callSomeAPI from "../api/FakeAPI";
-import {IsAuthorizedContext} from "../components/Auth";
-
-function SignInCall(username, password) {
-
-    const user = {
-        username: username,
-        password: password
-    }
-
-    let [result, loading, error] = callSomeAPI("/api/v0/login", user, "POST")
-
-    if (error === 400) alert("Ошибка: неверное имя пользователя или пароль.")
-    else alert("Регистрация успешна!");
-}
+import useSomeAPI from "../api/FakeAPI";
+import {useAuthorize, IsAuthorizedContext} from "../components/Auth";
 
 function SignInForm() {
     const [username, setUsername] = React.useState(null)
     const [password, setPassword] = React.useState(null)
 
+    const {statusCode, authorize} = useAuthorize(username, password)
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        SignInCall(username, password);
+        authorize()
         console.log(username, password)
-      };
+
+        if (statusCode === 400) alert("Ошибка: неверное имя пользователя или пароль.")
+        else alert("Авторизация успешна!");
+    };
 
     return (
         <div>
-            <ContentWrapper page_name="Авторизация" onSubmit={handleSubmit}>
-                <form className="sign-in-form">
+            <ContentWrapper page_name="Авторизация">
+                <form className="sign-in-form" onSubmit={handleSubmit}>
                     <div className="sign-in-form-name">
                         Вход в систему
                     </div>

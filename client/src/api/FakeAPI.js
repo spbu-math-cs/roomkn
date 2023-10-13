@@ -10,9 +10,9 @@ function useFakeAPI(url, data=null, method='GET') {
 
     const [result, setResult] = useState();
     const [loading, setLoading] = useState(true);
-    const [statusCode, setStatus] = useState();
+    const [statusCode, setStatus] = useState(0);
     const [fetchFlag, setFetchFlag] = useState(0)
-
+    const [headers, setHeaders] = useState({})
 
 
     // dummy room list
@@ -80,9 +80,17 @@ function useFakeAPI(url, data=null, method='GET') {
         // dummy response for sign-in
 
         if (url === "/api/v0/login") {
-            if (data.username === "saturas") return [null, false, 200]
-            if (data.username === "corristo") return [null, false, 409]
-            else return [null, false, 400]
+            console.log("1" + data.username + "1", "saturas")
+            if (data.username === "saturas") {
+                setResult(null)
+                setStatus(200)
+            } else if (data.username === "corristo") {
+                setResult(null)
+                setStatus(409)
+            } else {
+                setResult(null)
+                setStatus(400)
+            }
         }
 
         setLoading(false)
@@ -92,7 +100,7 @@ function useFakeAPI(url, data=null, method='GET') {
         setFetchFlag(fetchFlag + 1)
     }
 
-    return {triggerFetch, result, loading, statusCode};
+    return {triggerFetch, result, loading, statusCode, headers};
 }
 
 export default useSomeAPI
