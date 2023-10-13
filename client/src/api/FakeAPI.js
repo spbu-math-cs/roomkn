@@ -92,7 +92,7 @@ function useFakeAPI(url, data=null, method='GET') {
         setFetchFlag(fetchFlag + 1)
     }
 
-    return [triggerFetch, result, loading, statusCode];
+    return {triggerFetch, result, loading, statusCode};
 }
 
 export default useSomeAPI
