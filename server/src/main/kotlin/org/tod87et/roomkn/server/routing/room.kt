@@ -27,6 +27,12 @@ private fun Route.rooms() {
 
         val result = database.getRooms()
 
+        if (limit < 0 || offset < 0)
+            call.respondText (
+                "Incorrect limit or offset",
+                status = HttpStatusCode.BadRequest
+            )
+
         result.onSuccess {
             call.respond(HttpStatusCode.OK, it.subList(offset, offset + limit))
         }
