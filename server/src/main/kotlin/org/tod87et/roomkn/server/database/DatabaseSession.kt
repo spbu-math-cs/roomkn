@@ -8,20 +8,20 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.tod87et.roomkn.server.models.LoginUserInfo
+import org.tod87et.roomkn.server.models.RegistrationUserInfo
 import org.tod87et.roomkn.server.models.Reservation
 import org.tod87et.roomkn.server.models.RoomInfo
 import org.tod87et.roomkn.server.models.ShortRoomInfo
 import org.tod87et.roomkn.server.models.ShortUserInfo
 import org.tod87et.roomkn.server.models.UnregisteredReservation
-import org.tod87et.roomkn.server.models.UnregisteredUserInfo
+import org.tod87et.roomkn.server.models.UserCredentialsInfo
 import org.tod87et.roomkn.server.models.UserInfo
 import java.sql.Connection
 import javax.sql.DataSource
 import org.tod87et.roomkn.server.database.Database as RooMknDatabase
 
 class DatabaseSession private constructor(private val database: Database) :
-    RooMknDatabase {
+    RooMknDatabase, CredentialsDatabase {
 
     constructor(url: String, driver: String, user: String, password: String) : this(
         Database.connect(
@@ -120,11 +120,15 @@ class DatabaseSession private constructor(private val database: Database) :
         TODO("Not yet implemented")
     }
 
-    override fun registerUser(user: UnregisteredUserInfo): Result<UserInfo> {
+    override fun registerUser(user: RegistrationUserInfo): Result<UserInfo> {
         TODO("Not yet implemented")
     }
 
-    override fun loginUser(user: LoginUserInfo): Result<UserInfo> {
+    override fun getCredentialsInfoByEmail(email: String): Result<UserCredentialsInfo> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getCredentialsInfoByUsername(username: String): Result<UserCredentialsInfo> {
         TODO("Not yet implemented")
     }
 
