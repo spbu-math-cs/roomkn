@@ -1,6 +1,7 @@
 plugins {
     kotlin("jvm") version "1.9.0"
     kotlin("plugin.serialization") version "1.9.0"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
     application
 }
 
@@ -55,4 +56,10 @@ kotlin {
 
 application {
     mainClass.set("org.tod87et.roomkn.server.MainKt")
+}
+
+tasks.withType<Jar> {
+    manifest {
+        attributes["Main-Class"] = "org.tod87et.roomkn.server.MainKt"
+    }
 }
