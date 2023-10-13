@@ -51,23 +51,13 @@ export function AuthorizeByCookie() {
 
 }
 
-export function useAuthorize(username, password) {
-    const user = {
-        username: username,
-        password: password
-    }
-
-    const {setIsAuthorized} = useContext(IsAuthorizedContext)
-    const {setCurrentUser} = useContext(CurrentUserContext)
-
-    const {result, statusCode, headers, triggerFetch} = useSomeAPI("/api/v0/login", user, "POST")
-
-    function authorize() {
+function createAuthorizeFunction(result, statusCode, headers, triggerFetch, user, setCurrentUser, setIsAuthorized) {
+    return () => {
         triggerFetch()
         console.log(statusCode)
         if (statusCode === 200) {
             const userData = {
-                user_id: username,
+                user_id: user.username,
                 csrf_token: headers['X-CSRF-Token']
             }
 
@@ -79,6 +69,37 @@ export function useAuthorize(username, password) {
             setCurrentUser(null)
         }
     }
+}
+
+export function useAuthorize(username, password) {
+    const user = {
+        username: username,
+        password: password
+    }
+
+    const {setIsAuthorized} = useContext(IsAuthorizedContext)
+    const {setCurrentUser} = useContext(CurrentUserContext)
+
+    const {result, statusCode, headers, triggerFetch} = useSomeAPI("/api/v0/login", user, "POST")
+
+    const authorize = createAuthorizeFunction(result, statusCode, headers, triggerFetch, user, setCurrentUser, setIsAuthorized)
+
+    return {result, statusCode, headers, authorize}
+}
+
+export function useRegister(username, password, email) {
+    const user = {
+        username: username,
+        password: password,
+        email:    email
+    }
+
+    const {setIsAuthorized} = useContext(IsAuthorizedContext)
+    const {setCurrentUser} = useContext(CurrentUserContext)
+
+    const {result, statusCode, headers, triggerFetch} = useSomeAPI("/api/v0/register", user, "POST")
+
+    const authorize = createAuthorizeFunction(result, statusCode, headers, triggerFetch, user, setCurrentUser, setIsAuthorized)
 
     return {result, statusCode, headers, authorize}
 }
