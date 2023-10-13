@@ -9,6 +9,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import org.tod87et.roomkn.server.database.DatabaseFactory.database
+import kotlin.math.min
 
 fun Route.roomsRouting() {
     route("/rooms") {
@@ -26,7 +27,7 @@ private fun Route.rooms() {
 //        FIXME make usable limit offset
 
         val result = database.getRooms()
-        
+
         val right = offset + limit
 
         if (limit < 0 || offset < 0 || offset > right)
@@ -36,7 +37,12 @@ private fun Route.rooms() {
             )
 
         result.onSuccess {
-            call.respond(HttpStatusCode.OK, it.subList(offset, right))
+            call.respond(HttpStatusCode.OK,
+                it.subList(
+                    min(offset, it.size),
+                    min(right, it.size)
+                )
+            )
         }
 
         result.onFailure {
