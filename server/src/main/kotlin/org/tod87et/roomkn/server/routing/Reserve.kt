@@ -1,22 +1,23 @@
 package org.tod87et.roomkn.server.routing
 
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.call
+import io.ktor.server.response.respond
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.post
 import org.tod87et.roomkn.server.database.DatabaseFactory.database
 import org.tod87et.roomkn.server.models.UnregisteredReservation
 
-fun Route.reserve() {
-    post("/reserve") {body: UnregisteredReservation ->
-        val result = database.createReservation(body)
+fun Route.reserveRouting() {
+    post("/reserve") { unregisteredReservation: UnregisteredReservation ->
+        val result = database.createReservation(unregisteredReservation)
         result.onSuccess {
             call.respond(HttpStatusCode.Created, it)
         }
         result.onFailure {
-            call.respondText (
-                "",
+            call.respondText(
+                "Failed to add reservation: conflict with elder reservations",
                 status = HttpStatusCode.Conflict
             )
         }

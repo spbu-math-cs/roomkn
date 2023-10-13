@@ -1,18 +1,25 @@
 package org.tod87et.roomkn.server.routing
 
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.call
+import io.ktor.server.response.respond
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
+import io.ktor.server.routing.route
 import org.tod87et.roomkn.server.database.DatabaseFactory.database
 
-fun Route.room() {
-    rooms()
-    roomId()
-    roomReservations()
+fun Route.roomsRouting() {
+    route("/rooms") {
+        rooms()
+        roomId()
+        roomReservations()
+    }
 }
-fun Route.rooms() {
-    get("/rooms") {
+
+private fun Route.rooms() {
+    get {
         val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: Int.MAX_VALUE
         val offset = call.request.queryParameters["offset"]?.toIntOrNull() ?: 0
 
@@ -24,16 +31,16 @@ fun Route.rooms() {
 
         result.onFailure {
             call.respondText(
-                "",
+                "Failed to get data from database",
                 status = HttpStatusCode.InternalServerError
             )
         }
     }
 }
 
-fun Route.roomId() {
-    get("/rooms/{id}") {
-        val id = call.parameters["id"]?.toIntOrNull() ?:return@get call.respondText(
+private fun Route.roomId() {
+    get("/{id}") {
+        val id = call.parameters["id"]?.toIntOrNull() ?: return@get call.respondText(
             "Id should be int",
             status = HttpStatusCode.BadRequest
         )
@@ -45,17 +52,17 @@ fun Route.roomId() {
         }
 
         result.onFailure {
-            call.respondText (
-                "",
+            call.respondText(
+                "Room with this id not fount",
                 status = HttpStatusCode.NotFound
             )
         }
     }
 }
 
-fun Route.roomReservations() {
-    get("/rooms/{id}/reservations") {
-        val id = call.parameters["id"]?.toIntOrNull() ?:return@get call.respondText(
+private fun Route.roomReservations() {
+    get("/{id}/reservations") {
+        val id = call.parameters["id"]?.toIntOrNull() ?: return@get call.respondText(
             "Id should be int",
             status = HttpStatusCode.BadRequest
         )
@@ -67,8 +74,8 @@ fun Route.roomReservations() {
         }
 
         result.onFailure {
-            call.respondText (
-                "",
+            call.respondText(
+                "Room with this id not fount",
                 status = HttpStatusCode.NotFound
             )
         }
