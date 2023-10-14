@@ -18,5 +18,5 @@ interface Database {
     /**
      * Clear database for TEST/DEBUG purpose
      */
-    fun clear(): Unit
+    fun clear(): Result<Unit>
 }
