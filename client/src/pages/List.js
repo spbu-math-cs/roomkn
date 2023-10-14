@@ -14,7 +14,7 @@ function RoomRow(room) {
     <div className="room-row">
       <div className="room-row-number">
         <Link to={link} className="room-row-link">
-          {room.id}
+          {room.name}
         </Link>
       </div>
       <div className="room-row-desc">

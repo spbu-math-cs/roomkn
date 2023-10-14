@@ -22,6 +22,7 @@ function GetRoomInfo() {
   if (statusCode !== 200 || loading) {
     return {
       id: id,
+      name: "Unkonwn cabinet",
       description: "Status code: " + statusCode,
       reservations: "Result: " + result
     }
@@ -120,13 +121,12 @@ function Room() {
 
   const room_info = GetRoomInfo()
 
-  const page_name = "Аудитория " + room_info.id
+  const page_name = "Аудитория " + room_info.name
 
   return (
     <ContentWrapper page_name={page_name}>
       <div className="room-wrapper">
         <div className='room-info'>
-          <div className='room-name'>{room_info.id}</div>
           <div className='room-description'>{room_info.description}</div>
           <div className='room-books'>{room_info.reservations}</div>
         </div>
