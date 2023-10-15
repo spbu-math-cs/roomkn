@@ -29,7 +29,7 @@ export function AuthorizeByCookie() {
     const {setCurrentUser} = useContext(CurrentUserContext)
 
     // document.cookie = "roomkn=234325"
-    const {result, statusCode, headers, triggerFetch} = useSomeAPI("/api/v0/auth/validate-token/", null, "POST")
+    const {result, statusCode, headers, triggerFetch} = useSomeAPI("/api/v0/auth/validate-token", null, "POST")
 
     useEffect(() => {
         triggerFetch()
@@ -80,7 +80,7 @@ export function useAuthorize(username, password) {
     const {setIsAuthorized} = useContext(IsAuthorizedContext)
     const {setCurrentUser} = useContext(CurrentUserContext)
 
-    const {result, statusCode, headers, triggerFetch} = useSomeAPI("/api/v0/login/", user, "POST")
+    const {result, statusCode, headers, triggerFetch} = useSomeAPI("/api/v0/login", user, "POST")
 
     const authorize = createAuthorizeFunction(result, statusCode, headers, triggerFetch, user, setCurrentUser, setIsAuthorized)
 
@@ -97,7 +97,7 @@ export function useRegister(username, password, email) {
     const {setIsAuthorized} = useContext(IsAuthorizedContext)
     const {setCurrentUser} = useContext(CurrentUserContext)
 
-    const {result, statusCode, headers, triggerFetch} = useSomeAPI("/api/v0/register/", user, "POST")
+    const {result, statusCode, headers, triggerFetch} = useSomeAPI("/api/v0/register", user, "POST")
 
     const authorize = createAuthorizeFunction(result, statusCode, headers, triggerFetch, user, setCurrentUser, setIsAuthorized)
 

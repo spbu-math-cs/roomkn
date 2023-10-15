@@ -14,7 +14,7 @@ function GetRoomInfo() {
 
   const id = location.pathname.slice(6, location.pathname.length)
 
-  let {triggerFetch, result, loading, statusCode} = useSomeAPI('/api/v0/rooms/' + id + '/')
+  let {triggerFetch, result, loading, statusCode} = useSomeAPI('/api/v0/rooms/' + id)
 
     useEffect(() => triggerFetch(), [])
 
@@ -48,7 +48,7 @@ function useBookRoom(room_id, user_id, date, from, to) {
     room_id: room_id
   }
 
-  let {triggerFetch, result, loading, statusCode, finished} = useSomeAPI('/api/v0/reserve/', reservation, "POST")
+  let {triggerFetch, result, loading, statusCode, finished} = useSomeAPI('/api/v0/reserve', reservation, "POST")
 
   return {triggerFetch, result, loading, statusCode, finished}
 }

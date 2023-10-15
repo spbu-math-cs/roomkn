@@ -26,7 +26,7 @@ function RoomRow(room) {
 
 function List() {
 
-  let {triggerFetch, result, loading, statusCode} = useSomeAPI('/api/v0/rooms/')
+  let {triggerFetch, result, loading, statusCode} = useSomeAPI('/api/v0/rooms')
 
   useEffect(() => triggerFetch(), [])
 
