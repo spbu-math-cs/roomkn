@@ -18,12 +18,14 @@ export function useAPI(url, data=null, method='GET') {
         const options = {
             method: method,
             credentials: 'include',
+            headers: {}
         }
         if (data) {
-            options.body = JSON.stringify(data)
+            options['body'] = JSON.stringify(data)
+            options.headers["Content-Type"] = 'application/json;charset=utf-8'
         }
 
-        fetch(API_HOST + url)
+        fetch(API_HOST + url, options)
         .then(r => {
             setStatus(r.status)
             if (r.ok) {
@@ -53,6 +55,17 @@ export function useAPI(url, data=null, method='GET') {
     }
     
     return {triggerFetch, result, loading, statusCode, headers, finished};
+}
+
+export function toAPITime(date, time) {
+    return "2021-11-25T14:20:00Z"
+}
+
+export function fromAPITime(ins) {
+    return {
+        date: "2022-10-12",
+        time: "8:30"
+    }
 }
 
     

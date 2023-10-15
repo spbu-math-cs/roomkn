@@ -3,7 +3,7 @@ import {useLocation, useNavigate} from 'react-router-dom'
 import './Room.css'
 import ContentWrapper from '../components/Content';
 import React, {useContext, useEffect, useState} from 'react';
-import useAPI from '../api/API';
+import useAPI, {toAPITime} from '../api/API';
 import useSomeAPI from '../api/FakeAPI';
 import {CurrentUserContext} from "../components/Auth";
 // import Form from '../components/Form'
@@ -42,9 +42,9 @@ function useBookRoom(room_id, user_id, date, from, to) {
   // TODO instant from date and from
 
   const reservation = {
-    user_id: user_id,
-    from: from,
-    until: to,
+    user_id: 1,
+    from: toAPITime(date, from),
+    until: toAPITime(date, to),
     room_id: room_id
   }
 
