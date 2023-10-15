@@ -10,6 +10,7 @@ function useFakeAPI(url, data=null, method='GET') {
 
     const [result, setResult] = useState();
     const [loading, setLoading] = useState(true);
+    const [finished, setFinished] = useState(false);
     const [statusCode, setStatus] = useState(0);
     const [fetchFlag, setFetchFlag] = useState(0)
     const [headers, setHeaders] = useState({})
@@ -18,6 +19,10 @@ function useFakeAPI(url, data=null, method='GET') {
     // dummy room list
     // useEffect(() => {
     useEffect(() => {
+        if (fetchFlag === 0) return
+
+        console.log(method, url, data)
+
         const roomList = [
             {
                 id: "1",
@@ -49,41 +54,40 @@ function useFakeAPI(url, data=null, method='GET') {
 
         if (url.startsWith("/api/v0/rooms/") &&
             url.length > "/api/v0/rooms/".length) {
-            if (url === "/api/v0/rooms/1") {
+            if (url === "/api/v0/rooms/1/") {
                 setResult(roomList[0])
                 setStatus(200)
-            } else if (url === "/api/v0/rooms/2") {
+            } else if (url === "/api/v0/rooms/2/") {
                 setResult(roomList[1])
                 setStatus(200)
-            } else if (url === "/api/v0/rooms/3") {
+            } else if (url === "/api/v0/rooms/3/") {
                 setResult(roomList[2])
                 setStatus(200)
             } else {
-                setStatus(400)
-                return
+                setStatus(404)
             }
         }
 
         // dummy response for reservations
 
-        if (url === "/api/v0/reserve") {
-            if (data.room_id === 1) {
+        if (url === "/api/v0/reserve/") {
+            if (data.room_id === "1") {
                 setStatus(201)
                 setResult(null)
-            }
-            if (data.room_id === 2) {
+            } else if (data.room_id === "2") {
                 setStatus(400)
                 setResult("Что за черт?")
-            }
-            if (data.room_id === 1) {
+            } else if (data.room_id === "3") {
                 setResult(null)
                 setStatus(409)
+            } else {
+                setStatus(404)
             }
         }
 
         // dummy response for sign-in
 
-        if (url === "/api/v0/login") {
+        if (url === "/api/v0/login/") {
             console.log("1" + data.username + "1", "saturas")
             if (data.username === "saturas") {
                 setResult(null)
@@ -98,13 +102,16 @@ function useFakeAPI(url, data=null, method='GET') {
         }
 
         setLoading(false)
-    },[url, data, method, fetchFlag])
+        setFinished(true)
+    },[fetchFlag])
 
     function triggerFetch() {
         setFetchFlag(fetchFlag + 1)
+
+        setFinished(false)
     }
 
-    return {triggerFetch, result, loading, statusCode, headers};
+    return {triggerFetch, result, loading, statusCode, headers, finished};
 }
 
 export default useSomeAPI
