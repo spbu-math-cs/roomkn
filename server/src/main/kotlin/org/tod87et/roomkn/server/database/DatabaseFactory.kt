@@ -25,20 +25,6 @@ object DatabaseFactory {
         }
     }
 
-    fun initEmbedded() {
-        val embeddedPostgres = EmbeddedPostgres.start()
-        val dataSource = embeddedPostgres.postgresDatabase
-        if (databaseRef.compareAndSet(null, DatabaseSession(dataSource))) {
-            Runtime.getRuntime().addShutdownHook(
-                thread(start = false) {
-                    embeddedPostgres.close()
-                }
-            )
-        } else {
-            embeddedPostgres.close()
-        }
-    }
-
     fun init() {
         val databaseAddress = System.getenv("DB_URL")
         val databaseDriver = System.getenv("DB_DRIVER") ?: "org.postgresql.Driver"
