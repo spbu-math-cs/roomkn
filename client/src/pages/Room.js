@@ -13,7 +13,7 @@ function GetRoomInfo() {
 
   const id = location.pathname.slice(6, location.pathname.length)
 
-  let {triggerFetch, result, loading, statusCode} = useSomeAPI('/api/v0/rooms/' + id)
+  let {triggerFetch, result, loading, statusCode} = useSomeAPI('/api/v0/rooms' + id)
 
     useEffect(() => triggerFetch(), [])
 
