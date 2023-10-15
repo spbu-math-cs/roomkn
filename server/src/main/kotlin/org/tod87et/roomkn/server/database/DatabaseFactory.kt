@@ -7,7 +7,23 @@ import kotlin.concurrent.thread
 object DatabaseFactory {
     private val databaseRef = AtomicReference<DatabaseSession?>(null)
 
-    val database: DatabaseSession get() = databaseRef.get()!!
+    val database: Database get() = databaseRef.get()!!
+
+    val credentialsDatabase: CredentialsDatabase get() = databaseRef.get()!!
+
+    fun initEmbedded() {
+        val embeddedPostgres = EmbeddedPostgres.start()
+        val dataSource = embeddedPostgres.postgresDatabase
+        if (databaseRef.compareAndSet(null, DatabaseSession(dataSource))) {
+            Runtime.getRuntime().addShutdownHook(
+                thread(start = false) {
+                    embeddedPostgres.close()
+                }
+            )
+        } else {
+            embeddedPostgres.close()
+        }
+    }
 
     fun initEmbedded() {
         val embeddedPostgres = EmbeddedPostgres.start()
