@@ -21,6 +21,7 @@ import org.tod87et.roomkn.server.database.Database as RooMknDatabase
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.deleteAll
 import org.postgresql.util.PSQLException
+import org.tod87et.roomkn.server.models.NewRoomInfo
 
 class DatabaseSession private constructor(private val database: Database) :
     RooMknDatabase, CredentialsDatabase {
@@ -40,13 +41,15 @@ class DatabaseSession private constructor(private val database: Database) :
         transaction(database) { SchemaUtils.create(Users, Rooms, Reservations) }
     }
 
-    fun createRoom(name: String, description: String): RoomInfo = transaction(database) {
-        val id = Rooms.insert {
-            it[Rooms.name] = name
-            it[Rooms.description] = description
-        } get Rooms.id
+    override fun createRoom(roomInfo: NewRoomInfo): Result<RoomInfo> = queryWrapper {
+        transaction(database) {
+            val roomRow = Rooms.insert {
+                it[name] = roomInfo.name
+                it[description] = roomInfo.description
+            }
 
-        RoomInfo(id, name, description)
+            RoomInfo(roomRow[Rooms.id], roomRow[Rooms.name], roomRow[Rooms.description])
+        }
     }
 
     override fun getRooms(): Result<List<ShortRoomInfo>> = queryWrapper {
@@ -203,16 +206,16 @@ class DatabaseSession private constructor(private val database: Database) :
         val constraint = when (constraintStr.substringAfterLast("_")) {
             "username" -> ConstraintViolationException.Constraint.USERNAME
             "email" -> ConstraintViolationException.Constraint.EMAIL
-            "userId" -> ConstraintViolationException.Constraint.USER_ID
-            "roomId" -> ConstraintViolationException.Constraint.ROOM_ID
+            "userid" -> ConstraintViolationException.Constraint.USER_ID
+            "roomid" -> ConstraintViolationException.Constraint.ROOM_ID
             else -> return UnknownException(e)
         }
 
         return ConstraintViolationException(constraint, e)
     }
 
-    private inline fun <T> queryWrapper(transactionBody: () -> T): Result<T> =
-        runCatching { transactionBody() }
+    private inline fun <T> queryWrapper(queryBody: () -> T): Result<T> =
+        runCatching { queryBody() }
             .onFailure { e ->
                 val mappedException = when {
                     e is DatabaseException -> e

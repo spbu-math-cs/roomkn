@@ -25,8 +25,8 @@ object Rooms : Table() {
 
 object Reservations : Table() {
     val id: Column<Int> = integer("id").autoIncrement()
-    val userId: Column<Int> = integer("userId").references(Users.id, fkName = "fk_reservations_userId")
-    val roomId: Column<Int> = integer("roomId").references(Rooms.id, fkName = "fk_reservations_roomId")
+    val userId: Column<Int> = integer("userId").references(Users.id, fkName = "fk_reservations_userid")
+    val roomId: Column<Int> = integer("roomId").references(Rooms.id, fkName = "fk_reservations_roomid")
 
     val from: Column<Instant> = timestamp("from")
     val until: Column<Instant> = timestamp("until")
