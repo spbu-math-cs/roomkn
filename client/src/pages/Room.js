@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom'
+import {useLocation, useNavigate} from 'react-router-dom'
 
 import './Room.css'
 import ContentWrapper from '../components/Content';
@@ -10,15 +10,19 @@ import {CurrentUserContext} from "../components/Auth";
 
 function GetRoomInfo() {
   const location = useLocation();
+  const navigate = useNavigate()
 
   const id = location.pathname.slice(6, location.pathname.length)
 
-  let {triggerFetch, result, loading, statusCode} = useSomeAPI('/api/v0/rooms' + id)
+  let {triggerFetch, result, loading, statusCode} = useSomeAPI('/api/v0/rooms/' + id)
 
     useEffect(() => triggerFetch(), [])
 
     // doRequest()
+    if (statusCode === 400) {
+        navigate('/pagenotfound', {replace: true})
 
+    }
   if (statusCode !== 200 || loading) {
     return {
       id: id,
@@ -65,13 +69,14 @@ function BookingForm(room_id) {
   const HandleSubmit = (e) => {
     e.preventDefault();
 
-      triggerFetch()
+    triggerFetch()
 
     console.log(name, date, from, to)
 
       if (statusCode === 400) alert("Ошибка: " + result)
       else if (statusCode === 409) alert("Невозможно выполнить бронирование: в это время комната занята")
-      else alert("Бронирование успешно!");
+      else if (statusCode === 200) alert("Бронирование успешно!");
+      else alert("Status Code:", statusCode)
   };
 
   return (
