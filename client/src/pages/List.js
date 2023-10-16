@@ -3,6 +3,8 @@ import { Link } from "react-router-dom"
 import './List.css'
 import ContentWrapper from "../components/Content"
 import useAPI from "../api/API"
+import useSomeAPI from "../api/FakeAPI"
+import {useEffect} from "react";
 
 function RoomRow(room) {
 
@@ -12,7 +14,7 @@ function RoomRow(room) {
     <div className="room-row">
       <div className="room-row-number">
         <Link to={link} className="room-row-link">
-          {room.id}
+          {room.name}
         </Link>
       </div>
       <div className="room-row-desc">
@@ -22,24 +24,20 @@ function RoomRow(room) {
   )
 }
 
-function GetRoomList() {
-
-  let [result, loading, error] = useAPI('/api/v0/rooms/')
-
-  return result
-}
-
 function List() {
 
-  const rooms_list = GetRoomList()
+  let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/rooms')
+
+  useEffect(() => triggerFetch(), [])
 
   const draw_list = []
 
-  if (rooms_list) {
-    rooms_list.forEach((room) => {
-      draw_list.push(RoomRow(room))
-    })
-  }
+    if (statusCode === 200 && finished) {
+        result.forEach((room) => {
+            draw_list.push(RoomRow(room))
+        })
+    }
+
 
   return (
     <ContentWrapper page_name="Список аудиторий">

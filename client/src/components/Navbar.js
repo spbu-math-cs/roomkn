@@ -1,8 +1,31 @@
 import './Navbar.css';
-import React from "react";
+import React, {useContext} from "react";
 
 
 import { NavLink } from "react-router-dom";
+import {IsAuthorizedContext} from "./Auth";
+
+const NavSignIn = () => {
+    const {isAuthorized, setIsAuthorized} = useContext(IsAuthorizedContext)
+
+    const logOut = () => {
+        setIsAuthorized(false)
+    }
+
+    if (isAuthorized) {
+        return (
+            <NavLink to="/sign-in" onClick={logOut} className="navlink">
+                Выйти
+            </NavLink>
+        )
+    } else {
+        return (
+            <NavLink to="/sign-in" className="navlink">
+                Войти
+            </NavLink>
+        )
+    }
+}
  
 const Navbar = () => {
     return (
@@ -20,9 +43,7 @@ const Navbar = () => {
                         <NavLink to="/about" className="navlink">
                             О нас
                         </NavLink>
-                        <NavLink to="/sign-in" className="navlink">
-                            Войти
-                        </NavLink>
+                        <NavSignIn />
                     </div>
                 </div>
                 

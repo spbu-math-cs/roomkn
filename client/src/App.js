@@ -11,6 +11,8 @@ import About from './pages/About';
 import SignUp from './pages/SignUp';
 import SignIn from './pages/SignIn';
 
+import {AuthorizationProvider} from './components/Auth'
+
 function PageNotFound() {
     return (
       <div>
@@ -19,23 +21,24 @@ function PageNotFound() {
     );
   }
 
- 
 function App() {
     return (
-        <Router>
-            <Navbar />
-            <Routes>
-                <Route exact path='/' element={<List />} />
-                <Route path='/about' element={<About />} />
-                <Route path='/room/*' element={<Room />} />
-                <Route path='/sign-up' element={<SignUp />} />
-                <Route path='/sign-in' element={<SignIn />} />
-                {/* <Route path='/contact' element={<Contact />} />
+        <AuthorizationProvider>
+            <Router>
+                <Navbar />
+                <Routes>
+                    <Route exact path='/' element={<List />} />
+                    <Route path='/about' element={<About />} />
+                    <Route path='/room/*' element={<Room />} />
+                    <Route path='/sign-up' element={<SignUp />} />
+                    <Route path='/sign-in' element={<SignIn />} />
+                    {/* <Route path='/contact' element={<Contact />} />
                 <Route path='/blogs' element={<Blogs />} />
                 <Route path='/sign-up' element={<SignUp />} /> */}
-                <Route path="*" element={<PageNotFound />} status={404}></Route>
-            </Routes>
-        </Router>
+                    <Route path="*" element={<PageNotFound />} status={404}></Route>
+                </Routes>
+            </Router>
+        </AuthorizationProvider>
     );
 }
  
