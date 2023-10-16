@@ -80,7 +80,10 @@ class AccountControllerImpl(
 
             return when (ex) {
                 is ConstraintViolationException -> {
-                    if (ex.constraint == ConstraintViolationException.Constraint.USERNAME) {
+                    if (
+                        ex.constraint == ConstraintViolationException.Constraint.USERNAME ||
+                        ex.constraint == ConstraintViolationException.Constraint.EMAIL
+                    ) {
                         Result.failure(RegistrationFailedException("User with such username already exists"))
                     } else {
                         Result.failure(ex)
