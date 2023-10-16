@@ -26,7 +26,7 @@ function GetRoomInfo() {
   if (statusCode !== 200 || loading) {
     return {
       id: id,
-      name: "Unkonwn cabinet",
+      name: "Unknown cabinet",
       description: "Status code: " + statusCode,
       reservations: "Result: " + result
     }
@@ -35,6 +35,18 @@ function GetRoomInfo() {
   // const res = getRoomInfo(id)
 
   return result
+}
+
+function GetReservations(room_id, date) {
+  let {triggerFetch, result, loading, statusCode} = useSomeAPI('/api/v0/rooms/' + room_id + '/reservations')
+
+    useEffect(() => triggerFetch(), [])
+
+    if (statusCode !== 200 || loading) {
+      return null
+    }
+  
+    return result
 }
 
 function useBookRoom(room_id, user_id, date, from, to) {
@@ -129,10 +141,51 @@ function BookingForm({room_id}) {
   )
 }
 
+const Reservation = (reservation) => {
+
+  let {triggerFetch, result, loading, statusCode} = useSomeAPI('/api/v0/users/' + reservation.id)
+
+  useEffect(() => triggerFetch(), [])
+
+  const reservedUsername = result.username
+
+  return (
+    <div className="reservation-row">
+      <div className="reservation-time">
+        <label className='reservation-time-label'>
+          {reservation.from} + ' - ' + {reservation.until}  
+        </label>
+      </div>
+      <div className="reservation-user">
+        <label className='reservation-user-label'>
+          Забронировано {reservedUsername}
+        </label>
+      </div>
+    </div>
+  )
+}
+
+const ReservationsList = (reservations) => {
+  if (reservations == null) return (
+    <label className='reservations-not-found-label'>
+      Не удалось получить список бронирований для этого кабинета.
+    </label>
+  )
+
+  const reservationsList = '<ul>' + reservations.map(function (reservation) {
+    return '<li>' + Reservation(reservation) + '</li>';
+  }).join('') + '</ul>'
+
+  return reservationsList
+}
 
 function Room() {
 
+  const date = "2022-10-12";
   const room_info = GetRoomInfo()
+  const reservations = GetReservations(room_info.id, date)
+
+  console.log(reservations)
 
   const page_name = "Аудитория " + room_info.name
 
@@ -145,6 +198,10 @@ function Room() {
         </div>
         <div className='room-booking-form'>
           <BookingForm room_id={room_info.id}/>
+        </div>
+        <div className='reservations-info'>
+          <label className='reservations-label'>Бронирования на 13-13-2013:</label>
+          <ReservationsList reservations={reservations}></ReservationsList>
         </div>
       </div>
     </ContentWrapper>
