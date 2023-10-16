@@ -2,8 +2,8 @@ import useAPI from './API';
 import {useEffect, useState} from "react";
 
 export function useSomeAPI(url, data=null, method='GET') {
-    return useAPI(url, data, method);
-    // return useFakeAPI(url, data, method);
+    // return useAPI(url, data, method);
+    return useFakeAPI(url, data, method);
 }
 
 function useFakeAPI(url, data=null, method='GET') {
@@ -45,7 +45,7 @@ function useFakeAPI(url, data=null, method='GET') {
 
         // dummy response for roomList
 
-        if (url === "/api/v0/rooms/") {
+        if (url === "/api/v0/rooms") {
             setResult(roomList)
             setStatus(200)
         }
@@ -54,13 +54,13 @@ function useFakeAPI(url, data=null, method='GET') {
 
         if (url.startsWith("/api/v0/rooms/") &&
             url.length > "/api/v0/rooms/".length) {
-            if (url === "/api/v0/rooms/1/") {
+            if (url === "/api/v0/rooms/1") {
                 setResult(roomList[0])
                 setStatus(200)
-            } else if (url === "/api/v0/rooms/2/") {
+            } else if (url === "/api/v0/rooms/2") {
                 setResult(roomList[1])
                 setStatus(200)
-            } else if (url === "/api/v0/rooms/3/") {
+            } else if (url === "/api/v0/rooms/3") {
                 setResult(roomList[2])
                 setStatus(200)
             } else {
@@ -70,7 +70,7 @@ function useFakeAPI(url, data=null, method='GET') {
 
         // dummy response for reservations
 
-        if (url === "/api/v0/reserve/") {
+        if (url === "/api/v0/reserve") {
             if (data.room_id === "1") {
                 setStatus(201)
                 setResult(null)
@@ -87,7 +87,7 @@ function useFakeAPI(url, data=null, method='GET') {
 
         // dummy response for sign-in
 
-        if (url === "/api/v0/login/") {
+        if (url === "/api/v0/login") {
             console.log("1" + data.username + "1", "saturas")
             if (data.username === "saturas") {
                 setResult(null)

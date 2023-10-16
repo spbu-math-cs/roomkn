@@ -26,17 +26,18 @@ function RoomRow(room) {
 
 function List() {
 
-  let {triggerFetch, result, loading, statusCode} = useSomeAPI('/api/v0/rooms')
+  let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/rooms')
 
   useEffect(() => triggerFetch(), [])
 
   const draw_list = []
 
-  if (statusCode === 200 && !loading) {
-      result.forEach((room) => {
-      draw_list.push(RoomRow(room))
-    })
-  }
+    if (statusCode === 200 && finished) {
+        result.forEach((room) => {
+            draw_list.push(RoomRow(room))
+        })
+    }
+
 
   return (
     <ContentWrapper page_name="Список аудиторий">
