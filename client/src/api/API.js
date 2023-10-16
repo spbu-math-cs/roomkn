@@ -58,13 +58,21 @@ export function useAPI(url, data=null, method='GET') {
 }
 
 export function toAPITime(date, time) {
-    return "2021-11-25T14:20:00Z"
+    //return "2021-11-25T14:20:00Z"
+    return (date + "T" + time + ":00Z")
 }
 
 export function fromAPITime(ins) {
+    // return {
+    //     date: "2022-10-12",
+    //     time: "8:30"
+    // }
+
+    const tokens = ins.split('T')
+    const time = tokens[1].slice(0, -4)
     return {
-        date: "2022-10-12",
-        time: "8:30"
+        date: tokens[0],
+        time: time
     }
 }
 

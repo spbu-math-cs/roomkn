@@ -3,7 +3,7 @@ import {useLocation, useNavigate} from 'react-router-dom'
 import './Room.css'
 import ContentWrapper from '../components/Content';
 import React, {useContext, useEffect, useState} from 'react';
-import useAPI, {toAPITime} from '../api/API';
+import useAPI, {toAPITime, fromAPITime} from '../api/API';
 import useSomeAPI from '../api/FakeAPI';
 import {CurrentUserContext} from "../components/Auth";
 // import Form from '../components/Form'
@@ -38,17 +38,20 @@ function GetRoomInfo() {
 }
 
 function GetReservations(room_id, date) {
+  console.log("GetReservations invoked with date = " + date)
   console.log("used some api with /api/v0/rooms/" + room_id + "/reservations")
   let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/rooms/' + room_id + '/reservations')
     useEffect(() => triggerFetch(), [])
     console.log("after useSomeAPI")
 
     if (statusCode === 200 && finished) {
-      console.log("status ok, returning result")
-      return result
+      // const reservation_list = []
+      // result.forEach((reservation) => {
+      //   if (fromAPITime(reservation.from) === date) reservation_list.push(reservation)
+      // });
+      return result.filter((reservation) => (fromAPITime(reservation.from) === date))
     }
   
-  console.log("status not ok, returning null", statusCode)
   return null
 }
 
@@ -68,9 +71,8 @@ function useBookRoom(room_id, user_id, date, from, to) {
   return {triggerFetch, result, loading, statusCode, finished}
 }
 
-function BookingForm({room_id}) {
+function BookingForm({room_id, date}) {
   const [name, setName] = useState('');
-  const [date, setDate] = useState('2023-10-12');
   const [from, setFrom] = useState('09:30');
   const [to,   setTo]   = useState('11:05');
 
@@ -112,14 +114,6 @@ function BookingForm({room_id}) {
                   Имя
               </label>
               <input className="form-input" value={name} onChange={(e) => setName(e.target.value)}>
-                  
-              </input>
-          </div>
-          <div className="form-field">
-              <label className="form-label">
-                  Дата
-              </label>
-              <input className="form-input" type="date" value={date} onChange={(e) => setDate(e.target.value)}>
                   
               </input>
           </div>
@@ -208,6 +202,14 @@ function Room() {
         <div className='room-info'>
           <div className='room-description'>{room_info.description}</div>
           <div className='room-books'>{room_info.reservations}</div>
+          <div className="form-field">
+              <label className="form-label">
+                  Дата
+              </label>
+              <input className="form-input" type="date" value={date} onChange={(e) => setDate(e.target.value)}>
+                  
+              </input>
+          </div>
           <div className='reservations-info'>
             <div>
               <label className='reservations-label'>Бронирования на {date}:</label>
@@ -216,7 +218,7 @@ function Room() {
           </div>
         </div>
         <div className='room-booking-form'>
-          <BookingForm room_id={room_info.id}/>
+          <BookingForm room_id={room_info.id} date={date}/>
         </div>
       </div>
     </ContentWrapper>

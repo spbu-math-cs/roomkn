@@ -138,15 +138,15 @@ function useFakeAPI(url, data=null, method='GET') {
                 {
                     id: 1,
                     user_id: 1,
-                    from: "15:30",
-                    until: "17:40",
+                    from: "2021-11-25T14:20:00Z",
+                    until: "2021-11-25T16:10:00Z",
                     room_id: 1
                 },
                 {
                     id: 2,
                     user_id: 3,
-                    from: "18:20",
-                    until: "20:10",
+                    from: "2021-11-24T09:20:00Z",
+                    until: "2021-11-24T10:50:00Z",
                     room_id: 1
                 }
             ])
