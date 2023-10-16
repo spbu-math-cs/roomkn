@@ -52,3 +52,7 @@ tasks.test {
 kotlin {
     jvmToolchain(8)
 }
+
+application {
+    mainClass.set("org.tod87et.roomkn.server.MainKt")
+}
