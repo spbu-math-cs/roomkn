@@ -138,7 +138,7 @@ function BookingForm({room_id, date}) {
   )
 }
 
-const Reservation = (reservation) => {
+function Reservation ({reservation}) {
 
   let {triggerFetch, result, loading, statusCode} = useSomeAPI('/api/v0/users/' + reservation.user_id)
 
@@ -171,10 +171,11 @@ function ReservationsList({reservations}) {
 
   console.log("reservations: " + reservations)
 
-  const reservationsList = reservations.map((reservation) => {
-        return (
+  const reservationsList = []
+  reservations.forEach((reservation) => {
+      reservationsList.push (
           <li>
-            {Reservation(reservation)}
+            <Reservation reservation={reservation}/>
           </li>
         )
     })
