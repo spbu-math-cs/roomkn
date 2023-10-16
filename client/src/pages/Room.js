@@ -49,7 +49,7 @@ function GetReservations(room_id, date) {
       // result.forEach((reservation) => {
       //   if (fromAPITime(reservation.from) === date) reservation_list.push(reservation)
       // });
-      return result.filter((reservation) => (fromAPITime(reservation.from) === date))
+      return result.filter((reservation) => (fromAPITime(reservation.from).date === date))
     }
   
   return null
@@ -150,7 +150,7 @@ const Reservation = (reservation) => {
     <div className="reservation-row">
       <div className="reservation-time">
         <label className='reservation-time-label'>
-          {reservation.from} - {reservation.until}
+          {fromAPITime(reservation.from).time} - {fromAPITime(reservation.until).time}
         </label>
       </div>
       <div className="reservation-user">
