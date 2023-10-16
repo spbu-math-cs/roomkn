@@ -48,7 +48,7 @@ function GetReservations(room_id, date) {
       return result
     }
   
-  console.log("status not ok, returning null")
+  console.log("status not ok, returning null", statusCode)
   return null
 }
 
@@ -146,17 +146,17 @@ function BookingForm({room_id}) {
 
 const Reservation = (reservation) => {
 
-  let {triggerFetch, result, loading, statusCode} = useSomeAPI('/api/v0/users/' + reservation.id)
+  let {triggerFetch, result, loading, statusCode} = useSomeAPI('/api/v0/users/' + reservation.user_id)
 
   useEffect(() => triggerFetch(), [])
 
-  const reservedUsername = result.username
+  const reservedUsername = result?.username
 
   return (
     <div className="reservation-row">
       <div className="reservation-time">
         <label className='reservation-time-label'>
-          {reservation.from} + ' - ' + {reservation.until}  
+          {reservation.from} ' - ' {reservation.until}
         </label>
       </div>
       <div className="reservation-user">
@@ -168,20 +168,28 @@ const Reservation = (reservation) => {
   )
 }
 
-const ReservationsList = (props) => {
-  if (props == null) return (
+function ReservationsList({reservations}) {
+  if (reservations == null) return (
     <label className='reservations-not-found-label'>
       Не удалось получить список бронирований для этого кабинета.
     </label>
   )
 
-  console.log("reservations: " + props)
+  console.log("reservations: " + reservations)
 
-  const reservationsList = '<ul>' + props.map(function (reservation) {
-    return '<li>' + Reservation(reservation) + '</li>';
-  }).join('') + '</ul>'
+  const reservationsList = reservations.map((reservation) => {
+        return (
+            <li>
+                {Reservation(reservation)}
+            </li>
+        )
+    })
 
-  return reservationsList
+  return (
+      <ul>
+          {reservationsList}
+      </ul>
+  )
 }
 
 function Room() {
@@ -205,7 +213,7 @@ function Room() {
           <BookingForm room_id={room_info.id}/>
         </div>
         <div className='reservations-info'>
-          <label className='reservations-label'>Бронирования на 13-13-2013:</label>
+          <label className='reservations-label'>Бронирования на {date}:</label>
           <ReservationsList reservations={reservations}></ReservationsList>
         </div>
       </div>
