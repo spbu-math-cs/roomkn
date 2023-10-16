@@ -172,6 +172,8 @@ const ReservationsList = (reservations) => {
     </label>
   )
 
+  console.log(reservations)
+
   const reservationsList = '<ul>' + reservations.map(function (reservation) {
     return '<li>' + Reservation(reservation) + '</li>';
   }).join('') + '</ul>'

@@ -101,6 +101,56 @@ function useFakeAPI(url, data=null, method='GET') {
             }
         }
 
+
+        // dummy response for user info
+
+        if (url === "/api/v0/users/1") {
+            setStatus(200)
+            setResult({
+                id: 1,
+                username: "Tinky Winky",
+                email: null
+            })
+        }
+        if (url === "/api/v0/users/2") {
+            setStatus(200)
+            setResult({
+                id: 2,
+                username: "Dipsy",
+                email: null
+            })
+        }
+        if (url === "/api/v0/users/1") {
+            setStatus(200)
+            setResult({
+                id: 3,
+                username: "Laa Laa",
+                email: null
+            })
+        }
+
+        // dummy response for reservation info
+
+        if (url === "api/v0/rooms/101/reservations") {
+            setStatus(200)
+            setResult([
+                {
+                    id: 1,
+                    user_id: 1,
+                    from: "15:30",
+                    until: "17:40",
+                    room_id: 101
+                },
+                {
+                    id: 2,
+                    user_id: 3,
+                    from: "18:20",
+                    until: "20:10",
+                    room_id: 101
+                }
+            ])
+        }
+
         setLoading(false)
         setFinished(true)
     },[fetchFlag])
