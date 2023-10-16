@@ -38,15 +38,18 @@ function GetRoomInfo() {
 }
 
 function GetReservations(room_id, date) {
-  let {triggerFetch, result, loading, statusCode} = useSomeAPI('/api/v0/rooms/' + room_id + '/reservations')
-
+  console.log("used some api with /api/v0/rooms/" + room_id + "/reservations")
+  let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/rooms/' + room_id + '/reservations')
     useEffect(() => triggerFetch(), [])
+    console.log("after useSomeAPI")
 
-    if (statusCode !== 200 || loading) {
-      return null
+    if (statusCode === 200 && finished) {
+      console.log("status ok, returning result")
+      return result
     }
   
-    return result
+  console.log("status not ok, returning null")
+  return null
 }
 
 function useBookRoom(room_id, user_id, date, from, to) {
@@ -165,16 +168,16 @@ const Reservation = (reservation) => {
   )
 }
 
-const ReservationsList = (reservations) => {
-  if (reservations == null) return (
+const ReservationsList = (props) => {
+  if (props == null) return (
     <label className='reservations-not-found-label'>
       Не удалось получить список бронирований для этого кабинета.
     </label>
   )
 
-  console.log(reservations)
+  console.log("reservations: " + props)
 
-  const reservationsList = '<ul>' + reservations.map(function (reservation) {
+  const reservationsList = '<ul>' + props.map(function (reservation) {
     return '<li>' + Reservation(reservation) + '</li>';
   }).join('') + '</ul>'
 

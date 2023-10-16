@@ -2,8 +2,8 @@ import useAPI from './API';
 import {useEffect, useState} from "react";
 
 export function useSomeAPI(url, data=null, method='GET') {
-    return useAPI(url, data, method);
-    // return useFakeAPI(url, data, method);
+    // return useAPI(url, data, method);
+    return useFakeAPI(url, data, method);
 }
 
 function useFakeAPI(url, data=null, method='GET') {
@@ -120,7 +120,7 @@ function useFakeAPI(url, data=null, method='GET') {
                 email: null
             })
         }
-        if (url === "/api/v0/users/1") {
+        if (url === "/api/v0/users/3") {
             setStatus(200)
             setResult({
                 id: 3,
@@ -131,7 +131,8 @@ function useFakeAPI(url, data=null, method='GET') {
 
         // dummy response for reservation info
 
-        if (url === "api/v0/rooms/101/reservations") {
+        if (url === "/api/v0/rooms/1/reservations") {
+            console.log("fakeAPI: setting result")
             setStatus(200)
             setResult([
                 {
@@ -139,14 +140,14 @@ function useFakeAPI(url, data=null, method='GET') {
                     user_id: 1,
                     from: "15:30",
                     until: "17:40",
-                    room_id: 101
+                    room_id: 1
                 },
                 {
                     id: 2,
                     user_id: 3,
                     from: "18:20",
                     until: "20:10",
-                    room_id: 101
+                    room_id: 1
                 }
             ])
         }
