@@ -186,9 +186,21 @@ function ReservationsList({reservations}) {
   )
 }
 
-function Room() {
+function getTodayDate(format) {
+    const date = new Date()
+    const map = {
+        mm: date.getMonth() + 1,
+        dd: date.getDate(),
+        yyyy: date.getFullYear(),
+        // yy: date.getFullYear().toString().slice(-2)
+    }
 
-  const [date, setDate] = React.useState('2022-10-12')
+    return format.replace(/mm|dd|yyyy/gi, matched => map[matched])
+}
+
+function Room() {
+  const date_string = getTodayDate("yyyy-mm-dd")
+  const [date, setDate] = React.useState(date_string)
   const room_info = GetRoomInfo()
   const reservations = GetReservations(room_info.id, date)
 
