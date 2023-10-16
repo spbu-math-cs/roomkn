@@ -156,12 +156,12 @@ const Reservation = (reservation) => {
     <div className="reservation-row">
       <div className="reservation-time">
         <label className='reservation-time-label'>
-          {reservation.from} ' - ' {reservation.until}
+          {reservation.from} - {reservation.until}
         </label>
       </div>
       <div className="reservation-user">
         <label className='reservation-user-label'>
-          Забронировано {reservedUsername}
+          Забронировано {reservedUsername}.
         </label>
       </div>
     </div>
@@ -179,9 +179,9 @@ function ReservationsList({reservations}) {
 
   const reservationsList = reservations.map((reservation) => {
         return (
-            <li>
-                {Reservation(reservation)}
-            </li>
+          <li>
+            {Reservation(reservation)}
+          </li>
         )
     })
 
@@ -194,7 +194,7 @@ function ReservationsList({reservations}) {
 
 function Room() {
 
-  const date = "2022-10-12";
+  const [date, setDate] = React.useState('2022-10-12')
   const room_info = GetRoomInfo()
   const reservations = GetReservations(room_info.id, date)
 
@@ -208,13 +208,15 @@ function Room() {
         <div className='room-info'>
           <div className='room-description'>{room_info.description}</div>
           <div className='room-books'>{room_info.reservations}</div>
+          <div className='reservations-info'>
+            <div>
+              <label className='reservations-label'>Бронирования на {date}:</label>
+            </div>
+            <ReservationsList reservations={reservations}></ReservationsList>
+          </div>
         </div>
         <div className='room-booking-form'>
           <BookingForm room_id={room_info.id}/>
-        </div>
-        <div className='reservations-info'>
-          <label className='reservations-label'>Бронирования на {date}:</label>
-          <ReservationsList reservations={reservations}></ReservationsList>
         </div>
       </div>
     </ContentWrapper>
