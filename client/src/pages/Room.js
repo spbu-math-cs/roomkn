@@ -25,10 +25,7 @@ function GetRoomInfo() {
     }
   if (statusCode !== 200 || loading) {
     return {
-      id: id,
-      name: "Unknown cabinet",
-      description: "Status code: " + statusCode,
-      reservations: "Result: " + result
+      id: id
     }
   }
 
@@ -49,10 +46,16 @@ function GetReservations(room_id, date) {
       // result.forEach((reservation) => {
       //   if (fromAPITime(reservation.from) === date) reservation_list.push(reservation)
       // });
-      return result.filter((reservation) => (fromAPITime(reservation.from).date === date))
+      return {
+          reservations: result.filter((reservation) => (fromAPITime(reservation.from).date === date)),
+          triggerGetReservations: triggerFetch
+      }
     }
   
-  return null
+  return {
+      reservations: null,
+      triggerGetReservations: triggerFetch
+  }
 }
 
 function useBookRoom(room_id, user_id, date, from, to) {
@@ -71,7 +74,7 @@ function useBookRoom(room_id, user_id, date, from, to) {
   return {triggerFetch, result, loading, statusCode, finished}
 }
 
-function BookingForm({room_id, date}) {
+function BookingForm({room_id, date, triggerGetReservations}) {
   const [name, setName] = useState('');
   const [from, setFrom] = useState('09:30');
   const [to,   setTo]   = useState('11:05');
@@ -90,6 +93,8 @@ function BookingForm({room_id, date}) {
             else if (statusCode === 409) alert("Невозможно выполнить бронирование: в это время комната занята")
             else if (statusCode === 201) alert("Бронирование успешно!");
             else alert("Status Code: " + statusCode)
+
+            triggerGetReservations()
         }
     }, [finished]);
 
@@ -98,7 +103,7 @@ function BookingForm({room_id, date}) {
     e.preventDefault();
 
     triggerFetch()
-
+      triggerGetReservations()
     // console.log(name, date, from, to, statusCode, finished)
 
 
@@ -187,11 +192,14 @@ function ReservationsList({reservations}) {
   )
 }
 
-function getTodayDate(format) {
-    const date = new Date()
+function dateFormat(date, format = "yyyy-mm-dd") {
+    var mlz = ""
+    if (date.getMonth() + 1 < 10) mlz = "0"
+    var dlz = ""
+    if (date.getDate() < 10) dlz = "0"
     const map = {
-        mm: date.getMonth() + 1,
-        dd: date.getDate(),
+        mm: mlz + (date.getMonth() + 1),
+        dd: dlz + date.getDate(),
         yyyy: date.getFullYear(),
         // yy: date.getFullYear().toString().slice(-2)
     }
@@ -199,11 +207,39 @@ function getTodayDate(format) {
     return format.replace(/mm|dd|yyyy/gi, matched => map[matched])
 }
 
+function getTodayDate(format = "yyyy-mm-dd") {
+    const date = new Date()
+
+    return dateFormat(date, format)
+}
+
+function updateDate(date, diff) {
+    const new_date = new Date(date)
+    new_date.setDate(new_date.getDate() + diff)
+    const tmp = dateFormat(new_date)
+    console.log(tmp)
+    return tmp
+}
+
+function RoomDate({date, setDate}) {
+
+    return (
+        <div className="form-field">
+            <label className="form-label">
+                Дата
+            </label>
+            <input className="form-input" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            <input type="button" value="<" onClick={() => setDate(updateDate(date, -1))}/>
+            <input type="button" value=">" onClick={() => setDate(updateDate(date, +1))}/>
+        </div>
+    )
+}
+
 function Room() {
-  const date_string = getTodayDate("yyyy-mm-dd")
+  const date_string = getTodayDate()
   const [date, setDate] = React.useState(date_string)
   const room_info = GetRoomInfo()
-  const reservations = GetReservations(room_info.id, date)
+  const {reservations, triggerGetReservations} = GetReservations(room_info.id, date)
 
   console.log(reservations)
 
@@ -215,13 +251,8 @@ function Room() {
         <div className='room-info'>
           <div className='room-description'>{room_info.description}</div>
           <div className='room-books'>{room_info.reservations}</div>
-          <div className="form-field">
-              <label className="form-label">
-                  Дата
-              </label>
-              <input className="form-input" type="date" value={date} onChange={(e) => setDate(e.target.value)}>
-                  
-              </input>
+          <div className='room-date'>
+              <RoomDate date={date} setDate={setDate}/>
           </div>
           <div className='reservations-info'>
             <div>
@@ -231,7 +262,7 @@ function Room() {
           </div>
         </div>
         <div className='room-booking-form'>
-          <BookingForm room_id={room_info.id} date={date}/>
+          <BookingForm room_id={room_info.id} date={date} triggerGetReservations={triggerGetReservations}/>
         </div>
       </div>
     </ContentWrapper>
