@@ -148,6 +148,13 @@ function useFakeAPI(url, data=null, method='GET') {
                     from: "2021-11-24T09:20:00Z",
                     until: "2021-11-24T10:50:00Z",
                     room_id: 1
+                },
+                {
+                    id: 3,
+                    user_id: 2,
+                    from: "2021-11-25T10:20:00Z",
+                    until: "2021-11-25T11:50:00Z",
+                    room_id: 1
                 }
             ])
         }
