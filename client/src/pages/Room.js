@@ -142,7 +142,7 @@ function Reservation ({reservation}) {
 
   let {triggerFetch, result, loading, statusCode} = useSomeAPI('/api/v0/users/' + reservation.user_id)
 
-  useEffect(() => triggerFetch(), [])
+  useEffect(() => triggerFetch(), [reservation])
 
   const reservedUsername = result?.username
 
