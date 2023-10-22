@@ -2,11 +2,13 @@ import {useLocation, useNavigate} from 'react-router-dom'
 
 import './Room.css'
 import ContentWrapper from '../components/Content';
-import React, {useContext, useEffect, useState} from 'react';
+import React, {createContext, useContext, useEffect, useState} from 'react';
 import useAPI, {toAPITime, fromAPITime} from '../api/API';
 import useSomeAPI from '../api/FakeAPI';
 import {CurrentUserContext} from "../components/Auth";
 // import Form from '../components/Form'
+
+const CurrentReservationContext = createContext()
 
 function GetRoomInfo() {
   const location = useLocation();
@@ -74,12 +76,15 @@ function useBookRoom(room_id, user_id, date, from, to) {
   return {triggerFetch, result, loading, statusCode, finished}
 }
 
-function BookingForm({room_id, date, triggerGetReservations}) {
-  const [name, setName] = useState('');
-  const [from, setFrom] = useState('09:30');
-  const [to,   setTo]   = useState('11:05');
 
-  const {triggerFetch, result, statusCode, finished} = useBookRoom(room_id, name, date, from, to);
+function BookingForm({room_id, date, triggerGetReservations}) {
+
+  const [name, setName] = useState('');
+  // const [from, setFrom] = useState('09:30');
+  // const [to,   setTo]   = useState('11:05');
+  const {from, setFrom, until, setUntil, date} = useContext(CurrentReservationContext)
+
+  const {triggerFetch, result, statusCode, finished} = useBookRoom(room_id, name, date, from, until);
 
   const {currentUser} = useContext(CurrentUserContext)
   useEffect(() => {
@@ -134,7 +139,7 @@ function BookingForm({room_id, date, triggerGetReservations}) {
               <label className="form-label">
                   До
               </label>
-              <input className="form-input" type="time" value={to} onChange={(e) => setTo(e.target.value)}>
+              <input className="form-input" type="time" value={until} onChange={(e) => setUntil(e.target.value)}>
                   
               </input>
           </div>
@@ -143,7 +148,7 @@ function BookingForm({room_id, date, triggerGetReservations}) {
   )
 }
 
-function Reservation ({reservation}) {
+function Reservation ({reservation, is_current_reservation=false}) {
 
   let {triggerFetch, result, loading, statusCode} = useSomeAPI('/api/v0/users/' + reservation.user_id)
 
@@ -151,23 +156,56 @@ function Reservation ({reservation}) {
 
   const reservedUsername = result?.username
 
+  const from_obj = fromAPITime(reservation.from)
+  const until_obj = fromAPITime(reservation.until)
+
+  const from_date = new Date(from_obj.date + " " + from_obj.time)
+  const until_date = new Date(until_obj.date + " " + until_obj.time)
+  const day_start_date = new Date(until_obj.date + " " + "09:00")
+
+  const duration_in_seconds = (until_date.getTime() - from_date.getTime()) / 1000
+  const from_start_in_seconds = (from_date.getTime() - day_start_date.getTime()) / 1000
+  const day_duration_in_seconds = 14 * 60 * 60
+
+  const left_offset = (from_start_in_seconds / day_duration_in_seconds * 100) + "%"
+  const reservation_width = (duration_in_seconds / day_duration_in_seconds * 100) + "%"
+
+  const row_style = {
+      top: 0,
+      left: left_offset,
+      width: reservation_width,
+      height: "100px"
+  }
+
+  var reservation_class_name = "reservation-wrapper"
+  if (is_current_reservation) {
+      reservation_class_name = "reservation-current-wrapper"
+  }
+
   return (
-    <div className="reservation-row">
-      <div className="reservation-time">
-        <label className='reservation-time-label'>
-          {fromAPITime(reservation.from).time} - {fromAPITime(reservation.until).time}
-        </label>
-      </div>
-      <div className="reservation-user">
-        <label className='reservation-user-label'>
-          Забронировано {reservedUsername}.
-        </label>
+    <div className="reservation-row" style={row_style}>
+      <div className={reservation_class_name}>
+          <div className="reservation-info">
+              <div className="reservation-time">
+                  <label className='reservation-time-label'>
+                      {fromAPITime(reservation.from).time} - {fromAPITime(reservation.until).time}
+                  </label>
+              </div>
+              <div className="reservation-user">
+                  <label className='reservation-user-label'>
+                      {reservedUsername}.
+                  </label>
+              </div>
+          </div>
       </div>
     </div>
   )
 }
 
 function ReservationsList({reservations}) {
+  const {user_id} = useContext(CurrentUserContext)
+  const {from, until, date} = useContext(CurrentReservationContext)
+
   if (reservations == null) return (
     <label className='reservations-not-found-label'>
       Не удалось получить список бронирований для этого кабинета.
@@ -176,19 +214,28 @@ function ReservationsList({reservations}) {
 
   console.log("reservations: " + reservations)
 
+
   const reservationsList = []
   reservations.forEach((reservation) => {
       reservationsList.push (
-          <li>
+          // <li>
             <Reservation reservation={reservation}/>
-          </li>
+          // </li>
         )
     })
 
+  const current_reservation = {
+      from: toAPITime(date, from),
+      until: toAPITime(date, until),
+      user_id: user_id
+  }
+
   return (
-      <ul>
+      <div className="reservation-list-wrapper">
+          <div className="reservation-list-background"/>
+          <Reservation reservation={current_reservation} is_current_reservation={true}/>
           {reservationsList}
-      </ul>
+      </div>
   )
 }
 
@@ -238,6 +285,8 @@ function RoomDate({date, setDate}) {
 function Room() {
   const date_string = getTodayDate()
   const [date, setDate] = React.useState(date_string)
+  const [from, setFrom] = React.useState("09:30")
+  const [until, setUntil] = React.useState("11:05")
   const room_info = GetRoomInfo()
   const {reservations, triggerGetReservations} = GetReservations(room_info.id, date)
 
@@ -247,24 +296,33 @@ function Room() {
 
   return (
     <ContentWrapper page_name={page_name}>
-      <div className="room-wrapper">
-        <div className='room-info'>
-          <div className='room-description'>{room_info.description}</div>
-          <div className='room-books'>{room_info.reservations}</div>
-          <div className='room-date'>
-              <RoomDate date={date} setDate={setDate}/>
-          </div>
-          <div className='reservations-info'>
-            <div>
-              <label className='reservations-label'>Бронирования на {date}:</label>
+        <CurrentReservationContext.Provider value={{date, setDate, from, setFrom, until, setUntil}}>
+            <div className="room-wrapper">
+                <div className='room-info'>
+                    <div className='room-description'>{room_info.description}</div>
+                     <div className='room-date'>
+                        <RoomDate date={date} setDate={setDate}/>
+                    </div>
+                    <div className="form-field">
+                        <label className="form-label">
+                            Дата
+                        </label>
+                        <input className="form-input" type="date" value={date} onChange={(e) => setDate(e.target.value)}>
+
+                        </input>
+                    </div>
+                    <div className='reservations-info'>
+                        <div>
+                            <label className='reservations-label'>Бронирования на {date}:</label>
+                        </div>
+                        <ReservationsList reservations={reservations}></ReservationsList>
+                    </div>
+                </div>
+                <div className='room-booking-form'>
+                    <BookingForm room_id={room_info.id} date={date} triggerGetReservations={triggerGetReservations}/>
+                </div>
             </div>
-            <ReservationsList reservations={reservations}></ReservationsList>
-          </div>
-        </div>
-        <div className='room-booking-form'>
-          <BookingForm room_id={room_info.id} date={date} triggerGetReservations={triggerGetReservations}/>
-        </div>
-      </div>
+        </CurrentReservationContext.Provider>
     </ContentWrapper>
   );
 }

@@ -14,12 +14,10 @@
 
 .room-name {
     font-size: 40px;
-    color: white;
 }
 
 .room-description {
     font-size: 30px;
-    color: white;
 }
 
 .form-input {
@@ -43,6 +41,65 @@
 
 .reservations-label {
     font-size: 30px
+}
+
+.reservation-list-wrapper {
+    /*display: flex;*/
+    /*flex-direction: column;*/
+    /*background: white;*/
+    height: 150px;
+    width: 90%;
+    position: relative;
+
+}
+
+.reservation-list-background {
+    /*display: flex;*/
+    /*flex-direction: column;*/
+    position: relative;
+    /*background: #1E1F22;*/
+    height: 146px;
+    width: 100%;
+
+    border-top: 2px solid var(--idea-border-black, #1E1F22);
+    border-right: 2px solid var(--idea-border-black, #1E1F22);
+    border-left: 2px solid var(--idea-border-black, #1E1F22);
+    border-bottom: 2px solid var(--idea-border-black, #1E1F22);
+    /*height: 100px;*/
+}
+
+.reservation-row {
+    position: absolute;
+}
+
+.reservation-wrapper {
+    color: black;
+    background: darkslateblue;
+    border-top: 2px solid var(--idea-border-black, #1E1F22);
+    border-right: 2px solid var(--idea-border-black, #1E1F22);
+    border-left: 2px solid var(--idea-border-black, #1E1F22);
+    border-bottom: 2px solid var(--idea-border-black, #1E1F22);
+    border-radius: 2px;
+    height: 146px;
+    z-index: 1;
+}
+
+.reservation-current-wrapper {
+    color: black;
+    background: blue;
+    border-top: 2px solid var(--idea-border-black, #1E1F22);
+    border-right: 2px solid var(--idea-border-black, #1E1F22);
+    border-left: 2px solid var(--idea-border-black, #1E1F22);
+    border-bottom: 2px solid var(--idea-border-black, #1E1F22);
+    border-radius: 2px;
+    height: 146px;
+    z-index: 0;
+}
+
+.reservation-info {
+    writing-mode: sideways-lr;
+    height: 100%;
+    text-align: center;
 }
 
 .reservation-time-label {
