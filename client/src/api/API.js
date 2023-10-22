@@ -68,13 +68,13 @@ export function fromAPITime(ins) {
     //     time: "8:30"
     // }
 
-    console.log("fromAPITime: " + ins)
+    // console.log("fromAPITime: " + ins)
 
     const tokens = ins.split('T')
     const time = tokens[1].slice(0, -4)
 
-    console.log("date: " + tokens[0])
-    console.log("time: " + time)
+    // console.log("date: " + tokens[0])
+    // console.log("time: " + time)
     return {
         date: tokens[0],
         time: time
