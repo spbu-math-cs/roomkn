@@ -12,6 +12,7 @@ import SignUp from './pages/SignUp';
 import SignIn from './pages/SignIn';
 
 import {AuthorizationProvider} from './components/Auth'
+import {Footer} from "./components/Footer";
 
 function PageNotFound() {
     return (
@@ -36,7 +37,10 @@ function App() {
                 <Route path='/blogs' element={<Blogs />} />
                 <Route path='/sign-up' element={<SignUp />} /> */}
                     <Route path="*" element={<PageNotFound />} status={404}></Route>
+
+                    // Admin routes
                 </Routes>
+                <Footer />
             </Router>
         </AuthorizationProvider>
     );
