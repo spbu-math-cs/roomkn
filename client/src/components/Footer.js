@@ -5,8 +5,8 @@ import './Footer.css'
 export function Footer() {
     return (
         <div className="footer">
-            <NavLink to="/admin-panel" className="footer-link">
-                Админка
+            <NavLink to="/admin/panel" className="footer-link">
+                admin-panel
             </NavLink>
         </div>
     )

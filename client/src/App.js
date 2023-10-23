@@ -14,6 +14,9 @@ import SignIn from './pages/SignIn';
 
 import {AuthorizationProvider} from './components/Auth'
 
+import AdminPanel from "./pages/admin/AdminPanel";
+import AdminRoomList from "./pages/admin/AdminRoomList";
+
 
 function PageNotFound() {
     return (
@@ -37,9 +40,12 @@ function App() {
                     {/* <Route path='/contact' element={<Contact />} />
                 <Route path='/blogs' element={<Blogs />} />
                 <Route path='/sign-up' element={<SignUp />} /> */}
-                    <Route path="*" element={<PageNotFound />} status={404}></Route>
-                    // Admin routes
-
+                    <Route path="*" element={<PageNotFound />} status={404}/>
+                    {
+                        // Admin routes
+                    }
+                    <Route path="admin/panel" element={<AdminPanel />} />
+                    <Route path="admin/rooms" element={<AdminRoomList />} />
                 </Routes>
                 <Footer />
             </Router>
