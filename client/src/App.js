@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route }
     from 'react-router-dom';
 
 import Navbar from './components/Navbar';
+import {Footer} from "./components/Footer";
 
 import List from './pages/List';
 import Room from './pages/Room';
@@ -12,6 +13,7 @@ import SignUp from './pages/SignUp';
 import SignIn from './pages/SignIn';
 
 import {AuthorizationProvider} from './components/Auth'
+
 
 function PageNotFound() {
     return (
@@ -36,7 +38,10 @@ function App() {
                 <Route path='/blogs' element={<Blogs />} />
                 <Route path='/sign-up' element={<SignUp />} /> */}
                     <Route path="*" element={<PageNotFound />} status={404}></Route>
+                    // Admin routes
+
                 </Routes>
+                <Footer />
             </Router>
         </AuthorizationProvider>
     );
