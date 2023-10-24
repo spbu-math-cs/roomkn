@@ -26,6 +26,14 @@ function PageNotFound() {
     );
   }
 
+function AccessDenied() {
+    return (
+        <div>
+            <h2>403 Access denied</h2>
+        </div>
+    );
+}
+
 function App() {
     return (
         <AuthorizationProvider>
@@ -41,6 +49,7 @@ function App() {
                 <Route path='/blogs' element={<Blogs />} />
                 <Route path='/sign-up' element={<SignUp />} /> */}
                     <Route path="*" element={<PageNotFound />} status={404}/>
+                    <Route path="*" element={<AccessDenied />} status={403}/>
                     {
                         // Admin routes
                     }

@@ -1,6 +1,8 @@
 import {createContext, useContext, useEffect, useState} from "react";
 import useSomeAPI from "../api/FakeAPI";
 
+const IS_ADMIN_DEFAULT = true;
+export const IS_ADMIN_GUEST = true;
 
 export function AuthorizeWrapper({children}) {
     AuthorizeByCookie()
@@ -37,7 +39,8 @@ export function AuthorizeByCookie() {
         if (statusCode === 200) {
             const userData = {
                 user_id: result?.id,
-                csrf_token: headers['X-CSRF-Token']
+                csrf_token: headers['X-CSRF-Token'],
+                is_admin: IS_ADMIN_DEFAULT
             }
             console.log(userData)
             setCurrentUser(userData)
@@ -58,7 +61,8 @@ function createAuthorizeFunction(result, statusCode, headers, triggerFetch, user
         if (statusCode === 200) {
             const userData = {
                 user_id: user.username,
-                csrf_token: headers['X-CSRF-Token']
+                csrf_token: headers['X-CSRF-Token'],
+                is_admin: IS_ADMIN_DEFAULT
             }
 
             setCurrentUser(userData)

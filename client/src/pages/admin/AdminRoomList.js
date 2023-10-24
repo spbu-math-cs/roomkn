@@ -4,6 +4,7 @@ import React, {useEffect, useState} from "react";
 import {NavLink} from "react-router-dom";
 
 import "./AdminRoomList.css"
+import AdminWrapper from "../../components/AdminWrapper";
 
 function EditRoomRow({room}) {
 
@@ -50,7 +51,7 @@ function EditRoomRow({room}) {
     return (
         <div className="edit-room-row">
             <div className="edit-room-row-id">
-                    {room.id}
+                {room.id}
             </div>
             <input className="edit-room-row-reset" type="button" value="reset" onClick={reset}/>
             <input className="edit-room-row-name" type="text" value={name} onChange={(e) => setName(e.target.value)}/>
@@ -106,7 +107,7 @@ export function AdminRoomList() {
     if (statusCode === 200 && finished) {
         result.forEach((room) => {
             draw_list.push(
-                <EditRoomRow room={room}/>
+                <EditRoomRow room={room} key={room.id}/>
         )
         })
     }
@@ -121,10 +122,12 @@ export function AdminRoomList() {
     )
 
     return (
-        <ContentWrapper page_name={page_name}>
-            {draw_list}
-            <AddRoom/>
-        </ContentWrapper>
+        <AdminWrapper>
+            <ContentWrapper page_name={page_name}>
+                {draw_list}
+                <AddRoom/>
+            </ContentWrapper>
+        </AdminWrapper>
     )
 }
 

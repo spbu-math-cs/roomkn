@@ -6,7 +6,7 @@ import useAPI from "../api/API"
 import useSomeAPI from "../api/FakeAPI"
 import {useEffect} from "react";
 
-function RoomRow(room) {
+function RoomRow({room}) {
 
   const link = "/room/" + String(room.id)
 
@@ -34,7 +34,7 @@ function List() {
 
     if (statusCode === 200 && finished) {
         result.forEach((room) => {
-            draw_list.push(RoomRow(room))
+            draw_list.push(<RoomRow room={room} key={room.id}/>)
         })
     }
 
