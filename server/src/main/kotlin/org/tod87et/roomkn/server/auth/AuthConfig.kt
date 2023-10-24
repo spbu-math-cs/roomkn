@@ -49,13 +49,13 @@ class AuthConfig(
 
         fun secret(secret: ByteArray) = apply { this.secret = secret }
 
-        fun secret(secret: String) = apply { this.secret = Base64.getDecoder().decode(secret) }
+        fun secret(base64EncodedSecret: String) = apply { this.secret = Base64.getDecoder().decode(base64EncodedSecret) }
 
         fun database(database: CredentialsDatabase) = apply { this.database = database }
 
         fun pepper(pepper: ByteArray) = apply { this.pepper = pepper }
 
-        fun pepper(pepper: String) = apply { this.pepper = Base64.getDecoder().decode(pepper) }
+        fun pepper(base64EncodedPepper: String) = apply { this.pepper = Base64.getDecoder().decode(base64EncodedPepper) }
 
         fun tokenValidityPeriod(tokenValidityPeriod: Duration) =
             apply { this.tokenValidityPeriod = tokenValidityPeriod }

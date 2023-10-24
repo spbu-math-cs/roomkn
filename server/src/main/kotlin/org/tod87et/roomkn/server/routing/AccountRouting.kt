@@ -84,6 +84,8 @@ private suspend fun ApplicationCall.handleException(ex: Throwable) {
         }
 
         else -> {
+            // Unknown exception, we rethrow to use kTor default exception handling
+            // (response with 500 code and log stack trace)
             throw ex
         }
     }
