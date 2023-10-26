@@ -21,6 +21,8 @@ import org.tod87et.roomkn.server.database.Database as RooMknDatabase
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.deleteAll
 import org.postgresql.util.PSQLException
+import org.tod87et.roomkn.server.models.groups.Group
+import org.tod87et.roomkn.server.models.groups.NewGroup
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 
 class DatabaseSession private constructor(private val database: Database) :
@@ -135,6 +137,18 @@ class DatabaseSession private constructor(private val database: Database) :
                 roomRow[Users.email]
             )
         }
+    }
+
+    override fun getGroups(): Result<List<Group>> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getGroup(groupId: Int): Result<Group> {
+        TODO("Not yet implemented")
+    }
+
+    override fun createGroup(group: NewGroup): Result<Group> {
+        TODO("Not yet implemented")
     }
 
     override fun registerUser(user: RegistrationUserInfo): Result<UserInfo> = queryWrapper {
