@@ -30,6 +30,10 @@ dependencies {
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-server-cors:$ktorVersion")
+    implementation("io.ktor:ktor-server-auth:$ktorVersion")
+    implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")
+    implementation("io.ktor:ktor-server-sessions:$ktorVersion   ")
+
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
 
     testImplementation(platform("org.junit:junit-bom:$junitVersion"))
