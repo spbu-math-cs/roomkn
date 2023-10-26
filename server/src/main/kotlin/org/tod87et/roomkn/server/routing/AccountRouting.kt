@@ -20,8 +20,8 @@ import org.tod87et.roomkn.server.auth.AuthSession
 import org.tod87et.roomkn.server.auth.AuthenticationProvider
 import org.tod87et.roomkn.server.auth.NoSuchUserException
 import org.tod87et.roomkn.server.auth.RegistrationFailedException
-import org.tod87et.roomkn.server.models.LoginUserInfo
-import org.tod87et.roomkn.server.models.UnregisteredUserInfo
+import org.tod87et.roomkn.server.models.users.LoginUserInfo
+import org.tod87et.roomkn.server.models.users.UnregisteredUserInfo
 
 fun Route.accountRouting(authConfig: AuthConfig) {
     val env = environment!!

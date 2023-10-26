@@ -1,4 +1,4 @@
-package org.tod87et.roomkn.server.models
+package org.tod87et.roomkn.server.models.reservations
 
 import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName

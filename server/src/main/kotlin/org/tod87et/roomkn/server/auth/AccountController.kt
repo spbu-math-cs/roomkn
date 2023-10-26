@@ -1,7 +1,7 @@
 package org.tod87et.roomkn.server.auth
 
-import org.tod87et.roomkn.server.models.LoginUserInfo
-import org.tod87et.roomkn.server.models.UnregisteredUserInfo
+import org.tod87et.roomkn.server.models.users.LoginUserInfo
+import org.tod87et.roomkn.server.models.users.UnregisteredUserInfo
 
 interface AccountController {
     fun authenticateUser(loginUserInfo: LoginUserInfo): Result<AuthSession>

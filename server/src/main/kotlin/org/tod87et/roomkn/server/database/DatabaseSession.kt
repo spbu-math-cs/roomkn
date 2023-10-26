@@ -7,21 +7,21 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.tod87et.roomkn.server.models.RegistrationUserInfo
-import org.tod87et.roomkn.server.models.Reservation
-import org.tod87et.roomkn.server.models.RoomInfo
-import org.tod87et.roomkn.server.models.ShortRoomInfo
-import org.tod87et.roomkn.server.models.ShortUserInfo
-import org.tod87et.roomkn.server.models.UnregisteredReservation
-import org.tod87et.roomkn.server.models.UserCredentialsInfo
-import org.tod87et.roomkn.server.models.UserInfo
+import org.tod87et.roomkn.server.models.users.RegistrationUserInfo
+import org.tod87et.roomkn.server.models.reservations.Reservation
+import org.tod87et.roomkn.server.models.rooms.RoomInfo
+import org.tod87et.roomkn.server.models.rooms.ShortRoomInfo
+import org.tod87et.roomkn.server.models.users.ShortUserInfo
+import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
+import org.tod87et.roomkn.server.models.users.UserCredentialsInfo
+import org.tod87et.roomkn.server.models.users.UserInfo
 import java.sql.Connection
 import javax.sql.DataSource
 import org.tod87et.roomkn.server.database.Database as RooMknDatabase
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.deleteAll
 import org.postgresql.util.PSQLException
-import org.tod87et.roomkn.server.models.NewRoomInfo
+import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 
 class DatabaseSession private constructor(private val database: Database) :
     RooMknDatabase, CredentialsDatabase {

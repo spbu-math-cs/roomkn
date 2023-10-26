@@ -7,7 +7,7 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import org.tod87et.roomkn.server.database.DatabaseFactory.database
-import org.tod87et.roomkn.server.models.UnregisteredReservation
+import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
 
 fun Route.reserveRouting() {
     post("/reserve") { unregisteredReservation: UnregisteredReservation ->

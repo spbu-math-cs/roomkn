@@ -1,8 +1,8 @@
 package org.tod87et.roomkn.server.database
 
-import org.tod87et.roomkn.server.models.RegistrationUserInfo
-import org.tod87et.roomkn.server.models.UserCredentialsInfo
-import org.tod87et.roomkn.server.models.UserInfo
+import org.tod87et.roomkn.server.models.users.RegistrationUserInfo
+import org.tod87et.roomkn.server.models.users.UserCredentialsInfo
+import org.tod87et.roomkn.server.models.users.UserInfo
 
 interface CredentialsDatabase {
     fun registerUser(user: RegistrationUserInfo): Result<UserInfo>

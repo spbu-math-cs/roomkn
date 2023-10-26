@@ -5,9 +5,9 @@ import com.auth0.jwt.algorithms.Algorithm
 import io.ktor.util.logging.Logger
 import org.tod87et.roomkn.server.database.ConstraintViolationException
 import org.tod87et.roomkn.server.database.MissingElementException
-import org.tod87et.roomkn.server.models.LoginUserInfo
-import org.tod87et.roomkn.server.models.RegistrationUserInfo
-import org.tod87et.roomkn.server.models.UnregisteredUserInfo
+import org.tod87et.roomkn.server.models.users.LoginUserInfo
+import org.tod87et.roomkn.server.models.users.RegistrationUserInfo
+import org.tod87et.roomkn.server.models.users.UnregisteredUserInfo
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.Date

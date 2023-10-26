@@ -1,4 +1,4 @@
-package org.tod87et.roomkn.server.models
+package org.tod87et.roomkn.server.models.users
 
 /** For internal use only. **Not** serializable */
 class UserCredentialsInfo(

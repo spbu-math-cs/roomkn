@@ -1,4 +1,4 @@
-package org.tod87et.roomkn.server.models
+package org.tod87et.roomkn.server.models.users
 
 import kotlinx.serialization.Serializable
 
