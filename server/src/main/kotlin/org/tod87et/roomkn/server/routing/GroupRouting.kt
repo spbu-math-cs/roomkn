@@ -9,7 +9,6 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import org.tod87et.roomkn.server.database.ConnectionException
 import org.tod87et.roomkn.server.database.DatabaseFactory.database
 import org.tod87et.roomkn.server.database.MissingElementException
 import org.tod87et.roomkn.server.models.groups.NewGroup

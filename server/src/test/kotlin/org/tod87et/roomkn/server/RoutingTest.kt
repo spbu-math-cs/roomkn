@@ -7,15 +7,11 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.zonky.test.db.postgres.embedded.EmbeddedPostgres
-import javax.sql.DataSource
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.tod87et.roomkn.server.KtorTestEnv.testJsonApplication
 import org.tod87et.roomkn.server.database.DatabaseFactory
-import org.tod87et.roomkn.server.database.DatabaseSession
 import org.tod87et.roomkn.server.models.groups.Group
 import org.tod87et.roomkn.server.models.groups.NewGroup
 import kotlin.test.assertContentEquals
