@@ -10,5 +10,6 @@ fun Route.apiRouting(authConfig: AuthConfig) {
         reserveRouting()
         roomsRouting()
         accountRouting(authConfig)
+        groupRouting()
     }
 }
