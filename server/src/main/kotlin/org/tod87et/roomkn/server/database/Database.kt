@@ -1,5 +1,7 @@
 package org.tod87et.roomkn.server.database
 
+import org.tod87et.roomkn.server.models.groups.Group
+import org.tod87et.roomkn.server.models.groups.NewGroup
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 import org.tod87et.roomkn.server.models.reservations.Reservation
 import org.tod87et.roomkn.server.models.rooms.RoomInfo
@@ -16,6 +18,10 @@ interface Database {
     fun createReservation(reserve: UnregisteredReservation): Result<Reservation>
     fun getUsers(): Result<List<ShortUserInfo>>
     fun getUser(userId: Int): Result<UserInfo>
+    fun getGroups(): Result<List<Group>>
+    fun getGroup(groupId: Int): Result<Group>
+    fun createGroup(group: NewGroup): Result<Group>
+
 
 
     /**
