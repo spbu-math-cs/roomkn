@@ -29,18 +29,18 @@ export function useAPI(url, data=null, method='GET') {
         fetch(API_HOST + url, options)
         .then(r => {
             setStatus(r.status)
-            if (r.ok) {
-                return r
-            } else
-                throw r.status
+            return r
         })
         .then(r => {
             setHeaders(r.headers)
             return r
         })
-        .then(r => r.json())
         .then(r => {
-            setResult(r);
+            r.json().then(rjson => {
+                setResult(rjson)
+            }).catch(error => {
+                setResult(error)
+            })
             setLoading(false);
             setFinished(true)
         })

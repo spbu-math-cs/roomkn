@@ -25,7 +25,7 @@ function GetRoomInfo() {
         navigate('/pagenotfound', {replace: true})
 
     }
-  if (statusCode !== 200 || loading) {
+  if (statusCode !== 200 || loading || result == null) {
     return {
       id: id
     }
@@ -79,10 +79,9 @@ function BookingForm({room_id, triggerGetReservations}) {
 
   const {from, setFrom, until, setUntil, date} = useContext(CurrentReservationContext)
 
-  
   const {currentUser} = useContext(CurrentUserContext)
   const {triggerFetch, result, statusCode, finished} = useBookRoom(room_id, currentUser?.user_id, date, from, until);
-  
+
   useEffect(() => {
     if (finished) {
         if (statusCode === 400) alert("Ошибка: " + result)
@@ -102,7 +101,7 @@ function BookingForm({room_id, triggerGetReservations}) {
         </label>
         <NavLink className='not-authorized-link' to='/sign-in'>
           войдите в систему.
-        </NavLink>   
+        </NavLink>
       </ContentWrapper>
     )
   }
@@ -112,7 +111,7 @@ function BookingForm({room_id, triggerGetReservations}) {
   // }, [])
 
 
-  
+
 
   const HandleSubmit = (e) => {
     e.preventDefault();
@@ -296,10 +295,7 @@ function Room() {
   const page_name = "Аудитория " + room_info.name
 
   return (
-    // <CurrentUserContext.Provider value={{
-    //   user_id: 1
-    // }}>
-      <ContentWrapper page_name={page_name}>
+    <ContentWrapper page_name={page_name}>
         <CurrentReservationContext.Provider value={{date, setDate, from, setFrom, until, setUntil}}>
             <div className="room-wrapper">
                 <div className='room-info'>
@@ -320,8 +316,6 @@ function Room() {
             </div>
         </CurrentReservationContext.Provider>
     </ContentWrapper>
-    //</CurrentUserContext.Provider>
-    
   );
 }
 

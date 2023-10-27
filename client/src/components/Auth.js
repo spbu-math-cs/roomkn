@@ -5,7 +5,11 @@ const IS_ADMIN_DEFAULT = true;
 export const IS_ADMIN_GUEST = true;
 
 export function AuthorizeWrapper({children}) {
-    AuthorizeByCookie()
+    const {triggerValidate} = useAuthorizeByCookie()
+
+    useEffect(() => {
+        triggerValidate()
+    }, [])
 
     return children
 }
@@ -26,31 +30,33 @@ export function AuthorizationProvider({children}) {
     )
 }
 
-export function AuthorizeByCookie() {
+export function useAuthorizeByCookie() {
     const {setIsAuthorized} = useContext(IsAuthorizedContext)
     const {setCurrentUser} = useContext(CurrentUserContext)
 
     // document.cookie = "roomkn=234325"
-    const {result, statusCode, headers, triggerFetch} = useSomeAPI("/api/v0/auth/validate-token", null, "POST")
+    const {result, statusCode, headers, triggerFetch, finished} = useSomeAPI("/api/v0/auth/validate-token", null, "GET")
 
     useEffect(() => {
-        triggerFetch()
-
-        if (statusCode === 200) {
-            const userData = {
-                user_id: result?.id,
-                csrf_token: headers['X-CSRF-Token'],
-                is_admin: IS_ADMIN_DEFAULT
+        if (finished) {
+            if (statusCode === 200) {
+                const userData = {
+                    user_id: result?.id,
+                    csrf_token: headers['X-CSRF-Token'],
+                    is_admin: IS_ADMIN_DEFAULT
+                }
+                console.log(userData)
+                setCurrentUser(userData)
+                saveUserData(userData)
+                setIsAuthorized(true)
+            } else {
+                setIsAuthorized(false)
+                setCurrentUser(null)
             }
-            console.log(userData)
-            setCurrentUser(userData)
-            saveUserData(userData)
-            setIsAuthorized(true)
-        } else {
-            setIsAuthorized(false)
-            setCurrentUser(null)
         }
-    }, [result?.id, headers])
+    }, [finished])
+
+    return {triggerValidate: triggerFetch}
 
 }
 
@@ -58,20 +64,6 @@ function createAuthorizeFunction(result, statusCode, headers, triggerFetch, user
     return () => {
         triggerFetch()
         console.log(statusCode)
-        if (statusCode === 200) {
-            const userData = {
-                user_id: user.username,
-                csrf_token: headers['X-CSRF-Token'],
-                is_admin: IS_ADMIN_DEFAULT
-            }
-
-            setCurrentUser(userData)
-            saveUserData(userData)
-            setIsAuthorized(true)
-        } else {
-            setIsAuthorized(false)
-            setCurrentUser(null)
-        }
     }
 }
 
@@ -84,11 +76,31 @@ export function useAuthorize(username, password) {
     const {setIsAuthorized} = useContext(IsAuthorizedContext)
     const {setCurrentUser} = useContext(CurrentUserContext)
 
-    const {result, statusCode, headers, triggerFetch} = useSomeAPI("/api/v0/login", user, "POST")
+    const {result, statusCode, headers, triggerFetch, finished} = useSomeAPI("/api/v0/login", user, "POST")
 
     const authorize = createAuthorizeFunction(result, statusCode, headers, triggerFetch, user, setCurrentUser, setIsAuthorized)
 
-    return {result, statusCode, headers, authorize}
+    useEffect(() => {
+        if (finished) {
+            if (statusCode === 200) {
+                const userData = {
+                    user_id: user.username,
+                    csrf_token: headers['X-CSRF-Token'],
+                    is_admin: IS_ADMIN_DEFAULT
+                }
+
+                setCurrentUser(userData)
+                saveUserData(userData)
+                setIsAuthorized(true)
+            } else {
+                setIsAuthorized(false)
+                setCurrentUser(null)
+            }
+
+        }
+    }, [finished]);
+
+    return {result, statusCode, headers, authorize, finished}
 }
 
 export function useRegister(username, password, email) {
@@ -98,14 +110,11 @@ export function useRegister(username, password, email) {
         email:    email
     }
 
-    const {setIsAuthorized} = useContext(IsAuthorizedContext)
-    const {setCurrentUser} = useContext(CurrentUserContext)
+    const {result, statusCode, headers, triggerFetch, finished} = useSomeAPI("/api/v0/register", user, "POST")
 
-    const {result, statusCode, headers, triggerFetch} = useSomeAPI("/api/v0/register", user, "POST")
+    console.log(finished, statusCode, result)
 
-    const authorize = createAuthorizeFunction(result, statusCode, headers, triggerFetch, user, setCurrentUser, setIsAuthorized)
-
-    return {result, statusCode, headers, authorize}
+    return {result, statusCode, headers, register: triggerFetch, finished}
 }
 
 export function getUserData() {

@@ -32,7 +32,8 @@ function List() {
 
   const draw_list = []
 
-    if (statusCode === 200 && finished) {
+    if (statusCode === 200 && finished && result != null) {
+        console.log(result)
         result.forEach((room) => {
             draw_list.push(<RoomRow room={room} key={room.id}/>)
         })
