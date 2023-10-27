@@ -9,6 +9,7 @@ fun Application.configureCORS() {
     install(CORS) {
         anyHost()
         allowHeader("X-Requested-With")
+        allowHeader("X-CSRF-Token")
         allowHeader(HttpHeaders.Origin)
         allowHeader(HttpHeaders.ContentType)
         allowHeader(HttpHeaders.AccessControlAllowOrigin)

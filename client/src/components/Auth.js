@@ -5,10 +5,13 @@ const IS_ADMIN_DEFAULT = true;
 export const IS_ADMIN_GUEST = true;
 
 export function AuthorizeWrapper({children}) {
+    const {isAuthorized} = useContext(IsAuthorizedContext)
     const {triggerValidate} = useAuthorizeByCookie()
 
     useEffect(() => {
-        triggerValidate()
+        // if (isAuthorized) {
+            triggerValidate()
+        // }
     }, [])
 
     return children
@@ -39,6 +42,7 @@ export function useAuthorizeByCookie() {
 
     useEffect(() => {
         if (finished) {
+            console.log('validate: ', result, statusCode, finished)
             if (statusCode === 200) {
                 const userData = {
                     user_id: result?.id,
@@ -54,7 +58,7 @@ export function useAuthorizeByCookie() {
                 setCurrentUser(null)
             }
         }
-    }, [finished])
+    }, [finished, result])
 
     return {triggerValidate: triggerFetch}
 
@@ -84,7 +88,8 @@ export function useAuthorize(username, password) {
         if (finished) {
             if (statusCode === 200) {
                 const userData = {
-                    user_id: user.username,
+                    user_id: null,
+                    username: username,
                     csrf_token: headers['X-CSRF-Token'],
                     is_admin: IS_ADMIN_DEFAULT
                 }

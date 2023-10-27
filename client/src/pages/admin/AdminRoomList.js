@@ -111,7 +111,7 @@ export function AdminRoomList() {
 
     const draw_list = []
 
-    if (statusCode === 200 && finished) {
+    if (statusCode === 200 && finished && result != null) {
         result.forEach((room) => {
             draw_list.push(
                 <EditRoomRow room={room} key={room.id} refresh={triggerFetch}/>

@@ -56,14 +56,11 @@ function GetReservations(room_id, date) {
   }
 }
 
-function useBookRoom(room_id, user_id, date, from, to) {
-
-  const {currentUser} = useContext(CurrentUserContext)
-
-  if (user_id == undefined) user_id = null;
+function useBookRoom(room_id, date, from, to) {
+    const {currentUser} = useContext(CurrentUserContext)
 
   const reservation = {
-    user_id: user_id,
+    user_id: currentUser?.user_id,
     from: toAPITime(date, from),
     until: toAPITime(date, to),
     room_id: room_id
@@ -151,7 +148,11 @@ function Reservation ({reservation, is_current_reservation=false}) {
 
   useEffect(() => triggerFetch(), [reservation])
 
-  const reservedUsername = result?.username
+  var reservedUsername = result?.username
+
+    if (reservedUsername == null) {
+        reservedUsername = reservation.user_id
+    }
 
   const from_obj = fromAPITime(reservation.from)
   const until_obj = fromAPITime(reservation.until)

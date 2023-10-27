@@ -11,6 +11,7 @@ const NavSignIn = () => {
 
     const logOut = () => {
         setIsAuthorized(false)
+        // browser.cookies.remove('_xsrf');
     }
 
     if (isAuthorized) {

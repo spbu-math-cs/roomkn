@@ -6,7 +6,7 @@ export function AdminWrapper({children}) {
     const navigate = useNavigate()
 
     const {currentUser} = useContext(CurrentUserContext)
-    console.log(currentUser)
+
     if (!currentUser?.is_admin && !IS_ADMIN_GUEST) {
         navigate('/pagenotfound', {replace: true})
     }
