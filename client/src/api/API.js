@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 
-const API_HOST = "http://127.0.0.1:8080"
+const API_HOST = process.env.REACT_APP_REST_SERVER_ADDRESS
 
 export function useAPI(url, data=null, method='GET') {
+    console.log(API_HOST)
     const [result, setResult] = useState();
     const [loading, setLoading] = useState(true);
     const [finished, setFinished] = useState(false);
