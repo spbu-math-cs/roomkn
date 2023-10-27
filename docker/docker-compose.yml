@@ -5,14 +5,12 @@ services:
     build:
       context: client/
       args:
-        CLIENT_PORT: ${CLIENT_PORT}
         VERSION: ${VERSION}
-    networks:
-      - roomkn
+        CLIENT_PORT: ${CLIENT_PORT}
+        SERVER_HOST: ${SERVER_HOST}
+        SERVER_PORT: ${SERVER_PORT}
     ports:
       - ${CLIENT_PORT}:${CLIENT_PORT}
-    environment:
-      - REACT_APP_REST_SERVER_ADDRESS=http://server:${SERVER_PORT}
     depends_on:
       - server
 
@@ -21,9 +19,6 @@ services:
       context: server/
       args:
         VERSION: ${VERSION}
-        SEVER_PORT: ${SERVER_PORT}
-    networks:
-      - roomkn
     ports:
       - ${SERVER_PORT}:${SERVER_PORT}
     environment:
@@ -33,9 +28,5 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
       - PEPPER=${PEPPER}
-      - CALC_HOST=${SERVER_HOST}
+      - CALC_HOST=0.0.0.0
       - CALC_PORT=${SERVER_PORT}
-
-networks:
-  roomkn:
-    driver: bridge
