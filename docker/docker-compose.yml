@@ -11,6 +11,30 @@ services:
       - roomkn
     ports:
       - ${CLIENT_PORT}:${CLIENT_PORT}
+    environment:
+      - REACT_APP_REST_SERVER_ADDRESS=http://server:${SERVER_PORT}
+    depends_on:
+      - server
+
+  server:
+    build:
+      context: server/
+      args:
+        VERSION: ${VERSION}
+        SEVER_PORT: ${SERVER_PORT}
+    networks:
+      - roomkn
+    ports:
+      - ${SERVER_PORT}:${SERVER_PORT}
+    environment:
+      - DB_URL=${DB_URL}
+      - DB_DRIVER=${DB_DRIVER}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - PEPPER=${PEPPER}
+      - CALC_HOST=${SERVER_HOST}
+      - CALC_PORT=${SERVER_PORT}
 
 networks:
   roomkn:

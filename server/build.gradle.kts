@@ -9,7 +9,7 @@ repositories {
 }
 
 group = "org.tod87et.roomkn"
-version = "1.0.0"
+version = "0.0.0"
 
 val exposedVersion: String = extra["exposed.version"] as String
 val ktorVersion = extra["ktor.version"] as String
