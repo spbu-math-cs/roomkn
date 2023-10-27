@@ -1,0 +1,17 @@
+version: '3.7'
+
+services:
+  client:
+    build:
+      context: client/
+      args:
+        CLIENT_PORT: ${CLIENT_PORT}
+        VERSION: ${VERSION}
+    networks:
+      - roomkn
+    ports:
+      - ${CLIENT_PORT}:${CLIENT_PORT}
+
+networks:
+  roomkn:
+    driver: bridge
