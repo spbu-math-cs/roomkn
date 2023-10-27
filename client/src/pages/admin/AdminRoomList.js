@@ -6,7 +6,7 @@ import {NavLink} from "react-router-dom";
 import "./AdminRoomList.css"
 import AdminWrapper from "../../components/AdminWrapper";
 
-function EditRoomRow({room}) {
+function EditRoomRow({room, refresh}) {
 
     const [name, setName] = useState(room.name)
     const [desc, setDesc] = useState(room.description)
@@ -16,8 +16,8 @@ function EditRoomRow({room}) {
         description: desc
     }
 
-    const putObj = useSomeAPI("/rooms/" + room.id + "/edit", put_data, "PUT")
-    const deleteObj = useSomeAPI("/rooms/" + room.id + "/remove", null, "DELETE")
+    const putObj = useSomeAPI("/api/v0/rooms/" + room.id + "/edit", put_data, "PUT")
+    const deleteObj = useSomeAPI("/api/v0/rooms/" + room.id + "/remove", null, "DELETE")
 
     const [putStatusCode, triggerPut, putFinished] = [putObj.statusCode, putObj.triggerFetch, putObj.finished]
     const [deleteStatusCode, triggerDelete, deleteFinished] = [deleteObj.statusCode, deleteObj.triggerFetch, deleteObj.finished]
@@ -38,12 +38,14 @@ function EditRoomRow({room}) {
     useEffect(() => {
         if (putFinished) {
             alert("Put statusCode: " + putStatusCode)
+            refresh()
         }
     }, [putFinished])
 
     useEffect(() => {
         if (deleteFinished) {
             alert("Delete statusCode: " + deleteStatusCode)
+            refresh()
         }
     }, [deleteFinished])
 
@@ -64,7 +66,7 @@ function EditRoomRow({room}) {
     )
 }
 
-function AddRoom() {
+function AddRoom({refresh}) {
     const [name, setName] = useState("New room name")
     const [desc, setDesc] = useState("New room description")
 
@@ -73,7 +75,7 @@ function AddRoom() {
         description: desc
     }
 
-    const addObj = useSomeAPI("/rooms/create", put_data, "PUT")
+    const addObj = useSomeAPI("/api/v0/rooms/create", put_data, "PUT")
 
     const [addStatusCode, triggerAdd, addFinished] = [addObj.statusCode, addObj.triggerFetch, addObj.finished]
 
@@ -84,6 +86,7 @@ function AddRoom() {
     useEffect(() => {
         if (addFinished) {
             alert("Put statusCode: " + addStatusCode)
+            refresh()
         }
     }, [addFinished])
 
@@ -97,6 +100,10 @@ function AddRoom() {
 }
 
 export function AdminRoomList() {
+    // const [refreshCount, setRefresh] = useState(0)
+    // const refresh = () => {
+    //     setRefresh(refreshCount+1)
+    // }
 
     let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/rooms')
 
@@ -107,7 +114,7 @@ export function AdminRoomList() {
     if (statusCode === 200 && finished) {
         result.forEach((room) => {
             draw_list.push(
-                <EditRoomRow room={room} key={room.id}/>
+                <EditRoomRow room={room} key={room.id} refresh={triggerFetch}/>
         )
         })
     }
@@ -125,7 +132,7 @@ export function AdminRoomList() {
         <AdminWrapper>
             <ContentWrapper page_name={page_name}>
                 {draw_list}
-                <AddRoom/>
+                <AddRoom refresh={triggerFetch}/>
             </ContentWrapper>
         </AdminWrapper>
     )
