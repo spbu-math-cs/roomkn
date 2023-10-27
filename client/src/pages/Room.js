@@ -77,7 +77,7 @@ function useBookRoom(room_id, user_id, date, from, to) {
 }
 
 
-function BookingForm({room_id, date, triggerGetReservations}) {
+function BookingForm({room_id, triggerGetReservations}) {
 
   const [name, setName] = useState('');
   // const [from, setFrom] = useState('09:30');
