@@ -1,7 +1,5 @@
 package org.tod87et.roomkn.server.plugins
 
-import com.auth0.jwt.JWT
-import com.auth0.jwt.algorithms.Algorithm
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -13,11 +11,12 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.sessions.Sessions
 import io.ktor.server.sessions.cookie
+import org.tod87et.roomkn.server.auth.AccountController
 import org.tod87et.roomkn.server.auth.AuthConfig
 import org.tod87et.roomkn.server.auth.AuthSession
 import org.tod87et.roomkn.server.auth.AuthenticationProvider
 
-fun Application.configureAuthentication(authConfig: AuthConfig) {
+fun Application.configureAuthentication(authConfig: AuthConfig, accountController: AccountController) {
     val realm = environment.config.property("jwt.realm").getString()
 
     install(Sessions) {
@@ -27,16 +26,10 @@ fun Application.configureAuthentication(authConfig: AuthConfig) {
         }
     }
 
-    val jwtVerifier = JWT
-        .require(Algorithm.HMAC256(authConfig.secret))
-        .withAudience(authConfig.audience)
-        .withIssuer(authConfig.issuer)
-        .build()
-
     install(Authentication) {
         session<AuthSession>(AuthenticationProvider.SESSION) {
             validate { session ->
-                if (jwtVerifier.verify(session.token).getClaim(AuthSession.USER_ID_CLAIM_NAME).asInt() == session.userId) {
+                if (accountController.validateSession(session).getOrNull() == true) {
                     session
                 } else {
                     null
@@ -49,7 +42,7 @@ fun Application.configureAuthentication(authConfig: AuthConfig) {
         jwt(AuthenticationProvider.JWT) {
             this.realm = realm
 
-            verifier(jwtVerifier)
+            verifier(accountController.jwtVerifier)
 
             validate { credential ->
                 if (credential.payload.getClaim(AuthSession.USER_ID_CLAIM_NAME).asInt() != null) {

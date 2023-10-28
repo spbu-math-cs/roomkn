@@ -2,6 +2,7 @@ package org.tod87et.roomkn.server
 
 import io.ktor.client.call.body
 import io.ktor.client.plugins.cookies.cookies
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -22,6 +23,7 @@ class AuthTest {
     private val apiPath = "/api/v0"
     private val registerPath = "$apiPath/register"
     private val loginPath = "$apiPath/login"
+    private val logoutPath = "$apiPath/logout"
     private val validatePath = "$apiPath/auth/validate-token"
 
     private val accountManager = KtorTestEnv.accountManager
@@ -112,6 +114,33 @@ class AuthTest {
         val response = client.get(validatePath)
 
         assertEquals(session.userId, response.body<Map<String, Int>>()["id"])
+    }
+
+    @Test
+    fun logout() = testJsonApplication {  client ->
+        accountManager.registerUser(
+            UnregisteredUserInfo(
+                "Root",
+                "root@example.org",
+                "the-root-of-evil"
+            )
+        ).getOrThrow()
+
+        client.post(loginPath) {
+            contentType(ContentType.Application.Json)
+            setBody(
+                LoginUserInfo(
+                    "Root",
+                    "the-root-of-evil"
+                )
+            )
+        }
+
+        val response = client.delete(logoutPath)
+        assertEquals(HttpStatusCode.OK, response.status)
+
+        val validate = client.get(validatePath)
+        assertEquals(HttpStatusCode.Unauthorized, validate.status)
     }
 
     @AfterEach

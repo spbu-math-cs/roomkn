@@ -8,13 +8,12 @@ import io.ktor.server.auth.principal
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.sessions.sessions
 import io.ktor.server.sessions.set
 import org.tod87et.roomkn.server.auth.AccountController
-import org.tod87et.roomkn.server.auth.AccountControllerImpl
-import org.tod87et.roomkn.server.auth.AuthConfig
 import org.tod87et.roomkn.server.auth.AuthFailedException
 import org.tod87et.roomkn.server.auth.AuthSession
 import org.tod87et.roomkn.server.auth.AuthenticationProvider
@@ -23,11 +22,9 @@ import org.tod87et.roomkn.server.auth.RegistrationFailedException
 import org.tod87et.roomkn.server.models.users.LoginUserInfo
 import org.tod87et.roomkn.server.models.users.UnregisteredUserInfo
 
-fun Route.accountRouting(authConfig: AuthConfig) {
-    val env = environment!!
-    val accountController: AccountController = AccountControllerImpl(env.log, authConfig)
-
+fun Route.accountRouting(accountController: AccountController) {
     loginRouting(accountController)
+    logoutRouting(accountController)
     validateTokenRouting()
     registerRouting(accountController)
 }
@@ -42,6 +39,20 @@ private fun Route.loginRouting(accountController: AccountController) {
             .onFailure {
                 call.handleException(it)
             }
+    }
+}
+
+private fun Route.logoutRouting(accountController: AccountController) {
+    authenticate(AuthenticationProvider.SESSION) {
+        delete("/logout") {
+            val session = call.principal<AuthSession>(AuthenticationProvider.SESSION)
+                ?: return@delete call.respondText("Unauthorized", status = HttpStatusCode.Unauthorized)
+
+            accountController.invalidateSession(session)
+            call.sessions.clear(call.sessions.findName(AuthSession::class))
+
+            call.respondText("Logout successful")
+        }
     }
 }
 

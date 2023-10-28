@@ -1,8 +1,10 @@
 package org.tod87et.roomkn.server.auth
 
 import com.auth0.jwt.JWT
+import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
 import io.ktor.util.logging.Logger
+import kotlinx.datetime.toKotlinInstant
 import org.tod87et.roomkn.server.database.ConstraintViolationException
 import org.tod87et.roomkn.server.database.MissingElementException
 import org.tod87et.roomkn.server.models.users.LoginUserInfo
@@ -28,9 +30,11 @@ class AccountControllerImpl(
 
     private val signAlgorithm = Algorithm.HMAC256(config.secret)
 
-    init {
-        println(config.audience)
-    }
+    override val jwtVerifier: JWTVerifier = JWT
+        .require(Algorithm.HMAC256(config.secret))
+        .withAudience(config.audience)
+        .withIssuer(config.issuer)
+        .build()
 
     override fun authenticateUser(loginUserInfo: LoginUserInfo): Result<AuthSession> {
         val credentials = config.database.getCredentialsInfoByUsername(loginUserInfo.username)
@@ -53,7 +57,7 @@ class AccountControllerImpl(
         val passwordHash = digest.digest()
         return if (passwordHash.contentEquals(credentials.passwordHash)) {
             log.debug("Authentication successful for `${loginUserInfo.username}`")
-            Result.success(AuthSession(credentials.id, createToken(credentials.id)))
+            Result.success(AuthSession(createToken(credentials.id)))
         } else {
             log.debug("Authentication failed for `${loginUserInfo.username}`")
             Result.failure(AuthFailedException("Wrong username or password"))
@@ -96,8 +100,26 @@ class AccountControllerImpl(
             }
         }
 
-        log.debug("User `${info.username}` have been registered")
-        return Result.success(AuthSession(info.id, createToken(info.id)))
+        log.debug("User `${info.username}` has been registered")
+        return Result.success(AuthSession(createToken(info.id)))
+    }
+
+    override fun validateSession(session: AuthSession): Result<Boolean> {
+        runCatching { jwtVerifier.verify(session.token) }
+            .getOrElse {
+                log.debug("Token verification failed", it)
+                return Result.success(false)
+            }
+        digest.update(session.token.encodeToByteArray())
+        return config.database.checkTokenWasInvalidated(digest.digest()).map { !it }
+    }
+
+    override fun invalidateSession(session: AuthSession): Result<Unit> {
+        digest.update(session.token.encodeToByteArray())
+        return config.database.invalidateToken(
+            digest.digest(),
+            JWT.decode(session.token).expiresAtAsInstant.toKotlinInstant()
+        )
     }
 
     private fun createToken(userId: Int): String {
