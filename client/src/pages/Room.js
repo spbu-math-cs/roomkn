@@ -296,9 +296,9 @@ function Room() {
   const page_name = "Аудитория " + room_info.name
 
   return (
-    <CurrentUserContext.Provider value={{
-      user_id: 1
-    }}>
+    // <CurrentUserContext.Provider value={{
+    //   user_id: 1
+    // }}>
       <ContentWrapper page_name={page_name}>
         <CurrentReservationContext.Provider value={{date, setDate, from, setFrom, until, setUntil}}>
             <div className="room-wrapper">
@@ -320,7 +320,7 @@ function Room() {
             </div>
         </CurrentReservationContext.Provider>
     </ContentWrapper>
-    </CurrentUserContext.Provider>
+    //</CurrentUserContext.Provider>
     
   );
 }
