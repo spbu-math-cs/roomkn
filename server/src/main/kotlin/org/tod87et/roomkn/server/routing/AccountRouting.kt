@@ -22,6 +22,7 @@ import org.tod87et.roomkn.server.auth.NoSuchUserException
 import org.tod87et.roomkn.server.auth.RegistrationFailedException
 import org.tod87et.roomkn.server.models.users.LoginUserInfo
 import org.tod87et.roomkn.server.models.users.UnregisteredUserInfo
+import org.tod87et.roomkn.server.models.users.UserId
 
 fun Route.accountRouting(authConfig: AuthConfig) {
     val env = environment!!
@@ -37,7 +38,7 @@ private fun Route.loginRouting(accountController: AccountController) {
         accountController.authenticateUser(body)
             .onSuccess { authSession ->
                 call.sessions.set(authSession)
-                call.respondText("cookie has been installed")
+                call.respond(UserId(authSession.userId))
             }
             .onFailure {
                 call.handleException(it)
