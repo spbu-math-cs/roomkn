@@ -2,8 +2,8 @@ import useAPI from './API';
 import {useEffect, useState} from "react";
 
 export function useSomeAPI(url, data=null, method='GET') {
-    return useAPI(url, data, method);
-    // return useFakeAPI(url, data, method);
+    //return useAPI(url, data, method);
+    return useFakeAPI(url, data, method);
 }
 
 function useFakeAPI(url, data=null, method='GET') {
