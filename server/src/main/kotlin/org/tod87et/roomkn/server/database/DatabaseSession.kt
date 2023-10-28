@@ -1,5 +1,6 @@
 package org.tod87et.roomkn.server.database
 
+import kotlinx.datetime.Instant
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.and
@@ -160,6 +161,18 @@ class DatabaseSession private constructor(private val database: Database) :
                 userRow[Users.passwordHash]
             )
         }
+    }
+
+    override fun invalidateToken(hash: ByteArray, expirationDate: Instant): Result<Unit> {
+        TODO("Not yet implemented")
+    }
+
+    override fun checkTokenWasInvalidated(hash: ByteArray): Result<Boolean> {
+        TODO("Not yet implemented")
+    }
+
+    override fun cleanupExpiredInvalidatedTokens(): Result<Unit> {
+        TODO("Not yet implemented")
     }
 
     override fun getCredentialsInfoByUsername(username: String): Result<UserCredentialsInfo> = queryWrapper {
