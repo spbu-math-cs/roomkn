@@ -1,5 +1,6 @@
 package org.tod87et.roomkn.server.database
 
+import kotlinx.datetime.Instant
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.and
@@ -18,9 +19,14 @@ import org.tod87et.roomkn.server.models.users.UserInfo
 import java.sql.Connection
 import javax.sql.DataSource
 import org.tod87et.roomkn.server.database.Database as RooMknDatabase
+import kotlinx.datetime.Clock
 import org.jetbrains.exposed.exceptions.ExposedSQLException
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
 import org.jetbrains.exposed.sql.deleteAll
+import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.upsert
 import org.postgresql.util.PSQLException
+import org.tod87et.roomkn.server.database.InvalidatedTokens.tokenHash
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 
 class DatabaseSession private constructor(private val database: Database) :
@@ -38,7 +44,7 @@ class DatabaseSession private constructor(private val database: Database) :
     constructor(dataSource: DataSource) : this(Database.connect(dataSource))
 
     init {
-        transaction(database) { SchemaUtils.create(Users, Rooms, Reservations) }
+        transaction(database) { SchemaUtils.create(Users, Rooms, Reservations, InvalidatedTokens) }
     }
 
     override fun createRoom(roomInfo: NewRoomInfo): Result<RoomInfo> = queryWrapper {
@@ -159,6 +165,29 @@ class DatabaseSession private constructor(private val database: Database) :
                 userRow[Users.salt],
                 userRow[Users.passwordHash]
             )
+        }
+    }
+
+    override fun invalidateToken(hash: ByteArray, expirationDate: Instant): Result<Unit> = queryWrapper {
+        transaction(database) {
+            InvalidatedTokens.upsert {
+                it[InvalidatedTokens.tokenHash] = hash
+                it[InvalidatedTokens.expirationDate] = expirationDate
+            }
+        }
+    }
+
+    override fun checkTokenWasInvalidated(hash: ByteArray): Result<Boolean> = queryWrapper {
+        transaction(database) {
+            !InvalidatedTokens.select { tokenHash eq hash }.empty()
+        }
+    }
+
+    override fun cleanupExpiredInvalidatedTokens(): Result<Unit> = queryWrapper {
+        transaction(database) {
+            val now = Clock.System.now()
+
+            InvalidatedTokens.deleteWhere { expirationDate lessEq now }
         }
     }
 

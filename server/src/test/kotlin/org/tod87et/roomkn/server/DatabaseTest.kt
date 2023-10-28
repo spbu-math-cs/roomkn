@@ -21,6 +21,8 @@ import javax.sql.DataSource
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.test.assertFalse
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
 class DatabaseTest {
@@ -127,6 +129,23 @@ class DatabaseTest {
         )
 
         assertEquals(listOf(expectedReservation), room1Reservations)
+    }
+
+    @Test
+    fun invalidatedTokensApiTest() {
+        val tokenHash = byteArrayOf(1)
+        val now = Clock.System.now()
+
+        database.invalidateToken(tokenHash, now)
+        assertTrue(database.checkTokenWasInvalidated(tokenHash).getOrThrow())
+
+        database.cleanupExpiredInvalidatedTokens()
+        assertFalse(database.checkTokenWasInvalidated(tokenHash).getOrThrow())
+
+        database.invalidateToken(tokenHash, now)
+        database.invalidateToken(tokenHash, now + 1.hours)
+        database.cleanupExpiredInvalidatedTokens()
+        assertTrue(database.checkTokenWasInvalidated(tokenHash).getOrThrow())
     }
 
     companion object {
