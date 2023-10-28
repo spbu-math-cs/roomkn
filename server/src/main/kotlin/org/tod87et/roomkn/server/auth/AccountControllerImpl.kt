@@ -13,6 +13,8 @@ import org.tod87et.roomkn.server.models.users.UnregisteredUserInfo
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.Date
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.concurrent.thread
 
 class AccountControllerImpl(
     private val log: Logger,
@@ -29,6 +31,8 @@ class AccountControllerImpl(
     private val secureRandom get() = secureRandomThreadLocal.get()
 
     private val signAlgorithm = Algorithm.HMAC256(config.secret)
+
+    private val cleanupThread: AtomicReference<Thread?> = AtomicReference(null)
 
     override val jwtVerifier: JWTVerifier = JWT
         .require(Algorithm.HMAC256(config.secret))
@@ -120,6 +124,35 @@ class AccountControllerImpl(
             digest.digest(),
             JWT.decode(session.token).expiresAtAsInstant.toKotlinInstant()
         )
+    }
+
+    override fun startCleanupThread() {
+        val newThread = createCleanupThread()
+        cleanupThread.getAndSet(null)?.run {
+            interrupt()
+            join()
+        }
+        newThread.start()
+    }
+
+    override fun stopCleanupThread() {
+        cleanupThread.getAndSet(null)?.run {
+            interrupt()
+            join()
+        }
+    }
+
+    private fun createCleanupThread(): Thread = thread(start = false) {
+        while (!Thread.interrupted()) {
+            try {
+                Thread.sleep(config.cleanupInterval.inWholeMilliseconds)
+                config.database.cleanupExpiredInvalidatedTokens().getOrThrow()
+            } catch (_: InterruptedException) {
+                break
+            } catch (e: Exception) {
+                log.error("Invalid tokens cleanup failed", e)
+            }
+        }
     }
 
     private fun createToken(userId: Int): String {
