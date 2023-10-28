@@ -9,8 +9,8 @@ object Users : Table() {
     val id: Column<Int> = integer("id").autoIncrement()
     val username: Column<String> = text("username").uniqueIndex("unique_users_username")
     val email: Column<String> = text("email").uniqueIndex("unique_users_email")
-    val salt = binary("salt", 32)
-    val passwordHash = binary("passwordHash", 32)
+    val salt: Column<ByteArray> = binary("salt", 32)
+    val passwordHash: Column<ByteArray> = binary("passwordHash", 32)
 
     override val primaryKey = PrimaryKey(id)
 }
@@ -32,4 +32,11 @@ object Reservations : Table() {
     val until: Column<Instant> = timestamp("until")
 
     override val primaryKey = PrimaryKey(id)
+}
+
+object InvalidatedTokens : Table() {
+    val tokenHash: Column<ByteArray> = binary("tokenHash", 32)
+    val expirationDate: Column<Instant> = timestamp("expirationDate")
+
+    override val primaryKey = PrimaryKey(tokenHash, name = "pk_invalidatedtokens_tokenhash")
 }
