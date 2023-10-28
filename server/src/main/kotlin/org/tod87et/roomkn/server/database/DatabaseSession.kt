@@ -27,6 +27,7 @@ import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.upsert
 import org.postgresql.util.PSQLException
 import org.tod87et.roomkn.server.database.InvalidatedTokens.tokenHash
+import org.tod87et.roomkn.server.models.permissions.Permission
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 
 class DatabaseSession private constructor(private val database: Database) :
@@ -141,6 +142,10 @@ class DatabaseSession private constructor(private val database: Database) :
                 roomRow[Users.email]
             )
         }
+    }
+
+    override fun getUserPermissions(userId: Int): Result<List<Permission>> {
+        TODO("Not yet implemented")
     }
 
     override fun registerUser(user: RegistrationUserInfo): Result<UserInfo> = queryWrapper {

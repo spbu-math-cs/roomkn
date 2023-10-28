@@ -1,5 +1,6 @@
 package org.tod87et.roomkn.server.database
 
+import org.tod87et.roomkn.server.models.permissions.Permission
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 import org.tod87et.roomkn.server.models.reservations.Reservation
 import org.tod87et.roomkn.server.models.rooms.RoomInfo
@@ -16,6 +17,7 @@ interface Database {
     fun createReservation(reserve: UnregisteredReservation): Result<Reservation>
     fun getUsers(): Result<List<ShortUserInfo>>
     fun getUser(userId: Int): Result<UserInfo>
+    fun getUserPermissions(userId: Int): Result<List<Permission>>
 
 
     /**
