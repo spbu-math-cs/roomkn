@@ -4,12 +4,12 @@ on:
   push:
     paths:
       - 'server/**'
-      - 'github/workflows/server-test-action.yml'
+      - '.github/workflows/server-test-action.yml'
   pull_request:
     branches: [ "main" ]
     paths:
       - 'server/**'
-      - 'github/workflows/server-test-action.yml'
+      - '.github/workflows/server-test-action.yml'
 jobs:
   Server-CI:
     runs-on: ubuntu-latest
