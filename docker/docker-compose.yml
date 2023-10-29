@@ -1,0 +1,32 @@
+version: '3.7'
+
+services:
+  client:
+    build:
+      context: client/
+      args:
+        VERSION: ${VERSION}
+        CLIENT_PORT: ${CLIENT_PORT}
+        SERVER_HOST: ${SERVER_HOST}
+        SERVER_PORT: ${SERVER_PORT}
+    ports:
+      - ${CLIENT_PORT}:${CLIENT_PORT}
+    depends_on:
+      - server
+
+  server:
+    build:
+      context: server/
+      args:
+        VERSION: ${VERSION}
+    ports:
+      - ${SERVER_PORT}:${SERVER_PORT}
+    environment:
+      - DB_URL=${DB_URL}
+      - DB_DRIVER=${DB_DRIVER}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - PEPPER=${PEPPER}
+      - CALC_HOST=0.0.0.0
+      - CALC_PORT=${SERVER_PORT}
