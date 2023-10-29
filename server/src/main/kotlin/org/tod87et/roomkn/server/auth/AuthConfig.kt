@@ -6,6 +6,7 @@ import org.tod87et.roomkn.server.util.checkField
 import java.util.Base64
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
 
 class AuthConfig(
     val issuer: String,
@@ -16,6 +17,7 @@ class AuthConfig(
     val tokenValidityPeriod: Duration,
     val saltSize: Int,
     val hashingAlgorithmId: String,
+    val cleanupInterval: Duration,
 ) {
 
     class Builder(
@@ -27,11 +29,13 @@ class AuthConfig(
         var tokenValidityPeriod: Duration = DEFAULT_TOKEN_VALIDITY_PERIOD,
         var saltSize: Int = DEFAULT_SALT_SIZE,
         var hashingAlgorithmId: String = DEFAULT_HASHING_ALGORITHM_ID,
-    ) {
+        val cleanupInterval: Duration = DEFAULT_CLEANUP_INTERVAL,
+        ) {
         companion object {
             private val DEFAULT_TOKEN_VALIDITY_PERIOD: Duration = 30.days
             private const val DEFAULT_SALT_SIZE: Int = 32
             private const val DEFAULT_HASHING_ALGORITHM_ID = "SHA-256"
+            private val DEFAULT_CLEANUP_INTERVAL = 1.hours
         }
 
         fun loadEnvironment(env: ApplicationEnvironment) = apply {
@@ -74,7 +78,8 @@ class AuthConfig(
             checkField(database, "database"),
             tokenValidityPeriod,
             saltSize,
-            hashingAlgorithmId
+            hashingAlgorithmId,
+            cleanupInterval
         )
     }
 }
