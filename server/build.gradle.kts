@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     kotlin("jvm") version "1.9.0"
     kotlin("plugin.serialization") version "1.9.0"
@@ -59,4 +61,8 @@ kotlin {
 
 application {
     mainClass.set("org.tod87et.roomkn.server.MainKt")
+}
+
+tasks.getByName<KotlinCompile>("compileKotlin") {
+    kotlinOptions.allWarningsAsErrors = true
 }
