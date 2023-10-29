@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - 'server/**'
-      - 'temp/**'
+      - 'github/workflows/server-test-action.yml'
   pull_request:
     branches: [ "main" ]
 jobs:
