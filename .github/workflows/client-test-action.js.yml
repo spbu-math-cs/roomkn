@@ -9,8 +9,6 @@ on:
     paths:
       - 'client/**'
       - '.github/workflows/client-test-action.js.yml'
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
   build:
@@ -19,9 +17,8 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [14.x, 16.x, 18.x]
+        node-version: [20.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
     steps:
     - uses: actions/checkout@v3
     - name: Use Node.js ${{ matrix.node-version }}
@@ -29,6 +26,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    - run: cd client && npm install
-    - run: cd client && npm ci
-    - run: cd client && npm run build
+    - run: npm install
+    - run: npm ci
+    - run: npm run build
+      working-directory: client
