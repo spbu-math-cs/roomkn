@@ -4,6 +4,9 @@ on:
   push:
     paths:
       - 'server/**'
+      - 'temp/**'
+  pull_request:
+    branches: [ "main" ]
 jobs:
   Server-CI:
     runs-on: ubuntu-latest
