@@ -13,7 +13,10 @@ import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
 
 fun Route.reserveRouting() {
     post("/reserve") { unregisteredReservation: UnregisteredReservation ->
-        val userId = call.principal<AuthSession>()?.userId ?: unregisteredReservation.userId
+        val userId = runCatching {
+            call.principal<AuthSession>()?.userId ?: unregisteredReservation.userId
+        }.getOrElse { unregisteredReservation.userId }
+
         val result = database.createReservation(unregisteredReservation.copy(userId = userId))
         result.onSuccess {
             call.respond(HttpStatusCode.Created, it)
