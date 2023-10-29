@@ -15,6 +15,8 @@ import io.ktor.server.routing.route
 import org.tod87et.roomkn.server.auth.AuthSession
 import org.tod87et.roomkn.server.auth.AuthenticationProvider
 import org.tod87et.roomkn.server.auth.NoSuchUserException
+import org.tod87et.roomkn.server.auth.permissions
+import org.tod87et.roomkn.server.auth.userId
 import org.tod87et.roomkn.server.database.DatabaseFactory
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.users.UnregisteredUserInfo
@@ -57,7 +59,7 @@ private fun Route.updateUser() {
         val id = call.parameters["id"]?.toInt() ?: return@put call.onMissingId()
         call.requirePermissionOrSelf { return@put call.onMissingPermission() }
 
-        TODO("update user $id")
+        TODO("update user $id to $body")
     }
 }
 

@@ -13,6 +13,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.tod87et.roomkn.server.KtorTestEnv.testJsonApplication
+import org.tod87et.roomkn.server.auth.userId
 import org.tod87et.roomkn.server.database.DatabaseFactory
 import org.tod87et.roomkn.server.models.users.LoginUserInfo
 import org.tod87et.roomkn.server.models.users.UnregisteredUserInfo

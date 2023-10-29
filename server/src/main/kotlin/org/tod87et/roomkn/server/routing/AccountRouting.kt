@@ -19,6 +19,7 @@ import org.tod87et.roomkn.server.auth.AuthSession
 import org.tod87et.roomkn.server.auth.AuthenticationProvider
 import org.tod87et.roomkn.server.auth.NoSuchUserException
 import org.tod87et.roomkn.server.auth.RegistrationFailedException
+import org.tod87et.roomkn.server.auth.userId
 import org.tod87et.roomkn.server.models.users.LoginUserInfo
 import org.tod87et.roomkn.server.models.users.UnregisteredUserInfo
 import org.tod87et.roomkn.server.models.users.UserId
