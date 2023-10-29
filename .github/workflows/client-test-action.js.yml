@@ -22,11 +22,14 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: cd client && actions/setup-node@v3
+      uses: actions/setup-node@v3
       with:
+        cache-dependency-path: 'client'
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: npm install
+      working-directory: client
     - run: npm ci
+      working-directory: client
     - run: npm run build
       working-directory: client
