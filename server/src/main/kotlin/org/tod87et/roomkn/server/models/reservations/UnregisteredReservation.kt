@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class UnregisteredReservation(
-    @SerialName("user_id") val userId: Int,
+    @SerialName("user_id") val userId: Int = -1,
     @SerialName("room_id") val roomId: Int,
     val from: Instant,
     val until: Instant,
