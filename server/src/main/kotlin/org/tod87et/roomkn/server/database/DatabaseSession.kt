@@ -21,9 +21,11 @@ import javax.sql.DataSource
 import org.tod87et.roomkn.server.database.Database as RooMknDatabase
 import kotlinx.datetime.Clock
 import org.jetbrains.exposed.exceptions.ExposedSQLException
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.update
 import org.jetbrains.exposed.sql.upsert
 import org.postgresql.util.PSQLException
 import org.tod87et.roomkn.server.database.InvalidatedTokens.tokenHash
@@ -59,12 +61,23 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
-    override fun updateRoom(roomId: Int, roomInfo: NewRoomInfo): Result<Unit> {
-        TODO("Not yet implemented")
+    override fun updateRoom(roomId: Int, roomInfo: NewRoomInfo): Result<Unit> = queryWrapper {
+        transaction(database) {
+            val cnt = Rooms.update({ Rooms.id eq roomId }) {
+                it[name] = roomInfo.name
+                it[description] = roomInfo.description
+            }
+
+            if (cnt == 0) throw MissingElementException()
+        }
     }
 
-    override fun deleteRoom(roomId: Int): Result<Unit> {
-        TODO("Not yet implemented")
+    override fun deleteRoom(roomId: Int): Result<Unit> = queryWrapper {
+        transaction(database) {
+            val cnt = Rooms.deleteWhere { id eq roomId }
+
+            if (cnt == 0) throw MissingElementException()
+        }
     }
 
     override fun getRooms(): Result<List<ShortRoomInfo>> = queryWrapper {
@@ -105,8 +118,24 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
-    override fun getUserReservations(userId: Int): Result<List<Reservation>> {
-        TODO("Not yet implemented")
+    override fun getUserReservations(userId: Int): Result<List<Reservation>> = queryWrapper {
+        transaction(database) {
+            if (Users.select { Users.id eq userId }.empty()) {
+                throw MissingElementException()
+            }
+
+            Reservations
+              .select { Reservations.userId eq userId }
+              .map {
+                  Reservation(
+                      id = it[Reservations.id],
+                      userId = it[Reservations.userId],
+                      roomId = it[Reservations.roomId],
+                      from = it[Reservations.from],
+                      until = it[Reservations.until]
+                  )
+              }
+        }
     }
 
     override fun createReservation(reserve: UnregisteredReservation): Result<Reservation> = queryWrapper {
@@ -138,8 +167,12 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
-    override fun deleteReservation(reservationId: Int): Result<Unit> {
-        TODO("Not yet implemented")
+    override fun deleteReservation(reservationId: Int): Result<Unit> = queryWrapper {
+        transaction(database) {
+            val cnt = Reservations.deleteWhere { id eq reservationId }
+
+            if (cnt == 0) throw MissingElementException()
+        }
     }
 
     override fun getUsers(): Result<List<ShortUserInfo>> = queryWrapper {
@@ -160,12 +193,23 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
-    override fun getUserPermissions(userId: Int): Result<List<UserPermission>> {
-        TODO("Not yet implemented")
+    override fun getUserPermissions(userId: Int): Result<List<UserPermission>> = queryWrapper {
+        transaction(database) {
+            val usersRow = Users.select { Users.id eq userId }.singleOrNull() ?: throw MissingElementException()
+            val permissionsMask = usersRow[Users.permissions]
+
+            maskToPermissions(permissionsMask)
+        }
     }
 
-    override fun updateUserPermissions(userId: Int, permissions: List<UserPermission>): Result<Unit> {
-        TODO("Not yet implemented")
+    override fun updateUserPermissions(userId: Int, permissions: List<UserPermission>): Result<Unit> = queryWrapper {
+        transaction(database) {
+            val cnt = Users.update({ Users.id eq userId }) {
+                it[Users.permissions] = permissionsToMask(permissions)
+            }
+
+            if (cnt == 0) throw MissingElementException()
+        }
     }
 
     override fun registerUser(user: RegistrationUserInfo): Result<UserInfo> = queryWrapper {
@@ -175,6 +219,7 @@ class DatabaseSession private constructor(private val database: Database) :
                 it[email] = user.email
                 it[salt] = user.salt
                 it[passwordHash] = user.passwordHash
+                it[permissions] = permissionsToMask(user.permissions)
             }
 
             UserInfo(userRow[Users.id], userRow[Users.username], userRow[Users.email])
@@ -281,4 +326,25 @@ class DatabaseSession private constructor(private val database: Database) :
 
                 return Result.failure(mappedException)
             }
+
+    private fun permissionsToMask(permissions: List<UserPermission>): ULong =
+        permissions.fold(0uL) { acc, permission ->
+            acc + (1uL shl permission.id)
+        }
+
+    private fun maskToPermissions(mask: ULong): List<UserPermission> {
+        val result = mutableListOf<UserPermission>()
+
+        for (bit in 0 until UserPermission.entries.size) {
+            if (mask and (1uL shl bit) != 0uL) {
+                val permission = UserPermission.fromId(bit) ?: error("Unexpected")
+
+                result.add(permission)
+            }
+        }
+
+        return result
+    }
+
+
 }

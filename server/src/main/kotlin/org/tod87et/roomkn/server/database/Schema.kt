@@ -11,6 +11,7 @@ object Users : Table() {
     val email: Column<String> = text("email").uniqueIndex("unique_users_email")
     val salt: Column<ByteArray> = binary("salt", 32)
     val passwordHash: Column<ByteArray> = binary("passwordHash", 32)
+    val permissions: Column<ULong> = ulong("permissions")
 
     override val primaryKey = PrimaryKey(id)
 }
