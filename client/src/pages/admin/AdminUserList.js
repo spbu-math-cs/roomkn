@@ -8,10 +8,10 @@ import AdminWrapper from "../../components/AdminWrapper";
 
 function EditUserRow({user, refresh}) {
 
-    const [name, setName] = useState(user.name)
+    const [name, setName] = useState(user.username)
 
     const put_data = {
-        name: name,
+        name: name
     }
 
     const putObj = useSomeAPI("/api/v0/users/" + user.id + "/edit", put_data, "PUT")
@@ -21,7 +21,7 @@ function EditUserRow({user, refresh}) {
     const [deleteStatusCode, triggerDelete, deleteFinished] = [deleteObj.statusCode, deleteObj.triggerFetch, deleteObj.finished]
 
     const reset = () => {
-        setName(user.name)
+        setName(user.username)
     }
 
     const put_req = () => {

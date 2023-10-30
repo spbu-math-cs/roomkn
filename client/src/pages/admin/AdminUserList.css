@@ -1,55 +1,55 @@
-.edit-room-row {
+.edit-user-row {
     width: 100%;
     margin-bottom: 10px;
 }
 
-.edit-room-row-id {
+.edit-user-row-id {
     width: 10%;
 }
 
-.edit-room-row-name {
+.edit-user-row-name {
     color: #f2f3f5;
     background: #1E1F22;
 }
 
-.edit-room-row-desc {
+.edit-user-row-desc {
     color: #f2f3f5;
     background: #1E1F22;
 }
 
-.edit-room-row-update {
+.edit-user-row-update {
     color: #f2f3f5;
     background: darkgreen;
 }
 
-.edit-room-row-reset {
+.edit-user-row-reset {
     color: #f2f3f5;
     background: #1E1F22;
 }
 
-.edit-room-row-delete {
+.edit-user-row-delete {
     color: #f2f3f5;
     background: darkred;
     right: 0;
     position: relative;
 }
 
-.add-room-row {
+.add-user-row {
     width: 100%;
     margin-top: 40px;
 }
 
-.add-room-row-name {
+.add-user-row-name {
     color: #f2f3f5;
     background: #1E1F22;
 }
 
-.add-room-row-desc {
+.add-user-row-desc {
     color: #f2f3f5;
     background: #1E1F22;
 }
 
-.add-room-row-add {
+.add-user-row-add {
     color: #f2f3f5;
     background: green;
     right: 0;
