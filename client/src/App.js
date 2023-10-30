@@ -16,6 +16,7 @@ import {AuthorizationProvider} from './components/Auth'
 
 import AdminPanel from "./pages/admin/AdminPanel";
 import AdminRoomList from "./pages/admin/AdminRoomList";
+import AdminUserList from "./pages/admin/AdminUserList";
 
 
 function PageNotFound() {
@@ -55,6 +56,7 @@ function App() {
                     }
                     <Route path="admin/panel" element={<AdminPanel />} />
                     <Route path="admin/rooms" element={<AdminRoomList />} />
+                    <Route path="admin/users" element={<AdminUserList />} />
                 </Routes>
                 <Footer />
             </Router>
