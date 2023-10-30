@@ -77,6 +77,7 @@ export function useAuthorizeByCookie() {
         if (finishedValidate && currentUser?.user_id != null) {
             triggerFetchUser()
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fetchFlagValidate, finishedValidate, resultValidate, currentUser?.user_id]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -89,7 +90,7 @@ export function useAuthorizeByCookie() {
             setCurrentUser(tmp_user_data)
             console.log(tmp_user_data)
         }
-
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentUser, finishedUser, resultUser])
 
     return {triggerValidate: triggerFetchValidate}

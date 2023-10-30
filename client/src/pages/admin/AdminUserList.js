@@ -14,6 +14,56 @@ function EditUserRow({user, refresh}) {
         name: name
     }
 
+    const permissionsDefault = {
+        "ReservationsCreate"    : false,
+        "ReservationsAdmin"     : false,
+        "RoomsAdmin"            : false,
+        "UsersAdmin"            : false,
+        "GroupsAdmin"           : false
+    }
+    const [permissions, setPermissions] = useState(permissionsDefault)
+
+    const {triggerFetch: permGetTriggerFetch, finished: permGetFinished, result: permGetResult} = useSomeAPI("/api/v0/users/" + user.id + "/permissions", null, "GET")
+
+    useEffect(() => {
+        permGetTriggerFetch()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
+    useEffect(() => {
+        if (permGetFinished) {
+            const tmp_perms = permissionsDefault
+            for (let perm in permGetResult) {
+                tmp_perms[permGetResult[perm]] = true;
+            }
+            setPermissions(tmp_perms)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [permGetFinished, permGetResult])
+
+
+
+    const permissions_draw = []
+    if (permissions != null) {
+        for (let perm in permissions) {
+            console.log(user.id, permissions[perm])
+            const onchange = () => {
+                const tmp_perms2 = permissions
+                tmp_perms2[perm] = !permissions[perm];
+                console.log("sdsdsdfsdg", tmp_perms2)
+                setPermissions(tmp_perms2)
+            }
+            permissions_draw.push(
+                <div key={perm}>
+                    <label>
+                        {perm}
+                    </label>
+                    <input type="checkbox" checked={permissions[perm]} onChange={onchange} key={Math.random()} name={perm}/>
+                </div>
+            )
+        }
+    }
+
     const putObj = useSomeAPI("/api/v0/users/" + user.id + "/edit", put_data, "PUT")
     const deleteObj = useSomeAPI("/api/v0/users/" + user.id + "/remove", null, "DELETE")
 
@@ -56,6 +106,8 @@ function EditUserRow({user, refresh}) {
             </div>
             <input className="edit-user-row-reset" type="button" value="reset" onClick={reset}/>
             <input className="edit-user-row-name" type="text" value={name} onChange={(e) => setName(e.target.value)}/>
+
+            {permissions_draw}
 
             <input className="edit-user-row-update" type="button" value="UPDATE" onClick={put_req}/>
             <input className="edit-user-row-delete" type="button" value="delete" onClick={delete_req}/>
