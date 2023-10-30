@@ -39,7 +39,7 @@ fun Route.usersRouting() {
 }
 
 private fun Route.listUsers() {
-    get("/") {
+    get {
         call.requirePermissionOrSelf { return@get call.onMissingPermission() }
 
         DatabaseFactory.database.getUsers()
