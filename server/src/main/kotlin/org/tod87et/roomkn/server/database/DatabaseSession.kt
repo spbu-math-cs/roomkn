@@ -59,6 +59,14 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
+    override fun updateRoom(roomId: Int, roomInfo: NewRoomInfo): Result<Unit> {
+        TODO("Not yet implemented")
+    }
+
+    override fun deleteRoom(roomId: Int): Result<Unit> {
+        TODO("Not yet implemented")
+    }
+
     override fun getRooms(): Result<List<ShortRoomInfo>> = queryWrapper {
         transaction(database) {
             Rooms.selectAll().map { ShortRoomInfo(it[Rooms.id], it[Rooms.name]) }
@@ -97,6 +105,10 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
+    override fun getUserReservations(roomId: Int): Result<List<Reservation>> {
+        TODO("Not yet implemented")
+    }
+
     override fun createReservation(reserve: UnregisteredReservation): Result<Reservation> = queryWrapper {
         require(reserve.until > reserve.from) { "Until must be later than from" }
 
@@ -126,6 +138,10 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
+    override fun deleteReservation(reservationId: Int): Result<Unit> {
+        TODO("Not yet implemented")
+    }
+
     override fun getUsers(): Result<List<ShortUserInfo>> = queryWrapper {
         transaction(database) {
             Users.selectAll().map { ShortUserInfo(it[Users.id], it[Users.username]) }
@@ -148,7 +164,7 @@ class DatabaseSession private constructor(private val database: Database) :
         TODO("Not yet implemented")
     }
 
-    override fun setUserPermissions(userId: Int, permissions: List<UserPermission>): Result<Unit> {
+    override fun updateUserPermissions(userId: Int, permissions: List<UserPermission>): Result<Unit> {
         TODO("Not yet implemented")
     }
 
