@@ -19,7 +19,8 @@ object KtorTestEnv {
     val accountManager = AccountControllerImpl(
         exposedLogger,
         AuthConfig.Builder()
-            .database(DatabaseFactory.credentialsDatabase)
+            .database(DatabaseFactory.database)
+            .credentialsDatabase(DatabaseFactory.credentialsDatabase)
             .pepper(kTorConfig.tryGetString("auth.pepper")!!)
             .secret(kTorConfig.tryGetString("jwt.secret")!!)
             .issuer(kTorConfig.tryGetString("jwt.issuer")!!)

@@ -7,7 +7,8 @@ object AuthConfigFactory {
     fun createConfig(environment: ApplicationEnvironment): AuthConfig {
         return AuthConfig.Builder()
             .loadEnvironment(environment)
-            .database(DatabaseFactory.credentialsDatabase)
+            .database(DatabaseFactory.database)
+            .credentialsDatabase(DatabaseFactory.credentialsDatabase)
             .build()
     }
 }

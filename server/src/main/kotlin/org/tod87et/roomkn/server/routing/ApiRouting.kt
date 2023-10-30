@@ -10,5 +10,6 @@ fun Route.apiRouting(accountController: AccountController) {
         reserveRouting()
         roomsRouting()
         accountRouting(accountController)
+        usersRouting()
     }
 }
