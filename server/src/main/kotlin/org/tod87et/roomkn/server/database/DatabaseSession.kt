@@ -105,7 +105,7 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
-    override fun getUserReservations(roomId: Int): Result<List<Reservation>> {
+    override fun getUserReservations(userId: Int): Result<List<Reservation>> {
         TODO("Not yet implemented")
     }
 
