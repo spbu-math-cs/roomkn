@@ -2,6 +2,7 @@ package org.tod87et.roomkn.server.auth
 
 import io.ktor.server.application.ApplicationEnvironment
 import org.tod87et.roomkn.server.database.CredentialsDatabase
+import org.tod87et.roomkn.server.database.Database
 import org.tod87et.roomkn.server.util.checkField
 import java.util.Base64
 import kotlin.time.Duration
@@ -13,7 +14,8 @@ class AuthConfig(
     val audience: String,
     val secret: ByteArray,
     val pepper: ByteArray,
-    val database: CredentialsDatabase,
+    val database: Database,
+    val credentialsDatabase: CredentialsDatabase,
     val tokenValidityPeriod: Duration,
     val saltSize: Int,
     val hashingAlgorithmId: String,
@@ -25,7 +27,8 @@ class AuthConfig(
         var audience: String? = null,
         var secret: ByteArray? = null,
         var pepper: ByteArray? = null,
-        var database: CredentialsDatabase? = null,
+        var database: Database? = null,
+        var credentialsDatabase: CredentialsDatabase? = null,
         var tokenValidityPeriod: Duration = DEFAULT_TOKEN_VALIDITY_PERIOD,
         var saltSize: Int = DEFAULT_SALT_SIZE,
         var hashingAlgorithmId: String = DEFAULT_HASHING_ALGORITHM_ID,
@@ -55,7 +58,10 @@ class AuthConfig(
 
         fun secret(base64EncodedSecret: String) = apply { this.secret = Base64.getDecoder().decode(base64EncodedSecret) }
 
-        fun database(database: CredentialsDatabase) = apply { this.database = database }
+        fun database(database: Database) = apply { this.database = database }
+
+        fun credentialsDatabase(credentialsDatabase: CredentialsDatabase) =
+            apply { this.credentialsDatabase = credentialsDatabase }
 
         fun pepper(pepper: ByteArray) = apply { this.pepper = pepper }
 
@@ -76,6 +82,7 @@ class AuthConfig(
             checkField(secret, "secret"),
             checkField(pepper, "pepper"),
             checkField(database, "database"),
+            checkField(credentialsDatabase, "credentialsDatabase"),
             tokenValidityPeriod,
             saltSize,
             hashingAlgorithmId,

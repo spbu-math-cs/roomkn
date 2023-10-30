@@ -7,6 +7,7 @@ import io.ktor.util.logging.Logger
 import kotlinx.datetime.toKotlinInstant
 import org.tod87et.roomkn.server.database.ConstraintViolationException
 import org.tod87et.roomkn.server.database.MissingElementException
+import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.users.LoginUserInfo
 import org.tod87et.roomkn.server.models.users.RegistrationUserInfo
 import org.tod87et.roomkn.server.models.users.UnregisteredUserInfo
@@ -41,7 +42,19 @@ class AccountControllerImpl(
         .build()
 
     override fun authenticateUser(loginUserInfo: LoginUserInfo): Result<AuthSession> {
-        val credentials = config.database.getCredentialsInfoByUsername(loginUserInfo.username)
+        val credentials = config.credentialsDatabase.getCredentialsInfoByUsername(loginUserInfo.username)
+            .getOrElse { ex ->
+                return when (ex) {
+                    is MissingElementException -> {
+                        Result.failure(NoSuchUserException(loginUserInfo.username, ex))
+                    }
+
+                    else -> {
+                        Result.failure(ex)
+                    }
+                }
+            }
+        val permissions = config.database.getUserPermissions(credentials.id)
             .getOrElse { ex ->
                 return when (ex) {
                     is MissingElementException -> {
@@ -61,7 +74,7 @@ class AccountControllerImpl(
         val passwordHash = digest.digest()
         return if (passwordHash.contentEquals(credentials.passwordHash)) {
             log.debug("Authentication successful for `${loginUserInfo.username}`")
-            Result.success(AuthSession(createToken(credentials.id)))
+            Result.success(AuthSession(createToken(credentials.id, permissions)))
         } else {
             log.debug("Authentication failed for `${loginUserInfo.username}`")
             Result.failure(AuthFailedException("Wrong username or password"))
@@ -81,7 +94,7 @@ class AccountControllerImpl(
             salt = salt,
             passwordHash = digest.digest()
         )
-        val res = config.database.registerUser(registrationInfo)
+        val res = config.credentialsDatabase.registerUser(registrationInfo, defaultPermissions)
 
         val info = res.getOrElse { ex ->
             log.debug("Failed to register user `${userInfo.username}`", ex)
@@ -105,7 +118,7 @@ class AccountControllerImpl(
         }
 
         log.debug("User `${info.username}` has been registered")
-        return Result.success(AuthSession(createToken(info.id)))
+        return Result.success(AuthSession(createToken(info.id, defaultPermissions)))
     }
 
     override fun validateSession(session: AuthSession): Result<Boolean> {
@@ -115,12 +128,12 @@ class AccountControllerImpl(
                 return Result.success(false)
             }
         digest.update(session.token.encodeToByteArray())
-        return config.database.checkTokenWasInvalidated(digest.digest()).map { !it }
+        return config.credentialsDatabase.checkTokenWasInvalidated(digest.digest()).map { !it }
     }
 
     override fun invalidateSession(session: AuthSession): Result<Unit> {
         digest.update(session.token.encodeToByteArray())
-        return config.database.invalidateToken(
+        return config.credentialsDatabase.invalidateToken(
             digest.digest(),
             JWT.decode(session.token).expiresAtAsInstant.toKotlinInstant()
         )
@@ -146,7 +159,7 @@ class AccountControllerImpl(
         while (!Thread.interrupted()) {
             try {
                 Thread.sleep(config.cleanupInterval.inWholeMilliseconds)
-                config.database.cleanupExpiredInvalidatedTokens().getOrThrow()
+                config.credentialsDatabase.cleanupExpiredInvalidatedTokens().getOrThrow()
             } catch (_: InterruptedException) {
                 break
             } catch (e: Exception) {
@@ -155,12 +168,19 @@ class AccountControllerImpl(
         }
     }
 
-    private fun createToken(userId: Int): String {
+    private fun createToken(userId: Int, permissions: List<UserPermission>): String {
         return JWT.create()
             .withAudience(config.audience)
             .withIssuer(config.issuer)
             .withClaim(AuthSession.USER_ID_CLAIM_NAME, userId)
+            .withClaim(AuthSession.USER_PERMISSIONS_CLAIM_NAME, permissions)
             .withExpiresAt(Date(System.currentTimeMillis() + config.tokenValidityPeriod.inWholeMilliseconds))
             .sign(signAlgorithm)
+    }
+
+    companion object {
+        private val defaultPermissions: List<UserPermission> = listOf(
+            UserPermission.ReservationsCreate,
+        )
     }
 }
