@@ -34,6 +34,11 @@
     font-size: 30px;
 }
 
+.form-label {
+    float: left;
+    width: 20%;
+}
+
 .form-submit {
     align-self: self-end;
     font-size: 40px;
@@ -108,4 +113,15 @@
 
 .reservation-user-label {
     font-size: 20px;
+}
+
+.not-authorized-label {
+    font-size: 20px;
+    display: flex;
+}
+
+.not-authorized-link {
+    color:blue;
+    font-size: 20px;
+    display: flex;
 }

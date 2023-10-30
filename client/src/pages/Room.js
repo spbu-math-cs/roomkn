@@ -1,4 +1,4 @@
-import {useLocation, useNavigate} from 'react-router-dom'
+import {Link, NavLink, useLocation, useNavigate} from 'react-router-dom'
 
 import './Room.css'
 import ContentWrapper from '../components/Content';
@@ -44,10 +44,6 @@ function GetReservations(room_id, date) {
     console.log("after useSomeAPI")
 
     if (statusCode === 200 && finished) {
-      // const reservation_list = []
-      // result.forEach((reservation) => {
-      //   if (fromAPITime(reservation.from) === date) reservation_list.push(reservation)
-      // });
       return {
           reservations: result.filter((reservation) => (fromAPITime(reservation.from).date === date)),
           triggerGetReservations: triggerFetch
@@ -62,10 +58,12 @@ function GetReservations(room_id, date) {
 
 function useBookRoom(room_id, user_id, date, from, to) {
 
-  // TODO instant from date and from
+  const {currentUser} = useContext(CurrentUserContext)
+
+  if (user_id == undefined) user_id = null;
 
   const reservation = {
-    user_id: 1,
+    user_id: user_id,
     from: toAPITime(date, from),
     until: toAPITime(date, to),
     room_id: room_id
@@ -79,54 +77,53 @@ function useBookRoom(room_id, user_id, date, from, to) {
 
 function BookingForm({room_id, triggerGetReservations}) {
 
-  const [name, setName] = useState('');
-  // const [from, setFrom] = useState('09:30');
-  // const [to,   setTo]   = useState('11:05');
   const {from, setFrom, until, setUntil, date} = useContext(CurrentReservationContext)
 
-  const {triggerFetch, result, statusCode, finished} = useBookRoom(room_id, name, date, from, until);
-
+  
   const {currentUser} = useContext(CurrentUserContext)
+  const {triggerFetch, result, statusCode, finished} = useBookRoom(room_id, currentUser?.user_id, date, from, until);
+  
   useEffect(() => {
-      setName(currentUser?.user_id)
-  }, [])
+    if (finished) {
+        if (statusCode === 400) alert("Ошибка: " + result)
+        else if (statusCode === 409) alert("Невозможно выполнить бронирование: в это время комната занята")
+        else if (statusCode === 201) alert("Бронирование успешно!");
+        else alert("Status Code: " + statusCode)
+
+        triggerGetReservations()
+    }
+}, [finished]);
+
+  if (currentUser === null) {
+    return (
+      <ContentWrapper page_name='Форма бронирования'>
+        <label className='not-authorized-label'>
+          Вы не авторизованы в системе. Чтобы получить возможность бронирования, пожалуйста,
+        </label>
+        <NavLink className='not-authorized-link' to='/sign-in'>
+          войдите в систему.
+        </NavLink>   
+      </ContentWrapper>
+    )
+  }
+
+  // useEffect(() => {
+  //     setName(currentUser?.user_id)
+  // }, [])
 
 
-    useEffect(() => {
-        if (finished) {
-            if (statusCode === 400) alert("Ошибка: " + result)
-            else if (statusCode === 409) alert("Невозможно выполнить бронирование: в это время комната занята")
-            else if (statusCode === 201) alert("Бронирование успешно!");
-            else alert("Status Code: " + statusCode)
-
-            triggerGetReservations()
-        }
-    }, [finished]);
-
+  
 
   const HandleSubmit = (e) => {
     e.preventDefault();
 
     triggerFetch()
       triggerGetReservations()
-    // console.log(name, date, from, to, statusCode, finished)
-
-
   };
 
   return (
+    <ContentWrapper page_name='Форма бронирования'>
       <form className="form-wrapper" onSubmit={HandleSubmit}>
-          <div className="form-name">
-              Форма бронирования
-          </div>
-          <div className="form-field">
-              <label className="form-label">
-                  Имя
-              </label>
-              <input className="form-input" value={name} onChange={(e) => setName(e.target.value)}>
-                  
-              </input>
-          </div>
           <div className="form-field">
               <label className="form-label">
                   С
@@ -145,6 +142,7 @@ function BookingForm({room_id, triggerGetReservations}) {
           </div>
           <input className="form-submit" type="submit" value="Забронировать"></input>
       </form>
+    </ContentWrapper>
   )
 }
 
@@ -193,7 +191,7 @@ function Reservation ({reservation, is_current_reservation=false}) {
               </div>
               <div className="reservation-user">
                   <label className='reservation-user-label'>
-                      {reservedUsername}.
+                      {reservedUsername}
                   </label>
               </div>
           </div>
@@ -224,16 +222,19 @@ function ReservationsList({reservations}) {
         )
     })
 
-  const current_reservation = {
+  if (user_id != null) {
+    const current_reservation = {
       from: toAPITime(date, from),
       until: toAPITime(date, until),
       user_id: user_id
+    }
+    reservationsList.push(<Reservation reservation={current_reservation} is_current_reservation={true}></Reservation>)
   }
+
 
   return (
       <div className="reservation-list-wrapper">
           <div className="reservation-list-background"/>
-          <Reservation reservation={current_reservation} is_current_reservation={true}/>
           {reservationsList}
       </div>
   )
@@ -295,21 +296,16 @@ function Room() {
   const page_name = "Аудитория " + room_info.name
 
   return (
-    <ContentWrapper page_name={page_name}>
+    // <CurrentUserContext.Provider value={{
+    //   user_id: 1
+    // }}>
+      <ContentWrapper page_name={page_name}>
         <CurrentReservationContext.Provider value={{date, setDate, from, setFrom, until, setUntil}}>
             <div className="room-wrapper">
                 <div className='room-info'>
                     <div className='room-description'>{room_info.description}</div>
                      <div className='room-date'>
                         <RoomDate date={date} setDate={setDate}/>
-                    </div>
-                    <div className="form-field">
-                        <label className="form-label">
-                            Дата
-                        </label>
-                        <input className="form-input" type="date" value={date} onChange={(e) => setDate(e.target.value)}>
-
-                        </input>
                     </div>
                     <div className='reservations-info'>
                         <div>
@@ -324,6 +320,8 @@ function Room() {
             </div>
         </CurrentReservationContext.Provider>
     </ContentWrapper>
+    //</CurrentUserContext.Provider>
+    
   );
 }
 

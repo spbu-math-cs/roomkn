@@ -10,7 +10,7 @@
 .content-wrapper-content-name {
     padding: 10px 25px 10px 25px;
     font-size: 30px;
-    width: 30%;
+    width: min-content;
     
     border-radius: 2px;
     border-top: 3px solid var(--idea-border-black, #1E1F22);
