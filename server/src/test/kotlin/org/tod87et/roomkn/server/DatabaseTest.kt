@@ -9,6 +9,7 @@ import org.tod87et.roomkn.server.database.ConstraintViolationException
 import org.tod87et.roomkn.server.database.DatabaseSession
 import org.tod87et.roomkn.server.database.MissingElementException
 import org.tod87et.roomkn.server.database.ReservationException
+import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 import org.tod87et.roomkn.server.models.users.RegistrationUserInfo
 import org.tod87et.roomkn.server.models.reservations.Reservation
@@ -52,12 +53,30 @@ class DatabaseTest {
 
         val incorrectId = rooms.last().id + 1
         assertTrue(database.getRoom(incorrectId).exceptionOrNull() is MissingElementException)
+
+        val updatedRoomInfo = NewRoomInfo("newRoom", "newDescription")
+
+        assertTrue(database.updateRoom(room1Info.id, updatedRoomInfo).isSuccess)
+        assertEquals(
+            RoomInfo(room1Info.id, updatedRoomInfo.name, updatedRoomInfo.description),
+            database.getRoom(room1Info.id).getOrThrow()
+        )
+
+        assertTrue(database.deleteRoom(room2Info.id).isSuccess)
+        assertTrue(database.getRoom(room2Info.id).exceptionOrNull() is MissingElementException)
     }
 
     @Test
     fun usersApiTest() {
+        val user2Permissions = listOf(UserPermission.UsersAdmin, UserPermission.ReservationsCreate)
         val user1 = RegistrationUserInfo("user1", "email1", byteArrayOf(1), byteArrayOf(2))
-        val user2 = RegistrationUserInfo("user2", "email2", byteArrayOf(3), byteArrayOf(4))
+        val user2 = RegistrationUserInfo(
+            "user2",
+            "email2",
+            byteArrayOf(3),
+            byteArrayOf(4),
+            user2Permissions
+        )
 
         val user1Info = database.registerUser(user1).getOrThrow()
         val user2Info = database.registerUser(user2).getOrThrow()
@@ -78,6 +97,12 @@ class DatabaseTest {
 
         val incorrectUser = RegistrationUserInfo(user1.username, "email3", byteArrayOf(5), byteArrayOf(6))
         assertTrue(database.registerUser(incorrectUser).exceptionOrNull() is ConstraintViolationException)
+
+        assertEquals(user2Permissions.sorted(), database.getUserPermissions(user2Info.id).getOrThrow().sorted())
+
+        val newPermissions = listOf(UserPermission.RoomsAdmin)
+        assertTrue(database.updateUserPermissions(user2Info.id, newPermissions).isSuccess)
+        assertEquals(newPermissions.sorted(), database.getUserPermissions(user2Info.id).getOrThrow().sorted())
     }
 
     @Test
@@ -113,9 +138,9 @@ class DatabaseTest {
 
         val reservation1 = UnregisteredReservation(userInfo.id, room1Info.id, from, until)
         val reservation2 = UnregisteredReservation(userInfo.id, room2Info.id, from, until)
+        val reservation2Info = database.createReservation(reservation2).getOrThrow()
 
         assertTrue(database.createReservation(reservation1).isSuccess)
-        assertTrue(database.createReservation(reservation2).isSuccess)
 
         assertTrue(database.createReservation(reservation1).exceptionOrNull() is ReservationException)
 
@@ -129,6 +154,12 @@ class DatabaseTest {
         )
 
         assertEquals(listOf(expectedReservation), room1Reservations)
+
+        assertTrue(database.deleteReservation(reservation2Info.id).isSuccess)
+        assertEquals(
+            listOf(expectedReservation),
+            database.getUserReservations(userInfo.id).getOrThrow()
+        )
     }
 
     @Test
