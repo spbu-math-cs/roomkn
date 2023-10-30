@@ -92,9 +92,10 @@ class AccountControllerImpl(
             username = userInfo.username,
             email = userInfo.email,
             salt = salt,
-            passwordHash = digest.digest()
+            passwordHash = digest.digest(),
+            permissions = defaultPermissions,
         )
-        val res = config.credentialsDatabase.registerUser(registrationInfo, defaultPermissions)
+        val res = config.credentialsDatabase.registerUser(registrationInfo)
 
         val info = res.getOrElse { ex ->
             log.debug("Failed to register user `${userInfo.username}`", ex)
@@ -173,7 +174,7 @@ class AccountControllerImpl(
             .withAudience(config.audience)
             .withIssuer(config.issuer)
             .withClaim(AuthSession.USER_ID_CLAIM_NAME, userId)
-            .withClaim(AuthSession.USER_PERMISSIONS_CLAIM_NAME, permissions)
+            .withClaim(AuthSession.USER_PERMISSIONS_CLAIM_NAME, permissions.map { it.toString() })
             .withExpiresAt(Date(System.currentTimeMillis() + config.tokenValidityPeriod.inWholeMilliseconds))
             .sign(signAlgorithm)
     }

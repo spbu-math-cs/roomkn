@@ -1,13 +1,12 @@
 package org.tod87et.roomkn.server.database
 
 import kotlinx.datetime.Instant
-import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.users.RegistrationUserInfo
 import org.tod87et.roomkn.server.models.users.UserCredentialsInfo
 import org.tod87et.roomkn.server.models.users.UserInfo
 
 interface CredentialsDatabase {
-    fun registerUser(user: RegistrationUserInfo, permissions: List<UserPermission>): Result<UserInfo>
+    fun registerUser(user: RegistrationUserInfo): Result<UserInfo>
 
     fun getCredentialsInfoByUsername(username: String): Result<UserCredentialsInfo>
 

@@ -12,6 +12,7 @@ import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
+import io.ktor.util.logging.KtorSimpleLogger
 import org.tod87et.roomkn.server.auth.AuthSession
 import org.tod87et.roomkn.server.auth.AuthenticationProvider
 import org.tod87et.roomkn.server.auth.NoSuchUserException
@@ -22,6 +23,7 @@ import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.users.UnregisteredUserInfo
 import org.tod87et.roomkn.server.util.defaultExceptionHandler
 
+private const val LOGGER_NAME = "UsersRoute"
 
 fun Route.usersRouting() {
     authenticate(AuthenticationProvider.SESSION) {
@@ -50,7 +52,10 @@ private fun Route.deleteUser() {
     delete("/{id}") {
         val id = call.parameters["id"]?.toInt() ?: return@delete call.onMissingId()
         call.requirePermissionOrSelf { return@delete call.onMissingPermission() }
-        TODO("delete user $id")
+
+        // TODO(firelion9): delete user
+        call.respondText("Operation is not supported yet", status = HttpStatusCode.NotImplemented)
+        KtorSimpleLogger(LOGGER_NAME).error("Delete user $id: operation is not supported")
     }
 }
 
@@ -59,7 +64,9 @@ private fun Route.updateUser() {
         val id = call.parameters["id"]?.toInt() ?: return@put call.onMissingId()
         call.requirePermissionOrSelf { return@put call.onMissingPermission() }
 
-        TODO("update user $id to $body")
+        // TODO(firelion9): update user
+        call.respondText("Operation is not supported yet", status = HttpStatusCode.NotImplemented)
+        KtorSimpleLogger(LOGGER_NAME).error("Update user $id to $body: operation is not supported")
     }
 }
 
@@ -90,7 +97,7 @@ private fun Route.setUserPermissions() {
         val id = call.parameters["id"]?.toInt() ?: return@put call.onMissingId()
         call.requirePermissionOrSelf { return@put call.onMissingPermission() }
 
-        DatabaseFactory.database.setUserPermissions(id, body)
+        DatabaseFactory.database.updateUserPermissions(id, body)
             .onSuccess { call.respondText("Ok") }
             .onFailure { call.handleException(it) }
     }
