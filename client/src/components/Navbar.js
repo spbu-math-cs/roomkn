@@ -28,12 +28,14 @@ const NavSignIn = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [finished]);
 
+    const user_nickname = "Азат"
+
     if (isAuthorized) {
         return (
             <>
                 <NavLink to="/profile" className="navlink">
-                    {/*{currentUser.toString()}*/}
-                    Мой профиль
+                    {user_nickname}
+                    <img className="navbar-profile-avatar" src="/azat.png" alt="avatar"/>
                 </NavLink>
                 <div onClick={logOut} className="navlink">
                     Выйти
