@@ -84,7 +84,6 @@ private fun Route.listUserPermissions() {
 private fun Route.getUser() {
     get("/{id}") {
         val id = call.parameters["id"]?.toInt() ?: return@get call.onMissingId()
-        call.requirePermissionOrSelf(id) { return@get call.onMissingPermission() }
 
         DatabaseFactory.database.getUser(id)
             .onSuccess { call.respond(it) }
