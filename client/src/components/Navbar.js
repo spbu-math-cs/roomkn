@@ -1,29 +1,45 @@
 import './Navbar.css';
-import React, {useContext} from "react";
+import React, {useContext, useEffect} from "react";
 
 
 import { NavLink } from "react-router-dom";
-import {CurrentUserContext, IsAuthorizedContext} from "./Auth";
+import {CurrentUserContext, IsAuthorizedContext, useLogout} from "./Auth";
 
 const NavSignIn = () => {
     const {isAuthorized, setIsAuthorized} = useContext(IsAuthorizedContext)
     const {currentUser} = useContext(CurrentUserContext)
 
+    const {triggerLogout, finished, statusCode} = useLogout()
+
     const logOut = () => {
         setIsAuthorized(false)
+
+        triggerLogout()
         // browser.cookies.remove('_xsrf');
     }
+
+    useEffect(() => {
+        if (finished) {
+            if (statusCode == 200) {
+                alert("Вы успешно вышли из системы")
+            } else if (statusCode == 401) {
+                alert("Авторизационные куки отсутствуют, просрочены или некорректны. Отчистите куки страницы")
+            } else {
+                alert("Status code: " + statusCode)
+            }
+        }
+    }, [finished]);
 
     if (isAuthorized) {
         return (
             <>
-                <NavLink to="/profile" onClick={logOut} className="navlink">
+                <NavLink to="/profile" className="navlink">
                     {/*{currentUser.toString()}*/}
                     Мой профиль
                 </NavLink>
-                <NavLink to="/sign-in" onClick={logOut} className="navlink">
+                <div to="/sign-in" onClick={logOut} className="navlink">
                     Выйти
-                </NavLink>
+                </div>
             </>
         )
     } else {

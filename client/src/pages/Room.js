@@ -5,7 +5,7 @@ import ContentWrapper from '../components/Content';
 import React, {createContext, useContext, useEffect, useState} from 'react';
 import useAPI, {toAPITime, fromAPITime} from '../api/API';
 import useSomeAPI from '../api/FakeAPI';
-import {CurrentUserContext} from "../components/Auth";
+import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
 // import Form from '../components/Form'
 
 const CurrentReservationContext = createContext()
@@ -43,7 +43,7 @@ function GetReservations(room_id, date) {
     useEffect(() => triggerFetch(), [])
     console.log("after useSomeAPI")
 
-    if (statusCode === 200 && finished) {
+    if (statusCode === 200 && finished && result != null) {
       return {
           reservations: result.filter((reservation) => (fromAPITime(reservation.from).date === date)),
           triggerGetReservations: triggerFetch
@@ -202,6 +202,7 @@ function Reservation ({reservation, is_current_reservation=false}) {
 
 function ReservationsList({reservations}) {
   const {user_id} = useContext(CurrentUserContext)
+  const {isAuthorized} = useContext(IsAuthorizedContext)
   const {from, until, date} = useContext(CurrentReservationContext)
 
   if (reservations == null) return (
@@ -222,7 +223,7 @@ function ReservationsList({reservations}) {
         )
     })
 
-  if (user_id != null) {
+  if (isAuthorized) {
     const current_reservation = {
       from: toAPITime(date, from),
       until: toAPITime(date, until),

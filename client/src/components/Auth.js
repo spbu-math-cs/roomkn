@@ -122,6 +122,12 @@ export function useRegister(username, password, email) {
     return {result, statusCode, headers, register: triggerFetch, finished}
 }
 
+export function useLogout() {
+    const {result, statusCode, headers, triggerFetch, finished} = useSomeAPI("/api/v0/logout", null, "DELETE")
+
+    return {result, statusCode, headers, triggerLogout: triggerFetch, finished}
+}
+
 export function getUserData() {
     const dataString = sessionStorage.getItem('roomkn');
     return JSON.parse(dataString)
