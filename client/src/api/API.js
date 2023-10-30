@@ -53,13 +53,14 @@ export function useAPI(url, data=null, method='GET') {
             setStatus(0)
             setFinished(true)
         });
+        //eslint-disable-next-line react-hooks/exhaustive-deps
       }, [fetchFlag]);
 
     function triggerFetch() {
         setFetchFlag(fetchFlag + 1)
     }
     
-    return {triggerFetch, result, loading, statusCode, headers, finished};
+    return {triggerFetch, result, loading, statusCode, headers, finished, fetchFlag};
 }
 
 export function toAPITime(date, time) {

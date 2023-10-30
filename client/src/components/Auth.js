@@ -9,9 +9,10 @@ export function AuthorizeWrapper({children}) {
     const {triggerValidate} = useAuthorizeByCookie()
 
     useEffect(() => {
-        // if (isAuthorized) {
+        if (isAuthorized == null) {
             triggerValidate()
-        // }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     return children
@@ -19,7 +20,7 @@ export function AuthorizeWrapper({children}) {
 
 
 export function AuthorizationProvider({children}) {
-    const [isAuthorized, setIsAuthorized] = useState(false)
+    const [isAuthorized, setIsAuthorized] = useState(null)
     const [currentUser, setCurrentUser] = useState(null)
 
     return (
@@ -38,7 +39,7 @@ export function useAuthorizeByCookie() {
     const {setCurrentUser} = useContext(CurrentUserContext)
 
     // document.cookie = "roomkn=234325"
-    const {result, statusCode, headers, triggerFetch, finished} = useSomeAPI("/api/v0/auth/validate-token", null, "GET")
+    const {result, statusCode, headers, triggerFetch, finished, fetchFlag} = useSomeAPI("/api/v0/auth/validate-token", null, "GET")
 
     useEffect(() => {
         if (finished) {
@@ -58,7 +59,8 @@ export function useAuthorizeByCookie() {
                 setCurrentUser(null)
             }
         }
-    }, [finished, result])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [finished, result, fetchFlag])
 
     return {triggerValidate: triggerFetch}
 
@@ -102,6 +104,7 @@ export function useAuthorize(username, password) {
             }
 
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [finished, result]);
 
     return {result, statusCode, headers, authorize, finished}
@@ -130,6 +133,7 @@ export function useLogout() {
         setIsAuthorized(false)
         setCurrentUser({})
         saveUserData({})
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [finished])
 
 

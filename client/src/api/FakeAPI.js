@@ -2,8 +2,8 @@ import useAPI from './API';
 import {useEffect, useState} from "react";
 
 export function useSomeAPI(url, data=null, method='GET') {
+    useFakeAPI(url, data, method);
     return useAPI(url, data, method);
-    //return useFakeAPI(url, data, method);
 }
 
 function useFakeAPI(url, data=null, method='GET') {
@@ -13,7 +13,7 @@ function useFakeAPI(url, data=null, method='GET') {
     const [finished, setFinished] = useState(false);
     const [statusCode, setStatus] = useState(0);
     const [fetchFlag, setFetchFlag] = useState(0)
-    const [headers, setHeaders] = useState({})
+    const [headers] = useState({})
 
     const roomListDefault = [
         {
@@ -169,6 +169,7 @@ function useFakeAPI(url, data=null, method='GET') {
 
         setLoading(false)
         setFinished(true)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     },[fetchFlag])
 
     function triggerFetch() {

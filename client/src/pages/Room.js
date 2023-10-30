@@ -1,9 +1,9 @@
-import {Link, NavLink, useLocation, useNavigate} from 'react-router-dom'
+import {NavLink, useLocation, useNavigate} from 'react-router-dom'
 
 import './Room.css'
 import ContentWrapper from '../components/Content';
-import React, {createContext, useContext, useEffect, useState} from 'react';
-import useAPI, {toAPITime, fromAPITime} from '../api/API';
+import React, {createContext, useContext, useEffect} from 'react';
+import {toAPITime, fromAPITime} from '../api/API';
 import useSomeAPI from '../api/FakeAPI';
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
 // import Form from '../components/Form'
@@ -17,7 +17,7 @@ function GetRoomInfo() {
   const id = location.pathname.slice(6, location.pathname.length)
 
   let {triggerFetch, result, loading, statusCode} = useSomeAPI('/api/v0/rooms/' + id)
-
+    //eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [])
 
     // doRequest()
@@ -40,6 +40,7 @@ function GetReservations(room_id, date) {
   console.log("GetReservations invoked with date = " + date)
   console.log("used some api with /api/v0/rooms/" + room_id + "/reservations")
   let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/rooms/' + room_id + '/reservations')
+    //eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [])
     console.log("after useSomeAPI")
 
@@ -57,8 +58,6 @@ function GetReservations(room_id, date) {
 }
 
 function useBookRoom(room_id, user_id, date, from, to) {
-    const {currentUser} = useContext(CurrentUserContext)
-
   const reservation = {
     user_id: user_id,
     from: toAPITime(date, from),
@@ -88,6 +87,7 @@ function BookingForm({room_id, triggerGetReservations}) {
 
         triggerGetReservations()
     }
+    //eslint-disable-next-line react-hooks/exhaustive-deps
 }, [finished]);
 
   if (currentUser === null) {
@@ -102,13 +102,6 @@ function BookingForm({room_id, triggerGetReservations}) {
       </ContentWrapper>
     )
   }
-
-  // useEffect(() => {
-  //     setName(currentUser?.user_id)
-  // }, [])
-
-
-
 
   const HandleSubmit = (e) => {
     e.preventDefault();
@@ -144,8 +137,9 @@ function BookingForm({room_id, triggerGetReservations}) {
 
 function Reservation ({reservation, is_current_reservation=false}) {
 
-  let {triggerFetch, result, loading, statusCode} = useSomeAPI('/api/v0/users/' + reservation.user_id)
+  let {triggerFetch, result} = useSomeAPI('/api/v0/users/' + reservation.user_id)
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => triggerFetch(), [reservation])
 
   var reservedUsername = result?.username
@@ -159,7 +153,7 @@ function Reservation ({reservation, is_current_reservation=false}) {
 
   const from_date = new Date(from_obj.date + " " + from_obj.time)
   const until_date = new Date(until_obj.date + " " + until_obj.time)
-  const day_start_date = new Date(until_obj.date + " " + "09:00")
+  const day_start_date = new Date(until_obj.date + " 09:00")
 
   const duration_in_seconds = (until_date.getTime() - from_date.getTime()) / 1000
   const from_start_in_seconds = (from_date.getTime() - day_start_date.getTime()) / 1000

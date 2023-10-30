@@ -1,8 +1,6 @@
 import "./SignIn.css";
 import React, {useContext, useEffect} from "react";
 import ContentWrapper from '../components/Content';
-import { Form } from "react-router-dom";
-import useSomeAPI from "../api/FakeAPI";
 import {useAuthorize, IsAuthorizedContext} from "../components/Auth";
 
 function SignInForm() {
@@ -23,6 +21,7 @@ function SignInForm() {
             else if (statusCode === 200) alert("Авторизация успешна!");
             else alert("statusCode: " + statusCode)
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [finished])
 
     return (

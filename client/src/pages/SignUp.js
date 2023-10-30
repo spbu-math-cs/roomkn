@@ -1,9 +1,7 @@
 import "./SignUp.css";
-import React, {useContext, useEffect} from "react";
+import React, {useEffect} from "react";
 import ContentWrapper from '../components/Content';
-import { Form } from "react-router-dom";
-import useSomeAPI from "../api/FakeAPI";
-import {useAuthorize, IsAuthorizedContext, useRegister} from "../components/Auth";
+import {useRegister} from "../components/Auth";
 
 function SignUpForm() {
     const [username, setUsername] = React.useState(null)
@@ -31,6 +29,7 @@ function SignUpForm() {
             else if (statusCode === 200) alert("Регистрация успешна!");
             else alert("statusCode: " + statusCode)
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [finished])
 
     return (

@@ -3,11 +3,10 @@ import React, {useContext, useEffect} from "react";
 
 
 import { NavLink } from "react-router-dom";
-import {CurrentUserContext, IsAuthorizedContext, useLogout} from "./Auth";
+import {IsAuthorizedContext, useLogout} from "./Auth";
 
 const NavSignIn = () => {
-    const {isAuthorized, setIsAuthorized} = useContext(IsAuthorizedContext)
-    const {currentUser} = useContext(CurrentUserContext)
+    const {isAuthorized} = useContext(IsAuthorizedContext)
 
     const {triggerLogout, finished, statusCode} = useLogout()
 
@@ -18,14 +17,15 @@ const NavSignIn = () => {
 
     useEffect(() => {
         if (finished) {
-            if (statusCode == 200) {
+            if (statusCode === 200) {
                 alert("Вы успешно вышли из системы")
-            } else if (statusCode == 401) {
+            } else if (statusCode === 401) {
                 alert("Авторизационные куки отсутствуют, просрочены или некорректны. Отчистите куки страницы")
             } else {
                 alert("Status code: " + statusCode)
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [finished]);
 
     if (isAuthorized) {

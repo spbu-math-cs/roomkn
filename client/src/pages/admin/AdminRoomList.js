@@ -40,6 +40,7 @@ function EditRoomRow({room, refresh}) {
             alert("Put statusCode: " + putStatusCode)
             refresh()
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [putFinished])
 
     useEffect(() => {
@@ -47,6 +48,7 @@ function EditRoomRow({room, refresh}) {
             alert("Delete statusCode: " + deleteStatusCode)
             refresh()
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [deleteFinished])
 
 
@@ -88,6 +90,7 @@ function AddRoom({refresh}) {
             alert("Put statusCode: " + addStatusCode)
             refresh()
         }
+        //eslint-disable-next-line react-hooks/exhaustive-deps
     }, [addFinished])
 
     return (
@@ -107,6 +110,7 @@ export function AdminRoomList() {
 
     let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/rooms')
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [])
 
     const draw_list = []

@@ -2,7 +2,6 @@ import { Link } from "react-router-dom"
 
 import './List.css'
 import ContentWrapper from "../components/Content"
-import useAPI from "../api/API"
 import useSomeAPI from "../api/FakeAPI"
 import {useEffect} from "react";
 
@@ -27,7 +26,7 @@ function RoomRow({room}) {
 function List() {
 
   let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/rooms')
-
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => triggerFetch(), [])
 
   const draw_list = []
