@@ -1,11 +1,11 @@
-import {Link, NavLink, useLocation, useNavigate} from 'react-router-dom'
+import {NavLink, useLocation, useNavigate} from 'react-router-dom'
 
 import './Room.css'
 import ContentWrapper from '../components/Content';
-import React, {createContext, useContext, useEffect, useState} from 'react';
-import useAPI, {toAPITime, fromAPITime} from '../api/API';
+import React, {createContext, useContext, useEffect} from 'react';
+import {toAPITime, fromAPITime} from '../api/API';
 import useSomeAPI from '../api/FakeAPI';
-import {CurrentUserContext} from "../components/Auth";
+import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
 // import Form from '../components/Form'
 
 const CurrentReservationContext = createContext()
@@ -17,7 +17,7 @@ function GetRoomInfo() {
   const id = location.pathname.slice(6, location.pathname.length)
 
   let {triggerFetch, result, loading, statusCode} = useSomeAPI('/api/v0/rooms/' + id)
-
+    //eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [])
 
     // doRequest()
@@ -25,7 +25,7 @@ function GetRoomInfo() {
         navigate('/pagenotfound', {replace: true})
 
     }
-  if (statusCode !== 200 || loading) {
+  if (statusCode !== 200 || loading || result == null) {
     return {
       id: id
     }
@@ -40,10 +40,11 @@ function GetReservations(room_id, date) {
   console.log("GetReservations invoked with date = " + date)
   console.log("used some api with /api/v0/rooms/" + room_id + "/reservations")
   let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/rooms/' + room_id + '/reservations')
+    //eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [])
     console.log("after useSomeAPI")
 
-    if (statusCode === 200 && finished) {
+    if (statusCode === 200 && finished && result != null) {
       return {
           reservations: result.filter((reservation) => (fromAPITime(reservation.from).date === date)),
           triggerGetReservations: triggerFetch
@@ -57,11 +58,6 @@ function GetReservations(room_id, date) {
 }
 
 function useBookRoom(room_id, user_id, date, from, to) {
-
-  const {currentUser} = useContext(CurrentUserContext)
-
-  if (user_id == undefined) user_id = null;
-
   const reservation = {
     user_id: user_id,
     from: toAPITime(date, from),
@@ -79,10 +75,9 @@ function BookingForm({room_id, triggerGetReservations}) {
 
   const {from, setFrom, until, setUntil, date} = useContext(CurrentReservationContext)
 
-  
   const {currentUser} = useContext(CurrentUserContext)
   const {triggerFetch, result, statusCode, finished} = useBookRoom(room_id, currentUser?.user_id, date, from, until);
-  
+
   useEffect(() => {
     if (finished) {
         if (statusCode === 400) alert("Ошибка: " + result)
@@ -92,6 +87,7 @@ function BookingForm({room_id, triggerGetReservations}) {
 
         triggerGetReservations()
     }
+    //eslint-disable-next-line react-hooks/exhaustive-deps
 }, [finished]);
 
   if (currentUser === null) {
@@ -102,17 +98,10 @@ function BookingForm({room_id, triggerGetReservations}) {
         </label>
         <NavLink className='not-authorized-link' to='/sign-in'>
           войдите в систему.
-        </NavLink>   
+        </NavLink>
       </ContentWrapper>
     )
   }
-
-  // useEffect(() => {
-  //     setName(currentUser?.user_id)
-  // }, [])
-
-
-  
 
   const HandleSubmit = (e) => {
     e.preventDefault();
@@ -148,18 +137,23 @@ function BookingForm({room_id, triggerGetReservations}) {
 
 function Reservation ({reservation, is_current_reservation=false}) {
 
-  let {triggerFetch, result, loading, statusCode} = useSomeAPI('/api/v0/users/' + reservation.user_id)
+  let {triggerFetch, result} = useSomeAPI('/api/v0/users/' + reservation.user_id)
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => triggerFetch(), [reservation])
 
-  const reservedUsername = result?.username
+  var reservedUsername = result?.username
+
+    if (reservedUsername == null) {
+        reservedUsername = reservation.user_id
+    }
 
   const from_obj = fromAPITime(reservation.from)
   const until_obj = fromAPITime(reservation.until)
 
   const from_date = new Date(from_obj.date + " " + from_obj.time)
   const until_date = new Date(until_obj.date + " " + until_obj.time)
-  const day_start_date = new Date(until_obj.date + " " + "09:00")
+  const day_start_date = new Date(until_obj.date + " 09:00")
 
   const duration_in_seconds = (until_date.getTime() - from_date.getTime()) / 1000
   const from_start_in_seconds = (from_date.getTime() - day_start_date.getTime()) / 1000
@@ -202,6 +196,7 @@ function Reservation ({reservation, is_current_reservation=false}) {
 
 function ReservationsList({reservations}) {
   const {user_id} = useContext(CurrentUserContext)
+  const {isAuthorized} = useContext(IsAuthorizedContext)
   const {from, until, date} = useContext(CurrentReservationContext)
 
   if (reservations == null) return (
@@ -222,7 +217,7 @@ function ReservationsList({reservations}) {
         )
     })
 
-  if (user_id != null) {
+  if (isAuthorized) {
     const current_reservation = {
       from: toAPITime(date, from),
       until: toAPITime(date, until),
@@ -296,10 +291,7 @@ function Room() {
   const page_name = "Аудитория " + room_info.name
 
   return (
-    // <CurrentUserContext.Provider value={{
-    //   user_id: 1
-    // }}>
-      <ContentWrapper page_name={page_name}>
+    <ContentWrapper page_name={page_name}>
         <CurrentReservationContext.Provider value={{date, setDate, from, setFrom, until, setUntil}}>
             <div className="room-wrapper">
                 <div className='room-info'>
@@ -320,8 +312,6 @@ function Room() {
             </div>
         </CurrentReservationContext.Provider>
     </ContentWrapper>
-    //</CurrentUserContext.Provider>
-    
   );
 }
 

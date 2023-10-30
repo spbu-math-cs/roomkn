@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
+import {getCSRFToken} from "../components/Auth";
 
 const API_HOST = process.env.REACT_APP_REST_SERVER_ADDRESS
 
 export function useAPI(url, data=null, method='GET') {
-    console.log(API_HOST)
     const [result, setResult] = useState();
     const [loading, setLoading] = useState(true);
     const [finished, setFinished] = useState(false);
@@ -25,22 +25,26 @@ export function useAPI(url, data=null, method='GET') {
             options['body'] = JSON.stringify(data)
             options.headers["Content-Type"] = 'application/json;charset=utf-8'
         }
+        if (getCSRFToken() != null) {
+            options.headers["X-CSRF-Token"] = getCSRFToken()
+        }
 
         fetch(API_HOST + url, options)
         .then(r => {
             setStatus(r.status)
-            if (r.ok) {
-                return r
-            } else
-                throw r.status
+            // console.log(r.cookie ("userId"))
+            return r
         })
         .then(r => {
             setHeaders(r.headers)
             return r
         })
-        .then(r => r.json())
         .then(r => {
-            setResult(r);
+            r.json().then(rjson => {
+                setResult(rjson)
+            }).catch(error => {
+                setResult(error)
+            })
             setLoading(false);
             setFinished(true)
         })
@@ -49,13 +53,14 @@ export function useAPI(url, data=null, method='GET') {
             setStatus(0)
             setFinished(true)
         });
+        //eslint-disable-next-line react-hooks/exhaustive-deps
       }, [fetchFlag]);
 
     function triggerFetch() {
         setFetchFlag(fetchFlag + 1)
     }
     
-    return {triggerFetch, result, loading, statusCode, headers, finished};
+    return {triggerFetch, result, loading, statusCode, headers, finished, fetchFlag};
 }
 
 export function toAPITime(date, time) {

@@ -2,8 +2,8 @@ import useAPI from './API';
 import {useEffect, useState} from "react";
 
 export function useSomeAPI(url, data=null, method='GET') {
+    useFakeAPI(url, data, method);
     return useAPI(url, data, method);
-    //return useFakeAPI(url, data, method);
 }
 
 function useFakeAPI(url, data=null, method='GET') {
@@ -13,7 +13,29 @@ function useFakeAPI(url, data=null, method='GET') {
     const [finished, setFinished] = useState(false);
     const [statusCode, setStatus] = useState(0);
     const [fetchFlag, setFetchFlag] = useState(0)
-    const [headers, setHeaders] = useState({})
+    const [headers] = useState({})
+
+    const roomListDefault = [
+        {
+            id: "1",
+            name: "OK room",
+            description: "OK to all reservations"
+        }
+        ,
+        {
+            id: "2",
+            name: "error room",
+            description: "400 to all reservations"
+        }
+        ,
+        {
+            id: "3",
+            name: "conflict room",
+            description: "409 to all reservations"
+        }
+    ]
+
+    const [roomList, setRoomList] = useState(roomListDefault)
 
 
     // dummy room list
@@ -22,26 +44,6 @@ function useFakeAPI(url, data=null, method='GET') {
         if (fetchFlag === 0) return
 
         console.log(method, url, data)
-
-        const roomList = [
-            {
-                id: "1",
-                name: "OK room",
-                description: "OK to all reservations"
-            }
-            ,
-            {
-                id: "2",
-                name: "error room",
-                description: "400 to all reservations"
-            }
-            ,
-            {
-                id: "3",
-                name: "conflict room",
-                description: "409 to all reservations"
-            }
-        ]
 
         // dummy response for roomList
 
@@ -54,17 +56,23 @@ function useFakeAPI(url, data=null, method='GET') {
 
         if (url.startsWith("/api/v0/rooms/") &&
             url.length > "/api/v0/rooms/".length) {
-            if (url === "/api/v0/rooms/1") {
-                setResult(roomList[0])
-                setStatus(200)
-            } else if (url === "/api/v0/rooms/2") {
-                setResult(roomList[1])
-                setStatus(200)
-            } else if (url === "/api/v0/rooms/3") {
-                setResult(roomList[2])
-                setStatus(200)
+            if (url === "/api/v0/rooms/create") {
+                data.id = roomList.length
+                setRoomList(roomList.concat(data))
+                console.log(roomList.concat(data), roomList)
             } else {
-                setStatus(404)
+                if (url === "/api/v0/rooms/1") {
+                    setResult(roomList[0])
+                    setStatus(200)
+                } else if (url === "/api/v0/rooms/2") {
+                    setResult(roomList[1])
+                    setStatus(200)
+                } else if (url === "/api/v0/rooms/3") {
+                    setResult(roomList[2])
+                    setStatus(200)
+                } else {
+                    setStatus(404)
+                }
             }
         }
 
@@ -161,6 +169,7 @@ function useFakeAPI(url, data=null, method='GET') {
 
         setLoading(false)
         setFinished(true)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     },[fetchFlag])
 
     function triggerFetch() {

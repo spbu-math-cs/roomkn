@@ -1,0 +1,31 @@
+.authorization-label-not-authorized {
+    font-size: 60px;
+    color: brown;
+}
+
+.authorization-label-authorized {
+    font-size: 60px;
+    color: green;
+}
+
+.sign-up-form {
+    height: 100%;
+    width: 100%;
+}
+
+.sign-up-form-label {
+    font-size: 30px;
+}
+
+.sign-up-form-input {
+    display: flex;
+    font-size: 30px;
+}
+
+.sign-up-form-field {
+    font-size: 30px;
+}
+
+.sign-up-form-submit {
+    font-size: 40px;
+}

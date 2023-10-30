@@ -1,24 +1,28 @@
 import "./SignIn.css";
-import React, {useContext} from "react";
+import React, {useContext, useEffect} from "react";
 import ContentWrapper from '../components/Content';
-import { Form } from "react-router-dom";
-import useSomeAPI from "../api/FakeAPI";
 import {useAuthorize, IsAuthorizedContext} from "../components/Auth";
 
 function SignInForm() {
     const [username, setUsername] = React.useState(null)
     const [password, setPassword] = React.useState(null)
 
-    const {statusCode, authorize} = useAuthorize(username, password)
+    const {statusCode, authorize, finished} = useAuthorize(username, password)
 
     const handleSubmit = (e) => {
         e.preventDefault();
         authorize()
         console.log(username, password)
-
-        if (statusCode === 400) alert("Ошибка: неверное имя пользователя или пароль.")
-        else alert("Авторизация успешна!");
     };
+
+    useEffect(() => {
+        if (finished) {
+            if (statusCode === 400) alert("Ошибка: неверное имя пользователя или пароль.")
+            else if (statusCode === 200) alert("Авторизация успешна!");
+            else alert("statusCode: " + statusCode)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [finished])
 
     return (
         <div>

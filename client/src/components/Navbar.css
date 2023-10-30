@@ -3,21 +3,32 @@
   height: 85px;
   display: flex;
   justify-content: space-between;
-  padding: 0 calc((100vw - 1000px) / 4);
+  padding: 0 100px;
   z-index: 12;
 }
 
-.navdiv {
+.navbar-left {
   display: flex;
-  align-items: right;
+  float: left;
   height: 100%;
+}
+
+.navbar-right {
+  display: flex;
+  float: right;
+  height: 100%;
+}
+
+.navdiv {
+  /*display: flex;*/
+  height: 100%;
+  width: 100%;
   /* margin-left: 50%; */
 }
 
 .nav-link-wrapper {
   width: 80%;
   height: 100%;
-  align-items: right;
   display: flex;
 }
 
@@ -43,5 +54,13 @@
 }
 
 .nav-logo {
-  align-items: left;
+}
+
+.navbar-profile-avatar {
+  width: 60%;
+  height: 60%;
+  margin-left: 1rem;
+  border-radius: 10px;
+  border: 1px solid #000;
+  /*background: url(<path-to-image>), lightgray 50% / cover no-repeat;*/
 }

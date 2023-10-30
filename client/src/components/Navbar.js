@@ -1,28 +1,57 @@
 import './Navbar.css';
-import React, {useContext} from "react";
+import React, {useContext, useEffect} from "react";
 
 
 import { NavLink } from "react-router-dom";
-import {IsAuthorizedContext} from "./Auth";
+import {IsAuthorizedContext, useLogout} from "./Auth";
 
 const NavSignIn = () => {
-    const {isAuthorized, setIsAuthorized} = useContext(IsAuthorizedContext)
+    const {isAuthorized} = useContext(IsAuthorizedContext)
+
+    const {triggerLogout, finished, statusCode} = useLogout()
 
     const logOut = () => {
-        setIsAuthorized(false)
+        triggerLogout()
+        // browser.cookies.remove('_xsrf');
     }
+
+    useEffect(() => {
+        if (finished) {
+            if (statusCode === 200) {
+                alert("Вы успешно вышли из системы")
+            } else if (statusCode === 401) {
+                alert("Авторизационные куки отсутствуют, просрочены или некорректны. Отчистите куки страницы")
+            } else {
+                alert("Status code: " + statusCode)
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [finished]);
+
+    const user_nickname = "Азат"
 
     if (isAuthorized) {
         return (
-            <NavLink to="/sign-in" onClick={logOut} className="navlink">
-                Выйти
-            </NavLink>
+            <>
+                <NavLink to="/profile" className="navlink">
+                    {user_nickname}
+                    <img className="navbar-profile-avatar" src="/azat.png" alt="avatar"/>
+                </NavLink>
+                <div onClick={logOut} className="navlink">
+                    Выйти
+                </div>
+            </>
         )
     } else {
         return (
-            <NavLink to="/sign-in" className="navlink">
-                Войти
-            </NavLink>
+            <>
+                <NavLink to="/sign-in" className="navlink">
+                    Войти
+                </NavLink>
+                <NavLink to="/sign-up" className="navlink">
+                    Зарегестрироваться
+                </NavLink>
+            </>
         )
     }
 }
@@ -37,13 +66,17 @@ const Navbar = () => {
 
                 <div className='nav-link-wrapper'>
                     <div className="navdiv">
-                        <NavLink to="/" className="navlink">
-                            Список аудиторий
-                        </NavLink>
-                        <NavLink to="/about" className="navlink">
-                            О нас
-                        </NavLink>
-                        <NavSignIn />
+                        <div className="navbar-left">
+                            <NavLink to="/" className="navlink">
+                                Список аудиторий
+                            </NavLink>
+                            <NavLink to="/about" className="navlink">
+                                О нас
+                            </NavLink>
+                        </div>
+                        <div className="navbar-right">
+                            <NavSignIn />
+                        </div>
                     </div>
                 </div>
                 
