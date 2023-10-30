@@ -213,7 +213,6 @@ class DatabaseSession private constructor(private val database: Database) :
     }
 
     override fun registerUser(user: RegistrationUserInfo): Result<UserInfo> = queryWrapper {
-        // TODO: insert permissions
         transaction(database) {
             val userRow = Users.insert {
                 it[username] = user.username
