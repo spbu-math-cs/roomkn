@@ -3,7 +3,7 @@
   height: 85px;
   display: flex;
   justify-content: space-between;
-  padding: 0 calc((100vw - 1000px) / 4);
+  padding: 0 100px;
   z-index: 12;
 }
 
