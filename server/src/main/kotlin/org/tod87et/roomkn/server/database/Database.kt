@@ -16,7 +16,7 @@ interface Database {
     fun updateRoom(roomId: Int, roomInfo: NewRoomInfo): Result<Unit>
     fun deleteRoom(roomId: Int): Result<Unit>
     fun getRoomReservations(roomId: Int): Result<List<Reservation>>
-    fun getUserReservations(roomId: Int): Result<List<Reservation>>
+    fun getUserReservations(userId: Int): Result<List<Reservation>>
     fun deleteReservation(reservationId: Int): Result<Unit>
     fun createReservation(reserve: UnregisteredReservation): Result<Reservation>
     fun getUsers(): Result<List<ShortUserInfo>>
