@@ -35,7 +35,7 @@ const NavSignIn = () => {
                     {/*{currentUser.toString()}*/}
                     Мой профиль
                 </NavLink>
-                <div to="/sign-in" onClick={logOut} className="navlink">
+                <div onClick={logOut} className="navlink">
                     Выйти
                 </div>
             </>
@@ -64,13 +64,17 @@ const Navbar = () => {
 
                 <div className='nav-link-wrapper'>
                     <div className="navdiv">
-                        <NavLink to="/" className="navlink">
-                            Список аудиторий
-                        </NavLink>
-                        <NavLink to="/about" className="navlink">
-                            О нас
-                        </NavLink>
-                        <NavSignIn />
+                        <div className="navbar-left">
+                            <NavLink to="/" className="navlink">
+                                Список аудиторий
+                            </NavLink>
+                            <NavLink to="/about" className="navlink">
+                                О нас
+                            </NavLink>
+                        </div>
+                        <div className="navbar-right">
+                            <NavSignIn />
+                        </div>
                     </div>
                 </div>
                 
