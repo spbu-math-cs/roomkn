@@ -67,7 +67,6 @@ export function useAuthorizeByCookie() {
 function createAuthorizeFunction(result, statusCode, headers, triggerFetch, user, setCurrentUser, setIsAuthorized) {
     return () => {
         triggerFetch()
-        console.log(statusCode)
     }
 }
 
@@ -85,10 +84,10 @@ export function useAuthorize(username, password) {
     const authorize = createAuthorizeFunction(result, statusCode, headers, triggerFetch, user, setCurrentUser, setIsAuthorized)
 
     useEffect(() => {
-        if (finished) {
+        if (finished && result != null) {
             if (statusCode === 200) {
                 const userData = {
-                    user_id: null,
+                    user_id: result?.id,
                     username: username,
                     csrf_token: headers['X-CSRF-Token'],
                     is_admin: IS_ADMIN_DEFAULT
@@ -103,7 +102,7 @@ export function useAuthorize(username, password) {
             }
 
         }
-    }, [finished]);
+    }, [finished, result]);
 
     return {result, statusCode, headers, authorize, finished}
 }
@@ -123,7 +122,16 @@ export function useRegister(username, password, email) {
 }
 
 export function useLogout() {
+    const {setIsAuthorized} = useContext(IsAuthorizedContext)
+    const {setCurrentUser} = useContext(CurrentUserContext)
     const {result, statusCode, headers, triggerFetch, finished} = useSomeAPI("/api/v0/logout", null, "DELETE")
+
+    useEffect(() => {
+        setIsAuthorized(false)
+        setCurrentUser({})
+        saveUserData({})
+    }, [finished])
+
 
     return {result, statusCode, headers, triggerLogout: triggerFetch, finished}
 }

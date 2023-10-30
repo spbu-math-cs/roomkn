@@ -12,8 +12,6 @@ const NavSignIn = () => {
     const {triggerLogout, finished, statusCode} = useLogout()
 
     const logOut = () => {
-        setIsAuthorized(false)
-
         triggerLogout()
         // browser.cookies.remove('_xsrf');
     }

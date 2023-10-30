@@ -56,11 +56,11 @@ function GetReservations(room_id, date) {
   }
 }
 
-function useBookRoom(room_id, date, from, to) {
+function useBookRoom(room_id, user_id, date, from, to) {
     const {currentUser} = useContext(CurrentUserContext)
 
   const reservation = {
-    user_id: currentUser?.user_id,
+    user_id: user_id,
     from: toAPITime(date, from),
     until: toAPITime(date, to),
     room_id: room_id
