@@ -97,7 +97,7 @@ function BookingForm({room_id, triggerGetReservations}) {
           You are not authorized. To gain ability to reserve, please,
         </label>
         <NavLink className='not-authorized-link' to='/sign-in'>
-          enter the system.
+          log into the system.
         </NavLink>
       </ContentWrapper>
     )

@@ -25,7 +25,7 @@ function SignUpForm() {
 
     useEffect(() => {
         if (finished) {
-            if (statusCode === 409) alert("Error: user with this username or password exits")
+            if (statusCode === 409) alert("Error: user with this username or email already exists")
             else if (statusCode === 200) alert("Registration succeeded!");
             else alert("statusCode: " + statusCode)
         }
