@@ -3,10 +3,11 @@ import React, {useContext, useEffect} from "react";
 
 
 import { NavLink } from "react-router-dom";
-import {IsAuthorizedContext, useLogout} from "./Auth";
+import {CurrentUserContext, IsAuthorizedContext, useLogout} from "./Auth";
 
 const NavSignIn = () => {
     const {isAuthorized} = useContext(IsAuthorizedContext)
+    const {currentUser} = useContext(CurrentUserContext)
 
     const {triggerLogout, finished, statusCode} = useLogout()
 
@@ -28,7 +29,10 @@ const NavSignIn = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [finished]);
 
-    const user_nickname = "Azat"
+    let user_nickname = currentUser?.username
+    if (user_nickname == null) {
+        user_nickname = "Azat"
+    }
 
     if (isAuthorized) {
         return (

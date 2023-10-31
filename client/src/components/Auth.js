@@ -36,18 +36,25 @@ export function AuthorizationProvider({children}) {
 
 export function useAuthorizeByCookie() {
     const {setIsAuthorized} = useContext(IsAuthorizedContext)
-    const {setCurrentUser} = useContext(CurrentUserContext)
+    const {currentUser, setCurrentUser} = useContext(CurrentUserContext)
 
     // document.cookie = "roomkn=234325"
-    const {result, statusCode, headers, triggerFetch, finished, fetchFlag} = useSomeAPI("/api/v0/auth/validate-token", null, "GET")
+    const {
+        result: resultValidate,
+        statusCode: statusCodeCalidate,
+        headers: headersValidate,
+        triggerFetch: triggerFetchValidate,
+        finished: finishedValidate,
+        fetchFlag: fetchFlagValidate
+    } = useSomeAPI("/api/v0/auth/validate-token", null, "GET")
 
     useEffect(() => {
-        if (finished) {
-            console.log('validate: ', result, statusCode, finished)
-            if (statusCode === 200) {
+        if (finishedValidate) {
+            console.log('validate: ', resultValidate, statusCodeCalidate, finishedValidate)
+            if (statusCodeCalidate === 200) {
                 const userData = {
-                    user_id: result?.id,
-                    csrf_token: headers['X-CSRF-Token'],
+                    user_id: resultValidate?.id,
+                    csrf_token: headersValidate['X-CSRF-Token'],
                     is_admin: IS_ADMIN_DEFAULT
                 }
                 console.log(userData)
@@ -60,9 +67,33 @@ export function useAuthorizeByCookie() {
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [finished, result, fetchFlag])
+    }, [finishedValidate, resultValidate, fetchFlagValidate])
 
-    return {triggerValidate: triggerFetch}
+    let {triggerFetch: triggerFetchUser, result: resultUser, finished: finishedUser} = useSomeAPI('/api/v0/users/' + currentUser?.user_id)
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => {
+        if (fetchFlagValidate === 0) return
+        if (finishedValidate && currentUser?.user_id != null) {
+            triggerFetchUser()
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [fetchFlagValidate, finishedValidate, resultValidate, currentUser?.user_id]);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => {
+        if (currentUser?.user_id == null) return
+
+        if (finishedUser && resultUser?.username != null) {
+            const tmp_user_data = currentUser
+            tmp_user_data.username = resultUser?.username
+            setCurrentUser(tmp_user_data)
+            console.log(tmp_user_data)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentUser, finishedUser, resultUser])
+
+    return {triggerValidate: triggerFetchValidate}
 
 }
 
