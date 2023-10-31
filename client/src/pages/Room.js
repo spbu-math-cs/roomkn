@@ -92,12 +92,12 @@ function BookingForm({room_id, triggerGetReservations}) {
 
   if (currentUser === null) {
     return (
-      <ContentWrapper page_name='Форма бронирования'>
+      <ContentWrapper page_name='Reservation'>
         <label className='not-authorized-label'>
-          Вы не авторизованы в системе. Чтобы получить возможность бронирования, пожалуйста,
+          You are not authorized. To gain ability to reserve, please,
         </label>
         <NavLink className='not-authorized-link' to='/sign-in'>
-          войдите в систему.
+          enter the system.
         </NavLink>
       </ContentWrapper>
     )
@@ -111,11 +111,11 @@ function BookingForm({room_id, triggerGetReservations}) {
   };
 
   return (
-    <ContentWrapper page_name='Форма бронирования'>
+    <ContentWrapper page_name='Reservation'>
       <form className="form-wrapper" onSubmit={HandleSubmit}>
           <div className="form-field">
               <label className="form-label">
-                  С
+                  From
               </label>
               <input className="form-input" type="time" value={from} onChange={(e) => setFrom(e.target.value)}>
                   
@@ -123,13 +123,13 @@ function BookingForm({room_id, triggerGetReservations}) {
           </div>
           <div className="form-field">
               <label className="form-label">
-                  До
+                  Until
               </label>
               <input className="form-input" type="time" value={until} onChange={(e) => setUntil(e.target.value)}>
                   
               </input>
           </div>
-          <input className="form-submit" type="submit" value="Забронировать"></input>
+          <input className="form-submit" type="submit" value="Reserve"></input>
       </form>
     </ContentWrapper>
   )
@@ -268,12 +268,24 @@ function RoomDate({date, setDate}) {
 
     return (
         <div className="form-field">
-            <label className="form-label">
-                Дата
-            </label>
-            <input className="form-input" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-            <input type="button" value="<" onClick={() => setDate(updateDate(date, -1))}/>
-            <input type="button" value=">" onClick={() => setDate(updateDate(date, +1))}/>
+            <div className="room-date">
+                <div className="room-date-label">
+                    <label className="form-label">
+                        Date
+                    </label>
+                </div>
+                <div className="room-date-value">
+                    <input className="form-input" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+                </div>
+                <div className="room-date-buttons">
+                    <div className="room-date-button-wrapper">
+                        <input className="room-date-button" type="button" value="◄" onClick={() => setDate(updateDate(date, -1))}/>
+                    </div>
+                    <div className="room-date-button-wrapper">
+                        <input className="room-date-button" type="button" value="►" onClick={() => setDate(updateDate(date, +1))}/>
+                    </div>
+                </div>
+            </div>
         </div>
     )
 }
@@ -288,7 +300,7 @@ function Room() {
 
   console.log(reservations)
 
-  const page_name = "Аудитория " + room_info.name
+  const page_name = "Classroom: " + room_info.name
 
   return (
     <ContentWrapper page_name={page_name}>
@@ -301,7 +313,7 @@ function Room() {
                     </div>
                     <div className='reservations-info'>
                         <div>
-                            <label className='reservations-label'>Бронирования на {date}:</label>
+                            <div className='reservations-label'>Reservations on {date}:</div>
                         </div>
                         <ReservationsList reservations={reservations}></ReservationsList>
                     </div>

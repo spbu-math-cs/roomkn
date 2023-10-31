@@ -5,7 +5,7 @@ function ContentWrapper({children, page_name}) {
         <div className="content-wrapper">
             <div className="content-wrapper-content">
                 <div className="content-wrapper-content-name">
-                    <div>
+                    <div className="content-name">
                         {page_name}
                     </div>
                 </div>

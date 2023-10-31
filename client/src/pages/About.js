@@ -1,12 +1,11 @@
 import React from "react";
+import ContentWrapper from "../components/Content";
  
 const About = () => {
     return (
-        <div>
-            <h1>
-                ABOUT
-            </h1>
-        </div>
+        <ContentWrapper page_name="About">
+
+        </ContentWrapper>
     );
 };
  

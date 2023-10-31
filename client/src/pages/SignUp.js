@@ -34,16 +34,18 @@ function SignUpForm() {
 
     return (
         <div>
-            <ContentWrapper page_name="Регистрация">
+            <ContentWrapper page_name="Sign Up">
                 <form className="sign-up-form" onSubmit={handleSubmit}>
                     <div className="sign-up-form-name">
-                        Регистрация в системе
+                        Registration in system
                     </div>
                     <div className="sign-up-form-field">
                         <label className="sign-up-form-label">
-                            Имя пользователя
+                            Username
                         </label>
-                        <input className="sign-up-form-input" onChange={(e) => setUsername(e.target.value)}>
+                        <input className="sign-up-form-input"
+                               placeholder="ivanov"
+                               onChange={(e) => setUsername(e.target.value)}>
 
                         </input>
                     </div>
@@ -51,26 +53,35 @@ function SignUpForm() {
                         <label className="sign-up-form-label">
                             Email
                         </label>
-                        <input className="sign-up-form-input" type="email" onChange={(e) => setEmail(e.target.value)}>
+                        <input className="sign-up-form-input"
+                               placeholder="ivanov@example.com"
+                               type="email"
+                               onChange={(e) => setEmail(e.target.value)}>
 
                         </input>
                     </div>
                     <div className="sign-up-form-field">
                         <label className="sign-up-form-label">
-                            Пароль
+                            Password
                         </label>
-                        <input className="sign-up-form-input" type="password" onChange={(e) => setPassword(e.target.value)}>
+                        <input className="sign-up-form-input"
+                               placeholder="********"
+                               type="password"
+                               onChange={(e) => setPassword(e.target.value)}>
                         </input>
                     </div>
                     <div className="sign-up-form-field">
                         <label className="sign-up-form-label">
-                            Повторите пароль
+                            Repeat password
                         </label>
-                        <input className="sign-up-form-input" type="password" onChange={(e) => setPassword2(e.target.value)}>
+                        <input className="sign-up-form-input"
+                               placeholder="********"
+                               type="password"
+                               onChange={(e) => setPassword2(e.target.value)}>
                         </input>
                     </div>
                     <div></div>
-                    <input className="sign-up-form-submit" type="submit" value="Войти"></input>
+                    <input className="sign-up-form-submit" type="submit" value="Register"></input>
                 </form>
             </ContentWrapper>
         </div>
@@ -84,6 +95,6 @@ function SignUp() {
             <SignUpForm></SignUpForm>
         </>
     )
-};
+}
 
 export default SignUp;

@@ -28,7 +28,7 @@ const NavSignIn = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [finished]);
 
-    const user_nickname = "Азат"
+    const user_nickname = "Azat"
 
     if (isAuthorized) {
         return (
@@ -38,7 +38,7 @@ const NavSignIn = () => {
                     <img className="navbar-profile-avatar" src="/azat.png" alt="avatar"/>
                 </NavLink>
                 <div onClick={logOut} className="navlink">
-                    Выйти
+                    Logout
                 </div>
             </>
         )
@@ -46,10 +46,10 @@ const NavSignIn = () => {
         return (
             <>
                 <NavLink to="/sign-in" className="navlink">
-                    Войти
+                    Sign In
                 </NavLink>
                 <NavLink to="/sign-up" className="navlink">
-                    Зарегестрироваться
+                    Sign Up
                 </NavLink>
             </>
         )
@@ -61,17 +61,17 @@ const Navbar = () => {
         <>
             <nav className='nav'>
                 <div className='nav-logo-wrapper'>
-                    <img src="/logo.svg" alt="MKN logo dark" className="nav-logo" />
+                    <img src="/logo512.png" alt="MKN logo dark" className="nav-logo" />
                 </div>
 
                 <div className='nav-link-wrapper'>
                     <div className="navdiv">
                         <div className="navbar-left">
                             <NavLink to="/" className="navlink">
-                                Список аудиторий
+                                Classrooms
                             </NavLink>
                             <NavLink to="/about" className="navlink">
-                                О нас
+                                About
                             </NavLink>
                         </div>
                         <div className="navbar-right">

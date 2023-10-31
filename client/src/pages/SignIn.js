@@ -26,28 +26,33 @@ function SignInForm() {
 
     return (
         <div>
-            <ContentWrapper page_name="Авторизация">
+            <ContentWrapper page_name="Sign In">
                 <form className="sign-in-form" onSubmit={handleSubmit}>
                     <div className="sign-in-form-name">
-                        Вход в систему
+                        Enter the system
                     </div>
                     <div className="sign-in-form-field">
                         <label className="sign-in-form-label">
-                            Имя пользователя
+                            Username
                         </label>
-                        <input className="sign-in-form-input" onChange={(e) => setUsername(e.target.value)}>
+                        <input className="sign-in-form-input"
+                               placeholder="ivanov"
+                               onChange={(e) => setUsername(e.target.value)}>
 
                         </input>
                     </div>
                     <div className="sign-in-form-field">
                         <label className="sign-in-form-label">
-                            Пароль
+                            Password
                         </label>
-                    <input className="sign-in-form-input" type="password" onChange={(e) => setPassword(e.target.value)}>
+                    <input className="sign-in-form-input"
+                           placeholder="********"
+                           type="password"
+                           onChange={(e) => setPassword(e.target.value)}>
                     </input>
                     </div>
                     <div></div>
-                    <input className="sign-in-form-submit" type="submit" value="Войти"></input>
+                    <input className="sign-in-form-submit" type="submit" value="Enter"></input>
                 </form>
             </ContentWrapper>
         </div>
@@ -59,11 +64,15 @@ function AuthorizationStatusLabel() {
 
     if (isAuthorized) {
         return (
-            <label className="authorization-label-authorized">Вы авторизованы в системе!</label>
+            <div className="authorization-label">
+                <label className="authorization-label-authorized">You successfully authorized!</label>
+            </div>
         )
     } else {
         return (
-            <label className="authorization-label-not-authorized">Вы не авторизованы в системе. Пожалуйста, выполните вход.</label>
+            <div className="authorization-label">
+                <label className="authorization-label-not-authorized">You are not authorized. Please sign in.</label>
+            </div>
         )
     }
 }
@@ -75,6 +84,6 @@ function SignIn() {
             <SignInForm></SignInForm>
         </>
     )
-};
+}
  
 export default SignIn;
