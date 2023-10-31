@@ -19,4 +19,4 @@ RUN npm run build
 ENV NODE_ENV production
 ENV CLIENT_PORT ${CLIENT_PORT}
 
-CMD npx serve build -l ${CLIENT_PORT}
+CMD npx serve build -l ${CLIENT_PORT} -s
