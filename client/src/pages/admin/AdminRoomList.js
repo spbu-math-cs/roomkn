@@ -21,7 +21,7 @@ function EditRoomRow({room, refresh}) {
     useEffect(() => {
         if (finished && statusCode === 200 && result != null) {
             setDescDefault(result.description)
-            setDesc(descDefault)
+            setDesc(result.description)
         }
         //eslint-disable-next-line react-hooks/exhaustive-deps
     }, [result, finished, statusCode]);
