@@ -40,7 +40,7 @@ function List() {
 
 
   return (
-    <ContentWrapper page_name="Список аудиторий">
+    <ContentWrapper page_name="Classrooms">
       <div className="room-list">
         {draw_list}
       </div>

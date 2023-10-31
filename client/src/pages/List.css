@@ -1,10 +1,10 @@
 .room-list {
-    
+    height: 100%;
 }
 
 .room-row {
     display: flex;
-    height: 35
+    margin-bottom: 30px;
 }
 
 .room-row-number {

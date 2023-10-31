@@ -1,3 +1,6 @@
+.authorization-label {
+}
+
 .authorization-label-not-authorized {
     font-size: 60px;
     color: brown;
@@ -11,6 +14,11 @@
 .sign-in-form {
     height: 100%;
     width: 100%;
+    margin-bottom: 30px;
+}
+
+.sign-in-form-name {
+    margin-bottom: 20px;
 }
 
 .sign-in-form-label {
@@ -20,12 +28,15 @@
 .sign-in-form-input {
     display: flex;
     font-size: 30px;
+    float: right;
 }
 
 .sign-in-form-field {
     font-size: 30px;
+    margin-bottom: 20px;
 }
 
 .sign-in-form-submit {
     font-size: 40px;
+    /*float: right;*/
 }
