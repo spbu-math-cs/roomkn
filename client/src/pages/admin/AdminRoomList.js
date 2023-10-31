@@ -8,8 +8,23 @@ import AdminWrapper from "../../components/AdminWrapper";
 
 function EditRoomRow({room, refresh}) {
 
+    let {triggerFetch, result, statusCode, finished} = useSomeAPI('/api/v0/rooms/' + room.id)
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => triggerFetch(), [])
+
+    const [nameDefault] = useState(room.name)
+    const [descDefault, setDescDefault] = useState(room.description)
+
     const [name, setName] = useState(room.name)
     const [desc, setDesc] = useState(room.description)
+
+    useEffect(() => {
+        if (finished && statusCode === 200 && result != null) {
+            setDescDefault(result.description)
+            setDesc(descDefault)
+        }
+        //eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [result, finished, statusCode]);
 
     const put_data = {
         name: name,
@@ -23,8 +38,8 @@ function EditRoomRow({room, refresh}) {
     const [deleteStatusCode, triggerDelete, deleteFinished] = [deleteObj.statusCode, deleteObj.triggerFetch, deleteObj.finished]
 
     const reset = () => {
-        setName(room.name)
-        setDesc(room.description)
+        setName(nameDefault)
+        setDesc(descDefault)
     }
 
     const put_req = () => {
@@ -69,8 +84,8 @@ function EditRoomRow({room, refresh}) {
 }
 
 function AddRoom({refresh}) {
-    const [name, setName] = useState("New room name")
-    const [desc, setDesc] = useState("New room description")
+    const [name, setName] = useState("")
+    const [desc, setDesc] = useState("")
 
     const put_data = {
         name: name,
@@ -95,8 +110,8 @@ function AddRoom({refresh}) {
 
     return (
         <div className="add-room-row">
-            <input className="add-room-row-name" type="text" value={name} onChange={(e) => setName(e.target.value)}/>
-            <input className="add-room-row-desc" type="text" value={desc} onChange={(e) => setDesc(e.target.value)}/>
+            <input className="add-room-row-name" placeholder="New room name" type="text" value={name} onChange={(e) => setName(e.target.value)}/>
+            <input className="add-room-row-desc" placeholder="New room description" type="text" value={desc} onChange={(e) => setDesc(e.target.value)}/>
             <input className="add-room-row-add" type="button" value="ADD" onClick={add_req}/>
         </div>
     )
