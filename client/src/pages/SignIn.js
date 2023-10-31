@@ -17,8 +17,8 @@ function SignInForm() {
 
     useEffect(() => {
         if (finished) {
-            if (statusCode === 400) alert("Ошибка: неверное имя пользователя или пароль.")
-            else if (statusCode === 200) alert("Авторизация успешна!");
+            if (statusCode === 400) alert("Error: incorrect username or password.")
+            else if (statusCode === 200) alert("Authorization succeeded!");
             else alert("statusCode: " + statusCode)
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps

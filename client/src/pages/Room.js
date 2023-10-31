@@ -80,9 +80,9 @@ function BookingForm({room_id, triggerGetReservations}) {
 
   useEffect(() => {
     if (finished) {
-        if (statusCode === 400) alert("Ошибка: " + result)
-        else if (statusCode === 409) alert("Невозможно выполнить бронирование: в это время комната занята")
-        else if (statusCode === 201) alert("Бронирование успешно!");
+        if (statusCode === 400) alert("Error: " + result)
+        else if (statusCode === 409) alert("Impossible to reserve: at this time classroom already reserved")
+        else if (statusCode === 201) alert("Reservation succeeded!");
         else alert("Status Code: " + statusCode)
 
         triggerGetReservations()

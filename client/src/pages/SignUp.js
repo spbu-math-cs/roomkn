@@ -19,14 +19,14 @@ function SignUpForm() {
             register()
             console.log(username, password)
         } else {
-            alert("Пароли не совпадают")
+            alert("Passwords are not equal")
         }
     };
 
     useEffect(() => {
         if (finished) {
-            if (statusCode === 409) alert("Ошибка: имя пользователя или email уже заняты")
-            else if (statusCode === 200) alert("Регистрация успешна!");
+            if (statusCode === 409) alert("Error: user with this username or password exits")
+            else if (statusCode === 200) alert("Registration succeeded!");
             else alert("statusCode: " + statusCode)
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps

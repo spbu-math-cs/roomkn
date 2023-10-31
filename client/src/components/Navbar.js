@@ -18,9 +18,9 @@ const NavSignIn = () => {
     useEffect(() => {
         if (finished) {
             if (statusCode === 200) {
-                alert("Вы успешно вышли из системы")
+                alert("You successfully log out")
             } else if (statusCode === 401) {
-                alert("Авторизационные куки отсутствуют, просрочены или некорректны. Отчистите куки страницы")
+                alert("Authorization cookies are non, expired or incorrect!")
             } else {
                 alert("Status code: " + statusCode)
             }
