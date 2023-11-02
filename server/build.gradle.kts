@@ -1,8 +1,10 @@
+import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.9.0"
     kotlin("plugin.serialization") version "1.9.0"
+    id("io.gitlab.arturbosch.detekt") version "1.23.3"
     application
 }
 
@@ -19,6 +21,22 @@ val logbackVersion = extra["logback.version"] as String
 val postgresVersion = extra["postgres.version"] as String
 val embeddedPostgresVersion = extra["embedded_postgres.version"] as String
 val junitVersion = extra["junit.version"] as String
+
+
+detekt {
+    buildUponDefaultConfig = true
+    allRules = false
+    config.setFrom("$projectDir/config/detekt.yml")
+    baseline = file("$projectDir/config/detekt-baseline.xml")
+}
+
+tasks.withType<Detekt>().configureEach {
+    reports {
+        html.required.set(true)
+        sarif.required.set(true)
+        md.required.set(true)
+    }
+}
 
 dependencies {
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")

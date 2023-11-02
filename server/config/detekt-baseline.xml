@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues></ManuallySuppressedIssues>
+  <CurrentIssues>
+    <ID>LongParameterList:AuthConfig.kt$AuthConfig$( val issuer: String, val audience: String, val secret: ByteArray, val pepper: ByteArray, val database: Database, val credentialsDatabase: CredentialsDatabase, val tokenValidityPeriod: Duration, val saltSize: Int, val hashingAlgorithmId: String, val cleanupInterval: Duration, )</ID>
+    <ID>LongParameterList:AuthConfig.kt$AuthConfig.Builder$( var issuer: String? = null, var audience: String? = null, var secret: ByteArray? = null, var pepper: ByteArray? = null, var database: Database? = null, var credentialsDatabase: CredentialsDatabase? = null, var tokenValidityPeriod: Duration = DEFAULT_TOKEN_VALIDITY_PERIOD, var saltSize: Int = DEFAULT_SALT_SIZE, var hashingAlgorithmId: String = DEFAULT_HASHING_ALGORITHM_ID, val cleanupInterval: Duration = DEFAULT_CLEANUP_INTERVAL, )</ID>
+    <ID>MagicNumber:Schema.kt$InvalidatedTokens$32</ID>
+    <ID>MagicNumber:Schema.kt$Users$32</ID>
+    <ID>MagicNumber:UserPermission.kt$UserPermission.GroupsAdmin$4</ID>
+    <ID>MagicNumber:UserPermission.kt$UserPermission.UsersAdmin$3</ID>
+    <ID>ReturnCount:AccountControllerImpl.kt$AccountControllerImpl$override fun authenticateUser(loginUserInfo: LoginUserInfo): Result&lt;AuthSession&gt;</ID>
+    <ID>ReturnCount:DatabaseSession.kt$DatabaseSession$private fun mapConstraintViolationException(e: ExposedSQLException): DatabaseException</ID>
+    <ID>TooGenericExceptionCaught:AccountControllerImpl.kt$AccountControllerImpl$e: Exception</ID>
+    <ID>TooManyFunctions:AuthConfig.kt$AuthConfig$Builder</ID>
+    <ID>TooManyFunctions:Database.kt$Database</ID>
+    <ID>TooManyFunctions:DatabaseSession.kt$DatabaseSession : RooMknDatabaseCredentialsDatabase</ID>
+    <ID>TooManyFunctions:UsersRouting.kt$org.tod87et.roomkn.server.routing.UsersRouting.kt</ID>
+    <ID>UseCheckOrError:CheckField.kt$throw IllegalStateException("$fieldName is not set")</ID>
+  </CurrentIssues>
+</SmellBaseline>
