@@ -12,14 +12,11 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.tod87et.roomkn.server.database.DatabaseFactory
-import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 import org.tod87et.roomkn.server.models.rooms.RoomInfo
 import org.tod87et.roomkn.server.models.rooms.ShortRoomInfo
 import org.tod87et.roomkn.server.models.toCreated
 import org.tod87et.roomkn.server.models.toShort
-import org.tod87et.roomkn.server.models.users.UserInfo
-import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -28,9 +25,6 @@ class RoomsRoutesTests {
     private val apiPath = KtorTestEnv.API_PATH
     private val roomsPath = "$apiPath/rooms"
     private fun roomPath(id: Int) = "$roomsPath/$id"
-
-
-    private val accountManager = KtorTestEnv.accountManager
 
     @Test
     fun getRooms() = KtorTestEnv.testJsonApplication { client ->

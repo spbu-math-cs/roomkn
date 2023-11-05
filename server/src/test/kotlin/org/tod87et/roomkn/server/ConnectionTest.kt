@@ -2,11 +2,9 @@ package org.tod87et.roomkn.server
 
 import io.ktor.client.request.get
 import io.ktor.http.HttpStatusCode
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.tod87et.roomkn.server.KtorTestEnv.testJsonApplication
-import org.tod87et.roomkn.server.database.DatabaseFactory
 import kotlin.test.assertEquals
 
 class ConnectionTest {
