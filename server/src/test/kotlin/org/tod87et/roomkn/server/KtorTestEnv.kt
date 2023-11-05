@@ -28,6 +28,10 @@ object KtorTestEnv {
     const val API_PATH = "/api/v0"
     const val LOGIN_PATH = "$API_PATH/login"
 
+    init {
+        DatabaseFactory.initEmbedded()
+    }
+
     private val kTorConfig = ApplicationConfig("dev.conf")
     val accountManager = AccountControllerImpl(
         exposedLogger,
@@ -98,5 +102,9 @@ object KtorTestEnv {
             setBody(LoginUserInfo(name, password))
         }
         assertEquals(HttpStatusCode.OK, auth.status)
+    }
+
+    fun resetDatabase() {
+        DatabaseFactory.database.clear()
     }
 }

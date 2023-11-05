@@ -19,17 +19,11 @@ class ConnectionTest {
         assertEquals(HttpStatusCode.OK, response.status)
     }
 
-    @AfterEach
-    fun clearTestDatabase() {
-        // FIXME when clear is ready, bring it back
-        // DatabaseFactory.database.clear()
-    }
-
     companion object {
         @JvmStatic
         @BeforeAll
         fun connectToTestDatabase() {
-            DatabaseFactory.initEmbedded()
+            KtorTestEnv.resetDatabase()
         }
     }
 }

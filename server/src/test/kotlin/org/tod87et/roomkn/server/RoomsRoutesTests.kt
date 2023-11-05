@@ -102,7 +102,7 @@ class RoomsRoutesTests {
         @JvmStatic
         @BeforeAll
         fun connectToTestDatabase() {
-            DatabaseFactory.initEmbedded()
+            KtorTestEnv.resetDatabase()
         }
     }
 }

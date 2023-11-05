@@ -23,7 +23,7 @@ class UsersRoutesTests {
 
     private fun userPath(id: Int) = "$usersPath/$id"
     private fun userPermissionsPath(id: Int) = "$usersPath/$id/permissions"
-    
+
     @Test
     fun getUsers() = KtorTestEnv.testJsonApplication { client ->
         with(KtorTestEnv) {
@@ -87,7 +87,7 @@ class UsersRoutesTests {
         @JvmStatic
         @BeforeAll
         fun connectToTestDatabase() {
-            DatabaseFactory.initEmbedded()
+            KtorTestEnv.resetDatabase()
         }
     }
 }

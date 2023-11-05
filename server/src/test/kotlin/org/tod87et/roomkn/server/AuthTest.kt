@@ -153,7 +153,7 @@ class AuthTest {
         @JvmStatic
         @BeforeAll
         fun connectToTestDatabase() {
-            DatabaseFactory.initEmbedded()
+            KtorTestEnv.resetDatabase()
         }
     }
 }
