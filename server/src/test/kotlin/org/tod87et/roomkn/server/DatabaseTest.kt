@@ -2,27 +2,27 @@ package org.tod87et.roomkn.server
 
 import io.zonky.test.db.postgres.embedded.EmbeddedPostgres
 import kotlinx.datetime.Clock
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Test
 import org.tod87et.roomkn.server.database.ConstraintViolationException
 import org.tod87et.roomkn.server.database.DatabaseSession
 import org.tod87et.roomkn.server.database.MissingElementException
 import org.tod87et.roomkn.server.database.ReservationException
 import org.tod87et.roomkn.server.models.permissions.UserPermission
-import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
-import org.tod87et.roomkn.server.models.users.RegistrationUserInfo
 import org.tod87et.roomkn.server.models.reservations.Reservation
+import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
+import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 import org.tod87et.roomkn.server.models.rooms.RoomInfo
 import org.tod87et.roomkn.server.models.rooms.ShortRoomInfo
+import org.tod87et.roomkn.server.models.users.RegistrationUserInfo
 import org.tod87et.roomkn.server.models.users.ShortUserInfo
-import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
 import org.tod87et.roomkn.server.models.users.UserInfo
 import javax.sql.DataSource
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 

@@ -117,6 +117,7 @@ private suspend fun ApplicationCall.handleException(ex: Throwable) {
 private suspend fun ApplicationCall.onMissingPermission() {
     respondText("Missing permission", status = HttpStatusCode.Forbidden)
 }
+
 private suspend fun ApplicationCall.onMissingId() {
     respondText("id should be int", status = HttpStatusCode.BadRequest)
 }

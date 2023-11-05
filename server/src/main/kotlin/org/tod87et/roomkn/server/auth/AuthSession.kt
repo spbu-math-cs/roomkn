@@ -11,8 +11,9 @@ data class AuthSession(val token: String) : Principal {
     }
 }
 
-val AuthSession.userId: Int get() = JWT.decode(token).getClaim(AuthSession.USER_ID_CLAIM_NAME).asInt()
-    ?: throw SecurityException("Cannot decode user id from token")
+val AuthSession.userId: Int
+    get() = JWT.decode(token).getClaim(AuthSession.USER_ID_CLAIM_NAME).asInt()
+        ?: throw SecurityException("Cannot decode user id from token")
 
 val AuthSession.permissions: List<UserPermission>
     get() = JWT.decode(token)

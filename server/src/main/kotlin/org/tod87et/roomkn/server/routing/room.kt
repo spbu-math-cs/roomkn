@@ -31,13 +31,14 @@ private fun Route.rooms() {
         val right = offset + limit
 
         if (limit < 0 || offset < 0 || offset > right)
-            return@get call.respondText (
+            return@get call.respondText(
                 "Incorrect limit or offset",
                 status = HttpStatusCode.BadRequest
             )
 
         result.onSuccess {
-            call.respond(HttpStatusCode.OK,
+            call.respond(
+                HttpStatusCode.OK,
                 it.subList(
                     min(offset, it.size),
                     min(right, it.size)

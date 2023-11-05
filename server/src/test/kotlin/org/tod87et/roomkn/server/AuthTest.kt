@@ -46,7 +46,7 @@ class AuthTest {
     }
 
     @Test
-    fun registerFailure() = testJsonApplication {  client ->
+    fun registerFailure() = testJsonApplication { client ->
         accountManager.registerUser(
             UnregisteredUserInfo(
                 "Root",
@@ -70,7 +70,7 @@ class AuthTest {
     }
 
     @Test
-    fun login() = testJsonApplication {  client ->
+    fun login() = testJsonApplication { client ->
         accountManager.registerUser(
             UnregisteredUserInfo(
                 "Root",
@@ -93,7 +93,7 @@ class AuthTest {
     }
 
     @Test
-    fun validateToken() = testJsonApplication {  client ->
+    fun validateToken() = testJsonApplication { client ->
         val session = accountManager.registerUser(
             UnregisteredUserInfo(
                 "Root",
@@ -118,7 +118,7 @@ class AuthTest {
     }
 
     @Test
-    fun logout() = testJsonApplication {  client ->
+    fun logout() = testJsonApplication { client ->
         accountManager.registerUser(
             UnregisteredUserInfo(
                 "Root",
