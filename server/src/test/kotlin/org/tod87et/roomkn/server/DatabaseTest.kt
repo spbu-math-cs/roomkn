@@ -23,8 +23,10 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 class DatabaseTest {
     @AfterEach
@@ -52,7 +54,7 @@ class DatabaseTest {
         assertEquals(expectedRooms, rooms)
 
         val incorrectId = rooms.last().id + 1
-        assertTrue(database.getRoom(incorrectId).exceptionOrNull() is MissingElementException)
+        assertIs<MissingElementException>(database.getRoom(incorrectId).exceptionOrNull())
 
         val updatedRoomInfo = NewRoomInfo("newRoom", "newDescription")
 
@@ -63,7 +65,7 @@ class DatabaseTest {
         )
 
         assertTrue(database.deleteRoom(room2Info.id).isSuccess)
-        assertTrue(database.getRoom(room2Info.id).exceptionOrNull() is MissingElementException)
+        assertIs<MissingElementException>(database.getRoom(room2Info.id).exceptionOrNull())
     }
 
     @Test
@@ -93,31 +95,51 @@ class DatabaseTest {
         assertEquals(expectedUsers, users)
 
         val incorrectId = users.last().id + 1
-        assertTrue(database.getUser(incorrectId).exceptionOrNull() is MissingElementException)
+        assertIs<MissingElementException>(database.getUser(incorrectId).exceptionOrNull())
 
         val incorrectUser = RegistrationUserInfo(user1.username, "email3", byteArrayOf(5), byteArrayOf(6))
-        assertTrue(database.registerUser(incorrectUser).exceptionOrNull() is ConstraintViolationException)
+        assertIs<ConstraintViolationException>(database.registerUser(incorrectUser).exceptionOrNull())
 
         assertEquals(user2Permissions.sorted(), database.getUserPermissions(user2Info.id).getOrThrow().sorted())
 
         val newPermissions = listOf(UserPermission.RoomsAdmin)
         assertTrue(database.updateUserPermissions(user2Info.id, newPermissions).isSuccess)
         assertEquals(newPermissions.sorted(), database.getUserPermissions(user2Info.id).getOrThrow().sorted())
+
+        val userToDelete = expectedUsers.last().id
+        assertTrue(database.deleteUser(userToDelete).isSuccess)
+        assertEquals(expectedUsers.dropLast(1), database.getUsers().getOrThrow().sortedBy { it.id })
+
+        val userToUpdate = expectedUsers.first().id
+        val newUsername = "newUsername"
+        val newEmail = "newEmail"
+        assertTrue(database.updateUserInfo(userToUpdate, newUsername, newEmail).isSuccess)
+        assertEquals(UserInfo(userToUpdate, newUsername, newEmail), database.getUser(userToUpdate).getOrThrow())
     }
 
     @Test
     fun credentialsApiTest() {
         val user = RegistrationUserInfo("user", "email", byteArrayOf(1), byteArrayOf(2))
-
-        database.registerUser(user)
+        database.registerUser(user).getOrThrow()
 
         val credentialsByEmail = database.getCredentialsInfoByEmail(user.email).getOrThrow()
         val credentialsByUsername = database.getCredentialsInfoByUsername(user.username).getOrThrow()
+        val userId = credentialsByEmail.id
 
         assertContentEquals(user.passwordHash, credentialsByEmail.passwordHash)
         assertContentEquals(user.salt, credentialsByEmail.salt)
         assertContentEquals(user.passwordHash, credentialsByUsername.passwordHash)
         assertContentEquals(user.salt, credentialsByUsername.salt)
+
+        val newPassword = byteArrayOf(2)
+        val newSalt = byteArrayOf(2)
+
+        assertTrue(database.updateUserPassword(userId, newPassword, newSalt).isSuccess)
+
+        val credentialsInfo = database.getCredentialsInfoByEmail(user.email).getOrThrow()
+
+        assertContentEquals(newPassword, credentialsInfo.passwordHash)
+        assertContentEquals(newSalt, credentialsInfo.salt)
     }
 
     @Test
@@ -134,7 +156,7 @@ class DatabaseTest {
 
         val invalidReservation = UnregisteredReservation(userInfo.id + 1, room1Info.id, from, until)
 
-        assertTrue(database.createReservation(invalidReservation).exceptionOrNull() is ConstraintViolationException)
+        assertIs<ConstraintViolationException>(database.createReservation(invalidReservation).exceptionOrNull())
 
         val reservation1 = UnregisteredReservation(userInfo.id, room1Info.id, from, until)
         val reservation2 = UnregisteredReservation(userInfo.id, room2Info.id, from, until)
@@ -142,7 +164,7 @@ class DatabaseTest {
 
         assertTrue(database.createReservation(reservation1).isSuccess)
 
-        assertTrue(database.createReservation(reservation1).exceptionOrNull() is ReservationException)
+        assertIs<ReservationException>(database.createReservation(reservation1).exceptionOrNull())
 
         val room1Reservations = database.getRoomReservations(room1Info.id).getOrThrow()
         val expectedReservation = Reservation(
@@ -155,11 +177,14 @@ class DatabaseTest {
 
         assertEquals(listOf(expectedReservation), room1Reservations)
 
-        assertTrue(database.deleteReservation(reservation2Info.id).isSuccess)
-        assertEquals(
-            listOf(expectedReservation),
-            database.getUserReservations(userInfo.id).getOrThrow()
-        )
+        val newFrom = until + 1.seconds
+        val newUntil = until + 3.seconds
+        val reservation3 = UnregisteredReservation(userInfo.id, room2Info.id, newFrom, newUntil)
+        val reservation3Info = database.createReservation(reservation3).getOrThrow()
+
+        assertIs<ReservationException>(database.updateReservation(reservation2Info.id, newFrom, newUntil).exceptionOrNull())
+        assertTrue(database.deleteReservation(reservation3Info.id).isSuccess)
+        assertTrue(database.updateReservation(reservation2Info.id, newFrom, newUntil).isSuccess)
     }
 
     @Test

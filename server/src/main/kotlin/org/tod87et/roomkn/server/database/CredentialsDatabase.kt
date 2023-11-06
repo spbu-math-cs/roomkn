@@ -12,7 +12,7 @@ interface CredentialsDatabase {
 
     fun getCredentialsInfoByEmail(email: String): Result<UserCredentialsInfo>
 
-    fun updateUserPassword(userId: Int, passwordHash: ByteArray, salt: ByteArray)
+    fun updateUserPassword(userId: Int, passwordHash: ByteArray, salt: ByteArray): Result<Unit>
 
     /**
      * Invalidates token with specified [hash] and records its original [expirationDate].
