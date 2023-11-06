@@ -1,14 +1,10 @@
-package org.tod87et.roomkn.server
+package org.tod87et.roomkn.server.database
 
 import io.zonky.test.db.postgres.embedded.EmbeddedPostgres
 import kotlinx.datetime.Clock
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
-import org.tod87et.roomkn.server.database.ConstraintViolationException
-import org.tod87et.roomkn.server.database.DatabaseSession
-import org.tod87et.roomkn.server.database.MissingElementException
-import org.tod87et.roomkn.server.database.ReservationException
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 import org.tod87et.roomkn.server.models.users.RegistrationUserInfo
