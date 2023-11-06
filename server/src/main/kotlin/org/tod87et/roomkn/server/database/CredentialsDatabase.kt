@@ -12,6 +12,8 @@ interface CredentialsDatabase {
 
     fun getCredentialsInfoByEmail(email: String): Result<UserCredentialsInfo>
 
+    fun updateUserPassword(userId: Int, passwordHash: ByteArray, salt: ByteArray)
+
     /**
      * Invalidates token with specified [hash] and records its original [expirationDate].
      * If token with such [hash] has been already invalidated, overrides its [expirationDate].

@@ -1,5 +1,6 @@
 package org.tod87et.roomkn.server.database
 
+import kotlinx.datetime.Instant
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 import org.tod87et.roomkn.server.models.reservations.Reservation
@@ -15,12 +16,15 @@ interface Database {
     fun createRoom(roomInfo: NewRoomInfo): Result<RoomInfo>
     fun updateRoom(roomId: Int, roomInfo: NewRoomInfo): Result<Unit>
     fun deleteRoom(roomId: Int): Result<Unit>
-    fun getRoomReservations(roomId: Int): Result<List<Reservation>>
-    fun getUserReservations(userId: Int): Result<List<Reservation>>
+    fun getRoomReservations(roomId: Int, limit: Int, offset: Long): Result<List<Reservation>>
+    fun getUserReservations(userId: Int, limit: Int, offset: Long): Result<List<Reservation>>
+    fun updateReservation(reservationId: Int, from: Instant, until: Instant): Result<Unit>
     fun deleteReservation(reservationId: Int): Result<Unit>
-    fun createReservation(reserve: UnregisteredReservation): Result<Reservation>
+    fun createReservation(reservation: UnregisteredReservation): Result<Reservation>
     fun getUsers(): Result<List<ShortUserInfo>>
     fun getUser(userId: Int): Result<UserInfo>
+    fun updateUserInfo(userId: Int, username: String, email: String): Result<Unit>
+    fun deleteUser(userId: Int): Result<Unit>
     fun getUserPermissions(userId: Int): Result<List<UserPermission>>
     fun updateUserPermissions(userId: Int, permissions: List<UserPermission>): Result<Unit>
 
