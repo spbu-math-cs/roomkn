@@ -98,7 +98,7 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
-    override fun getRoomReservations(roomId: Int): Result<List<Reservation>> = queryWrapper {
+    override fun getRoomReservations(roomId: Int, limit: Int, offset: Long): Result<List<Reservation>> = queryWrapper {
         transaction(database) {
             if (Rooms.select { Rooms.id eq roomId }.empty()) {
                 throw MissingElementException()
@@ -118,7 +118,7 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
-    override fun getUserReservations(userId: Int): Result<List<Reservation>> = queryWrapper {
+    override fun getUserReservations(userId: Int, limit: Int, offset: Long): Result<List<Reservation>> = queryWrapper {
         transaction(database) {
             if (Users.select { Users.id eq userId }.empty()) {
                 throw MissingElementException()
@@ -138,13 +138,13 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
-    override fun createReservation(reserve: UnregisteredReservation): Result<Reservation> = queryWrapper {
-        require(reserve.until > reserve.from) { "Until must be later than from" }
+    override fun createReservation(reservation: UnregisteredReservation): Result<Reservation> = queryWrapper {
+        require(reservation.until > reservation.from) { "Until must be later than from" }
 
-        val from = reserve.from
-        val until = reserve.until
-        val roomId = reserve.roomId
-        val userId = reserve.userId
+        val from = reservation.from
+        val until = reservation.until
+        val roomId = reservation.roomId
+        val userId = reservation.userId
 
         transaction(db = database, transactionIsolation = Connection.TRANSACTION_SERIALIZABLE) {
             val cnt = Reservations.select {
@@ -165,6 +165,10 @@ class DatabaseSession private constructor(private val database: Database) :
 
             Reservation(id, userId, roomId, from, until)
         }
+    }
+
+    override fun updateReservation(reservationId: Int, from: Instant, until: Instant): Result<Unit> {
+        TODO("Not yet implemented")
     }
 
     override fun deleteReservation(reservationId: Int): Result<Unit> = queryWrapper {
@@ -271,6 +275,18 @@ class DatabaseSession private constructor(private val database: Database) :
                 userRow[Users.passwordHash]
             )
         }
+    }
+
+    override fun updateUserPassword(userId: Int, passwordHash: ByteArray, salt: ByteArray) {
+        TODO("Not yet implemented")
+    }
+
+    override fun updateUserInfo(userId: Int, username: String, email: String): Result<Unit> {
+        TODO("Not yet implemented")
+    }
+
+    override fun deleteUser(userId: Int): Result<Unit> {
+        TODO("Not yet implemented")
     }
 
     /**
