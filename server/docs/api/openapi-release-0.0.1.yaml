@@ -1,0 +1,91 @@
+openapi: 3.0.3
+info:
+  title: roomkn
+  description: Приложение позволяет резервировать свободные комнаты на МКН
+  version: 0.0.1
+servers:
+  - url: http://localhost:8080/api/v0
+    description: Dev server
+paths:
+  /rooms:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewRoom'
+            example:
+              name: "0404"
+              description: Несуществующая комната
+      responses:
+        201:
+          description: Комната создана
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomId"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/ServerError"
+      summary: Создание новой комнаты
+      tags:
+        - rooms
+    get:
+      responses:
+        200:
+          description: Список короткой информации о всех комнатах
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ShortRoomInfo"
+              example:
+                - name: "0404"
+        500:
+          $ref: "#/components/responses/ServerError"
+      summary: Получение списка короткой информации о всех комнатах
+      tags:
+        - rooms
+
+
+components:
+  schemas:
+    NewRoom:
+      type: object
+      required:
+        - name
+        - description
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+    RoomId:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: integer
+    ShortRoomInfo:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+  responses:
+    ServerError:
+      description: Внутренняя ошибка сервера
+    Unauthorized:
+      description: Пользователь не зарегистрирован
+    BadRequest:
+      description: Неправильно сформулированный запрос
+    Forbidden:
+      description: У пользователя нет нужного разрешения
