@@ -16,8 +16,8 @@ interface Database {
     fun createRoom(roomInfo: NewRoomInfo): Result<RoomInfo>
     fun updateRoom(roomId: Int, roomInfo: NewRoomInfo): Result<Unit>
     fun deleteRoom(roomId: Int): Result<Unit>
-    fun getRoomReservations(roomId: Int, limit: Int, offset: Long): Result<List<Reservation>>
-    fun getUserReservations(userId: Int, limit: Int, offset: Long): Result<List<Reservation>>
+    fun getRoomReservations(roomId: Int, limit: Int = Int.MAX_VALUE, offset: Long = 0L): Result<List<Reservation>>
+    fun getUserReservations(userId: Int, limit: Int = Int.MAX_VALUE, offset: Long = 0L): Result<List<Reservation>>
     fun updateReservation(reservationId: Int, from: Instant, until: Instant): Result<Unit>
     fun deleteReservation(reservationId: Int): Result<Unit>
     fun createReservation(reservation: UnregisteredReservation): Result<Reservation>
