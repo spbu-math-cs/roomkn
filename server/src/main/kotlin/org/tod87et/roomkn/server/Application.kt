@@ -13,6 +13,7 @@ import org.tod87et.roomkn.server.plugins.configureSerialization
 fun Application.module() {
     val authConfig = AuthConfigFactory.createConfig(environment)
     val accountController = AccountControllerImpl(environment.log, authConfig)
+    accountController.createZeroAdminIfRequested()
 
     configureAuthentication(authConfig, accountController)
     configureCORS()
