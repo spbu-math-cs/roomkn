@@ -2,7 +2,6 @@ package org.tod87et.roomkn.server.database
 
 import io.zonky.test.db.postgres.embedded.EmbeddedPostgres
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
@@ -39,7 +38,7 @@ class ReservationStressTest {
     }
 
     @Test
-    fun stressTest() = runBlocking(Dispatchers.Default) {
+    fun stressTest() {
         val reservationsPerCoroutine = reservationNum / coroutineNum
         val userInfo = RegistrationUserInfo("user", "email", byteArrayOf(1), byteArrayOf(1))
         val userId = database.registerUser(userInfo).getOrThrow().id
@@ -55,7 +54,7 @@ class ReservationStressTest {
             )
         }
 
-        coroutineScope {
+        runBlocking(Dispatchers.Default) {
             reservations.chunked(reservationsPerCoroutine).forEach { coroutineReservations ->
                 launch {
                     coroutineReservations.forEach { createReservation(it) }
