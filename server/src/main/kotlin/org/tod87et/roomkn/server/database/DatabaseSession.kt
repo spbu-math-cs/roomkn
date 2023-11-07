@@ -21,8 +21,10 @@ import javax.sql.DataSource
 import org.tod87et.roomkn.server.database.Database as RooMknDatabase
 import kotlinx.datetime.Clock
 import org.jetbrains.exposed.exceptions.ExposedSQLException
+import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
+import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.update
@@ -106,6 +108,8 @@ class DatabaseSession private constructor(private val database: Database) :
 
             Reservations
                 .select { Reservations.roomId eq roomId }
+                .orderBy(Reservations.from to SortOrder.ASC, Reservations.until to SortOrder.ASC)
+                .limit(limit, offset)
                 .map {
                     Reservation(
                         id = it[Reservations.id],
@@ -125,50 +129,73 @@ class DatabaseSession private constructor(private val database: Database) :
             }
 
             Reservations
-              .select { Reservations.userId eq userId }
-              .map {
-                  Reservation(
-                      id = it[Reservations.id],
-                      userId = it[Reservations.userId],
-                      roomId = it[Reservations.roomId],
-                      from = it[Reservations.from],
-                      until = it[Reservations.until]
-                  )
-              }
+                .select { Reservations.userId eq userId }
+                .orderBy(Reservations.from to SortOrder.ASC, Reservations.until to SortOrder.ASC)
+                .limit(limit, offset)
+                .map {
+                    Reservation(
+                        id = it[Reservations.id],
+                        userId = it[Reservations.userId],
+                        roomId = it[Reservations.roomId],
+                        from = it[Reservations.from],
+                        until = it[Reservations.until]
+                    )
+                }
         }
     }
 
-    override fun createReservation(reservation: UnregisteredReservation): Result<Reservation> = queryWrapper {
-        require(reservation.until > reservation.from) { "Until must be later than from" }
-
+    private fun Transaction.tryCreateReservation(reservation: UnregisteredReservation): Reservation? {
         val from = reservation.from
         val until = reservation.until
         val roomId = reservation.roomId
         val userId = reservation.userId
 
+        val cnt = Reservations.select {
+            val intersectionCondition = (Reservations.until greater from) and (Reservations.from less until)
+            val roomCondition = Reservations.roomId eq roomId
+
+            roomCondition and intersectionCondition
+        }.count()
+
+        if (cnt > 0) return null
+
+        val id = Reservations.insert {
+            it[Reservations.userId] = userId
+            it[Reservations.roomId] = roomId
+            it[Reservations.from] = from
+            it[Reservations.until] = until
+        } get Reservations.id
+
+        return Reservation(id, userId, roomId, from, until)
+    }
+
+    override fun createReservation(reservation: UnregisteredReservation): Result<Reservation> = queryWrapper {
+        require(reservation.until > reservation.from) { "Until must be later than from" }
+
         transaction(db = database, transactionIsolation = Connection.TRANSACTION_SERIALIZABLE) {
-            val cnt = Reservations.select {
-                val intersectionCondition = (Reservations.until greater from) and (Reservations.from less until)
-                val roomCondition = Reservations.roomId eq roomId
-
-                roomCondition and intersectionCondition
-            }.count()
-
-            if (cnt > 0) throw ReservationException()
-
-            val id = Reservations.insert {
-                it[Reservations.userId] = userId
-                it[Reservations.roomId] = roomId
-                it[Reservations.from] = from
-                it[Reservations.until] = until
-            } get Reservations.id
-
-            Reservation(id, userId, roomId, from, until)
+            tryCreateReservation(reservation) ?: throw ReservationException()
         }
     }
 
-    override fun updateReservation(reservationId: Int, from: Instant, until: Instant): Result<Unit> {
-        TODO("Not yet implemented")
+    override fun updateReservation(reservationId: Int, from: Instant, until: Instant): Result<Unit> = queryWrapper {
+        require(until > from) { "Until must be later than from" }
+
+        transaction(db = database, transactionIsolation = Connection.TRANSACTION_SERIALIZABLE) {
+            val reservationRow = Reservations
+                .select { Reservations.id eq reservationId }
+                .firstOrNull() ?: throw MissingElementException()
+            val userId = reservationRow[Reservations.userId]
+            val roomId = reservationRow[Reservations.roomId]
+
+            Reservations.deleteWhere { id eq reservationId }
+
+            val updatedReservation = tryCreateReservation(UnregisteredReservation(userId, roomId, from, until))
+
+            if (updatedReservation == null) {
+                rollback()
+                throw ReservationException()
+            }
+        }
     }
 
     override fun deleteReservation(reservationId: Int): Result<Unit> = queryWrapper {
@@ -277,16 +304,38 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
-    override fun updateUserPassword(userId: Int, passwordHash: ByteArray, salt: ByteArray) {
-        TODO("Not yet implemented")
+    override fun updateUserPassword(
+        userId: Int,
+        passwordHash: ByteArray,
+        salt: ByteArray
+    ): Result<Unit> = queryWrapper {
+        transaction(database) {
+            val cnt = Users.update({ Users.id eq userId }) {
+                it[Users.passwordHash] = passwordHash
+                it[Users.salt] = salt
+            }
+
+            if (cnt == 0) throw MissingElementException()
+        }
     }
 
-    override fun updateUserInfo(userId: Int, username: String, email: String): Result<Unit> {
-        TODO("Not yet implemented")
+    override fun updateUserInfo(userId: Int, username: String, email: String): Result<Unit> = queryWrapper {
+        transaction(database) {
+            val cnt = Users.update({ Users.id eq userId }) {
+                it[Users.username] = username
+                it[Users.email] = email
+            }
+
+            if (cnt == 0) throw MissingElementException()
+        }
     }
 
-    override fun deleteUser(userId: Int): Result<Unit> {
-        TODO("Not yet implemented")
+    override fun deleteUser(userId: Int): Result<Unit> = queryWrapper {
+        transaction(database) {
+            val cnt = Users.deleteWhere { id eq userId }
+
+            if (cnt == 0) throw MissingElementException()
+        }
     }
 
     /**
@@ -361,6 +410,4 @@ class DatabaseSession private constructor(private val database: Database) :
 
         return result
     }
-
-
 }
