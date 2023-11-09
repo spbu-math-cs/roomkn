@@ -14,7 +14,6 @@ import org.tod87et.roomkn.server.models.users.UnregisteredUserInfo
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.Date
-import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.thread
 
 class AccountControllerImpl(
@@ -33,7 +32,7 @@ class AccountControllerImpl(
 
     private val signAlgorithm = Algorithm.HMAC256(config.secret)
 
-    private val cleanupThread: AtomicReference<Thread?> = AtomicReference(null)
+    private var cleanupThread: Thread? = null
 
     override val jwtVerifier: JWTVerifier = JWT
         .require(Algorithm.HMAC256(config.secret))
@@ -141,19 +140,20 @@ class AccountControllerImpl(
     }
 
     override fun startCleanupThread() {
-        val newThread = createCleanupThread()
-        cleanupThread.getAndSet(null)?.run {
-            interrupt()
-            join()
+        if (cleanupThread != null) {
+            return
         }
+        val newThread = createCleanupThread()
+        cleanupThread = newThread
         newThread.start()
     }
 
     override fun stopCleanupThread() {
-        cleanupThread.getAndSet(null)?.run {
+        cleanupThread?.run {
             interrupt()
             join()
         }
+        cleanupThread = null
     }
 
     private fun createCleanupThread(): Thread = thread(start = false) {
