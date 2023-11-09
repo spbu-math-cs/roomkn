@@ -17,4 +17,6 @@ interface AccountController {
     fun invalidateSession(session: AuthSession): Result<Unit>
 
     suspend fun cleanerLoop()
+
+    fun createZeroAdminIfRequested()
 }

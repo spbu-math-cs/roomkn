@@ -79,7 +79,63 @@ class AccountControllerImpl(
         }
     }
 
-    override fun registerUser(userInfo: UnregisteredUserInfo): Result<AuthSession> {
+    override fun registerUser(userInfo: UnregisteredUserInfo): Result<AuthSession> =
+        registerUser(userInfo, defaultPermissions)
+
+    override fun validateSession(session: AuthSession): Result<Boolean> {
+        runCatching { jwtVerifier.verify(session.token) }
+            .getOrElse {
+                log.debug("Token verification failed", it)
+                return Result.success(false)
+            }
+        digest.update(session.token.encodeToByteArray())
+        return config.credentialsDatabase.checkTokenWasInvalidated(digest.digest()).map { !it }
+    }
+
+    override fun invalidateSession(session: AuthSession): Result<Unit> {
+        digest.update(session.token.encodeToByteArray())
+        return config.credentialsDatabase.invalidateToken(
+            digest.digest(),
+            JWT.decode(session.token).expiresAtAsInstant.toKotlinInstant()
+        )
+    }
+
+    override fun createZeroAdminIfRequested() {
+        val username = System.getenv(ENV_ROOMKN_SUPERUSER_NAME)?.takeUnless(String::isBlank) ?: return
+
+        if (config.credentialsDatabase.getCredentialsInfoByUsername(username).isSuccess) {
+            log.warn("user with such username already exists: $username; skipping superuser creation")
+            return
+        }
+
+        val password = System.getenv(ENV_ROOMKN_SUPERUSER_PASSWORD)?.takeUnless(String::isBlank) ?: run {
+            log.warn("superuser username is provided, but password is not; skipping superuser creation")
+            return
+        }
+
+        val email = System.getenv(ENV_ROOMKN_SUPERUSER_EMAIL)?.takeUnless(String::isBlank)
+            ?: System.getenv(ENV_HOST)?.takeUnless(String::isEmpty)?.let { "admin@$it" }
+
+        if (email == null || config.credentialsDatabase.getCredentialsInfoByEmail(email).isSuccess) {
+            log.warn(
+                "superuser email is not provided or user with such email already exists: $email; skipping superuser creation"
+            )
+            return
+        }
+
+        val res = registerUser(
+            UnregisteredUserInfo(username, email, password),
+            defaultAdminPermissions
+        )
+
+        if (res.isFailure) {
+            log.error("superuser creation FAILED", res.exceptionOrNull())
+        } else {
+            log.info("superuser $username was successfully created")
+        }
+    }
+
+    private fun registerUser(userInfo: UnregisteredUserInfo, permissions: List<UserPermission>): Result<AuthSession> {
         val salt = ByteArray(config.saltSize).apply(secureRandom::nextBytes)
 
         digest.update(config.pepper)
@@ -91,7 +147,7 @@ class AccountControllerImpl(
             email = userInfo.email,
             salt = salt,
             passwordHash = digest.digest(),
-            permissions = defaultPermissions,
+            permissions = permissions,
         )
         val res = config.credentialsDatabase.registerUser(registrationInfo)
 
@@ -118,24 +174,6 @@ class AccountControllerImpl(
 
         log.debug("User `${info.username}` has been registered")
         return Result.success(AuthSession(createToken(info.id, defaultPermissions)))
-    }
-
-    override fun validateSession(session: AuthSession): Result<Boolean> {
-        runCatching { jwtVerifier.verify(session.token) }
-            .getOrElse {
-                log.debug("Token verification failed", it)
-                return Result.success(false)
-            }
-        digest.update(session.token.encodeToByteArray())
-        return config.credentialsDatabase.checkTokenWasInvalidated(digest.digest()).map { !it }
-    }
-
-    override fun invalidateSession(session: AuthSession): Result<Unit> {
-        digest.update(session.token.encodeToByteArray())
-        return config.credentialsDatabase.invalidateToken(
-            digest.digest(),
-            JWT.decode(session.token).expiresAtAsInstant.toKotlinInstant()
-        )
     }
 
     override suspend fun cleanerLoop() {
@@ -166,5 +204,17 @@ class AccountControllerImpl(
         private val defaultPermissions: List<UserPermission> = listOf(
             UserPermission.ReservationsCreate,
         )
+
+        private val defaultAdminPermissions: List<UserPermission> = listOf(
+            UserPermission.UsersAdmin,
+            UserPermission.ReservationsAdmin,
+            UserPermission.RoomsAdmin,
+        )
+
+        private const val ENV_ROOMKN_SUPERUSER_NAME = "SUPERUSER_NAME"
+        private const val ENV_ROOMKN_SUPERUSER_PASSWORD = "SUPERUSER_PASSWORD"
+        private const val ENV_ROOMKN_SUPERUSER_EMAIL = "SUPERUSER_EMAIL"
+        private const val ENV_HOST = "CALC_HOST"
+
     }
 }
