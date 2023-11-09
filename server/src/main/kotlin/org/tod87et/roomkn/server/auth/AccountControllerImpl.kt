@@ -211,9 +211,9 @@ class AccountControllerImpl(
             UserPermission.RoomsAdmin,
         )
 
-        private const val ENV_ROOMKN_SUPERUSER_NAME = "ROOMKN_SUPERUSER_NAME"
-        private const val ENV_ROOMKN_SUPERUSER_PASSWORD = "ROOMKN_SUPERUSER_PASSWORD"
-        private const val ENV_ROOMKN_SUPERUSER_EMAIL = "ROOMKN_SUPERUSER_EMAIL"
+        private const val ENV_ROOMKN_SUPERUSER_NAME = "SUPERUSER_NAME"
+        private const val ENV_ROOMKN_SUPERUSER_PASSWORD = "SUPERUSER_PASSWORD"
+        private const val ENV_ROOMKN_SUPERUSER_EMAIL = "SUPERUSER_EMAIL"
         private const val ENV_HOST = "CALC_HOST"
 
     }
