@@ -9,6 +9,7 @@ servers:
 paths:
   /rooms:
     post:
+      operationId: createRoom
       requestBody:
         content:
           application/json:
@@ -24,6 +25,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RoomId"
+          links:
+            GetRoomByRoomId:
+              operationId: getRoomById
+              parameters:
+                roomId: $response.body#/id
+              description: Можно по полученному `id` получить информацию о комнате через `GET /rooms/{roomId}`
         400:
           $ref: "#/components/responses/BadRequest"
         401:
