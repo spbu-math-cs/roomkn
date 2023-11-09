@@ -4,6 +4,8 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
 import io.ktor.util.logging.Logger
+import io.ktor.utils.io.CancellationException
+import kotlinx.coroutines.delay
 import kotlinx.datetime.toKotlinInstant
 import org.tod87et.roomkn.server.database.ConstraintViolationException
 import org.tod87et.roomkn.server.database.MissingElementException
@@ -14,8 +16,6 @@ import org.tod87et.roomkn.server.models.users.UnregisteredUserInfo
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.Date
-import java.util.concurrent.atomic.AtomicReference
-import kotlin.concurrent.thread
 
 class AccountControllerImpl(
     private val log: Logger,
@@ -32,8 +32,6 @@ class AccountControllerImpl(
     private val secureRandom get() = secureRandomThreadLocal.get()
 
     private val signAlgorithm = Algorithm.HMAC256(config.secret)
-
-    private val cleanupThread: AtomicReference<Thread?> = AtomicReference(null)
 
     override val jwtVerifier: JWTVerifier = JWT
         .require(Algorithm.HMAC256(config.secret))
@@ -140,28 +138,13 @@ class AccountControllerImpl(
         )
     }
 
-    override fun startCleanupThread() {
-        val newThread = createCleanupThread()
-        cleanupThread.getAndSet(null)?.run {
-            interrupt()
-            join()
-        }
-        newThread.start()
-    }
-
-    override fun stopCleanupThread() {
-        cleanupThread.getAndSet(null)?.run {
-            interrupt()
-            join()
-        }
-    }
-
-    private fun createCleanupThread(): Thread = thread(start = false) {
-        while (!Thread.interrupted()) {
+    override suspend fun cleanerLoop() {
+        while (true) {
             try {
-                Thread.sleep(config.cleanupInterval.inWholeMilliseconds)
+                delay(config.cleanupInterval)
                 config.credentialsDatabase.cleanupExpiredInvalidatedTokens().getOrThrow()
-            } catch (_: InterruptedException) {
+                log.debug("Invalid tokens cleanup succeed")
+            } catch (_: CancellationException) {
                 break
             } catch (e: Exception) {
                 log.error("Invalid tokens cleanup failed", e)

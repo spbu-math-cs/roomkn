@@ -16,7 +16,5 @@ interface AccountController {
 
     fun invalidateSession(session: AuthSession): Result<Unit>
 
-    fun startCleanupThread()
-
-    fun stopCleanupThread()
+    suspend fun cleanerLoop()
 }
