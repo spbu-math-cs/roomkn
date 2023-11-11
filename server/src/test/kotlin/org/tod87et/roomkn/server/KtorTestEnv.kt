@@ -62,10 +62,15 @@ object KtorTestEnv {
         }
 
 
-    suspend fun HttpClient.createAndAuthAdmin(name: String = "Root", password: String = "the-root-of-evil") {
-        createAndAuthUser(
+    suspend fun HttpClient.createAndAuthAdmin(
+        name: String = "Root",
+        password: String = "the-root-of-evil",
+        email: String = "$name@example.org"
+    ): Int {
+        return createAndAuthUser(
             name,
             password,
+            email,
             listOf(
                 UserPermission.UsersAdmin,
                 UserPermission.ReservationsAdmin,
@@ -74,8 +79,8 @@ object KtorTestEnv {
         )
     }
 
-    fun createUser(name: String, password: String = "qwerty"): Int {
-        val initialSession = accountManager.registerUser(UnregisteredUserInfo(name, "$name@example.org", password))
+    fun createUser(name: String, password: String = "qwerty", email: String = "$name@example.org"): Int {
+        val initialSession = accountManager.registerUser(UnregisteredUserInfo(name, email, password))
             .getOrThrow()
         DatabaseFactory.database.updateUserPermissions(
             initialSession.userId,
@@ -88,9 +93,10 @@ object KtorTestEnv {
     suspend fun HttpClient.createAndAuthUser(
         name: String = "Alice",
         password: String = "qwerty",
+        email: String = "$name@example.org",
         permissions: List<UserPermission> = listOf(UserPermission.ReservationsCreate)
-    ) {
-        val initialSession = accountManager.registerUser(UnregisteredUserInfo(name, "$name@example.org", password))
+    ): Int {
+        val initialSession = accountManager.registerUser(UnregisteredUserInfo(name, email, password))
             .getOrThrow()
         DatabaseFactory.database.updateUserPermissions(
             initialSession.userId,
@@ -102,6 +108,8 @@ object KtorTestEnv {
             setBody(LoginUserInfo(name, password))
         }
         assertEquals(HttpStatusCode.OK, auth.status)
+
+        return initialSession.userId
     }
 
     fun resetDatabase() {

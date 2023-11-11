@@ -17,6 +17,7 @@ import org.tod87et.roomkn.server.models.rooms.RoomInfo
 import org.tod87et.roomkn.server.models.rooms.ShortRoomInfo
 import org.tod87et.roomkn.server.models.users.ShortUserInfo
 import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
+import org.tod87et.roomkn.server.models.users.UpdateUserInfo
 import org.tod87et.roomkn.server.models.users.UserInfo
 import javax.sql.DataSource
 import kotlin.test.assertContentEquals
@@ -113,7 +114,7 @@ class DatabaseTest {
         val userToUpdate = expectedUsers.first().id
         val newUsername = "newUsername"
         val newEmail = "newEmail"
-        assertTrue(database.updateUserInfo(userToUpdate, newUsername, newEmail).isSuccess)
+        assertTrue(database.updateUserInfo(userToUpdate, UpdateUserInfo(newUsername, newEmail)).isSuccess)
         assertEquals(UserInfo(userToUpdate, newUsername, newEmail), database.getUser(userToUpdate).getOrThrow())
     }
 
