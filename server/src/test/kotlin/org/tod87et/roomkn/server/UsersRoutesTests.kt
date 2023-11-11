@@ -1,6 +1,7 @@
 package org.tod87et.roomkn.server
 
 import io.ktor.client.call.body
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
@@ -13,9 +14,11 @@ import org.junit.jupiter.api.Test
 import org.tod87et.roomkn.server.database.DatabaseFactory
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.users.ShortUserInfo
+import org.tod87et.roomkn.server.models.users.UpdateUserInfo
 import org.tod87et.roomkn.server.models.users.UserInfo
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class UsersRoutesTests {
     private val apiPath = "/api/v0"
@@ -47,6 +50,84 @@ class UsersRoutesTests {
 
         val user = client.get(userPath(id)).body<UserInfo>()
         assertEquals(UserInfo(id, "Bob", "Bob@example.org"), user)
+    }
+
+    @Test
+    fun updateUser() = KtorTestEnv.testJsonApplication { client ->
+        with(KtorTestEnv) {
+            client.createAndAuthAdmin()
+        }
+        val id = KtorTestEnv.createUser("Bob")
+
+        val resp = client.put(userPath(id)) {
+            contentType(ContentType.Application.Json)
+            setBody(UpdateUserInfo("bob-the-builder", "bob@bob.club"))
+        }
+        assertEquals(HttpStatusCode.OK, resp.status)
+
+        val user = DatabaseFactory.database.getUser(id).getOrThrow()
+        assertEquals(UserInfo(id, "bob-the-builder", "bob@bob.club"), user)
+    }
+
+    @Test
+    fun updateUserSelf() = KtorTestEnv.testJsonApplication { client ->
+        val id = with(KtorTestEnv) {
+            client.createAndAuthUser()
+        }
+
+        val resp = client.put(userPath(id)) {
+            contentType(ContentType.Application.Json)
+            setBody(UpdateUserInfo("Eve", "evil@example.org"))
+        }
+        assertEquals(HttpStatusCode.OK, resp.status)
+
+        val user = DatabaseFactory.database.getUser(id).getOrThrow()
+        assertEquals(UserInfo(id, "Eve", "evil@example.org"), user)
+    }
+
+    @Test
+    fun updateForbidden() = KtorTestEnv.testJsonApplication { client ->
+        with(KtorTestEnv) {
+            client.createAndAuthUser("Eve")
+        }
+        val id = KtorTestEnv.createUser(name = "Alice",  email = "i-know-what-to-do@alice.org")
+
+        val resp = client.put(userPath(id)) {
+            contentType(ContentType.Application.Json)
+            setBody(UpdateUserInfo("HackedAlice", "evil@example.org"))
+        }
+        assertEquals(HttpStatusCode.Forbidden, resp.status)
+
+        val user = DatabaseFactory.database.getUser(id).getOrThrow()
+        assertEquals(UserInfo(id, "Alice", "i-know-what-to-do@alice.org"), user)
+    }
+
+    @Test
+    fun deleteUser() = KtorTestEnv.testJsonApplication { client ->
+        with(KtorTestEnv) {
+            client.createAndAuthAdmin()
+        }
+        val id = KtorTestEnv.createUser("Bob")
+
+        val resp = client.delete(userPath(id))
+        assertEquals(HttpStatusCode.OK, resp.status)
+
+        val user = DatabaseFactory.database.getUser(id)
+        assertTrue(user.isFailure)
+    }
+
+    @Test
+    fun deleteForbidden() = KtorTestEnv.testJsonApplication { client ->
+        with(KtorTestEnv) {
+            client.createAndAuthUser("Eve")
+        }
+        val id = KtorTestEnv.createUser(name = "Alice",  email = "i-know-what-to-do@alice.org")
+
+        val resp = client.delete(userPath(id))
+        assertEquals(HttpStatusCode.Forbidden, resp.status)
+
+        val user = DatabaseFactory.database.getUser(id).getOrThrow()
+        assertEquals(UserInfo(id, "Alice", "i-know-what-to-do@alice.org"), user)
     }
 
     @Test

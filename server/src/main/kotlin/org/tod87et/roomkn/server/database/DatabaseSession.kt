@@ -33,6 +33,7 @@ import org.postgresql.util.PSQLException
 import org.tod87et.roomkn.server.database.InvalidatedTokens.tokenHash
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
+import org.tod87et.roomkn.server.models.users.UpdateUserInfo
 
 class DatabaseSession private constructor(private val database: Database) :
     RooMknDatabase, CredentialsDatabase {
@@ -319,11 +320,11 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
-    override fun updateUserInfo(userId: Int, username: String, email: String): Result<Unit> = queryWrapper {
+    override fun updateUserInfo(userId: Int, info: UpdateUserInfo): Result<Unit> = queryWrapper {
         transaction(database) {
             val cnt = Users.update({ Users.id eq userId }) {
-                it[Users.username] = username
-                it[Users.email] = email
+                it[Users.username] = info.username
+                it[Users.email] = info.email
             }
 
             if (cnt == 0) throw MissingElementException()

@@ -8,6 +8,7 @@ import org.tod87et.roomkn.server.models.rooms.RoomInfo
 import org.tod87et.roomkn.server.models.rooms.ShortRoomInfo
 import org.tod87et.roomkn.server.models.users.ShortUserInfo
 import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
+import org.tod87et.roomkn.server.models.users.UpdateUserInfo
 import org.tod87et.roomkn.server.models.users.UserInfo
 
 interface Database {
@@ -23,7 +24,7 @@ interface Database {
     fun createReservation(reservation: UnregisteredReservation): Result<Reservation>
     fun getUsers(): Result<List<ShortUserInfo>>
     fun getUser(userId: Int): Result<UserInfo>
-    fun updateUserInfo(userId: Int, username: String, email: String): Result<Unit>
+    fun updateUserInfo(userId: Int, info: UpdateUserInfo): Result<Unit>
     fun deleteUser(userId: Int): Result<Unit>
     fun getUserPermissions(userId: Int): Result<List<UserPermission>>
     fun updateUserPermissions(userId: Int, permissions: List<UserPermission>): Result<Unit>
