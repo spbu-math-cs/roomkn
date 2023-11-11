@@ -132,7 +132,7 @@ private inline fun ApplicationCall.requirePermissionOrSelf(
 }
 
 private inline fun ApplicationCall.requirePermissionOrSelfImpl(
-    self: Int? = null,
+    self: Int?,
     onPermissionMissing: () -> Nothing
 ) {
     val session = principal<AuthSession>()
