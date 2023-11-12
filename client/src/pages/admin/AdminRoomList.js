@@ -31,8 +31,8 @@ function EditRoomRow({room, refresh}) {
         description: desc
     }
 
-    const putObj = useSomeAPI("/api/v0/rooms/" + room.id + "/edit", put_data, "PUT")
-    const deleteObj = useSomeAPI("/api/v0/rooms/" + room.id + "/remove", null, "DELETE")
+    const putObj = useSomeAPI("/api/v0/rooms/" + room.id, put_data, "PUT")
+    const deleteObj = useSomeAPI("/api/v0/rooms/" + room.id, null, "DELETE")
 
     const [putStatusCode, triggerPut, putFinished] = [putObj.statusCode, putObj.triggerFetch, putObj.finished]
     const [deleteStatusCode, triggerDelete, deleteFinished] = [deleteObj.statusCode, deleteObj.triggerFetch, deleteObj.finished]
@@ -92,7 +92,7 @@ function AddRoom({refresh}) {
         description: desc
     }
 
-    const addObj = useSomeAPI("/api/v0/rooms/create", put_data, "PUT")
+    const addObj = useSomeAPI("/api/v0/rooms", put_data, "POST")
 
     const [addStatusCode, triggerAdd, addFinished] = [addObj.statusCode, addObj.triggerFetch, addObj.finished]
 
