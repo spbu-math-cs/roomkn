@@ -6,21 +6,19 @@ info:
 servers:
   - url: http://localhost:8080/api/v0
     description: Dev server
+security:
+  - cookieAuth: []
 paths:
   /rooms:
     post:
       operationId: createRoom
-      security:
-        - cookieAuth: []
       responses:
         201:
           description: Комната создана
           content:
             text/plain:
               schema:
-                type: string
-                description: Ok
-                default: Ok
+                $ref: "#/components/schemas/Ok"
         400:
           $ref: "#/components/responses/BadRequest"
         401:
@@ -41,6 +39,7 @@ paths:
       tags:
         - rooms
     get:
+      security: []
       responses:
         200:
           description: Список короткой информации о всех комнатах
@@ -59,23 +58,16 @@ paths:
         - rooms
   /rooms/{roomId}:
     parameters:
-      - in: path
-        name: roomId
-        schema:
-          type: integer
-        required: true
-        description: Id комнаты, с которой будет производится операция
+      - $ref: "#/components/parameters/RoomId"
     put:
       operationId: editRoomById
-      security:
-        - cookieAuth: []
       responses:
         200:
           content:
             text/plain:
               schema:
-                type: string
-          description: Комната была изменена
+                $ref: "#/components/schemas/Ok"
+          description: Информация о комнате изменена
         400:
           $ref: "#/components/responses/BadRequest"
         401:
@@ -94,15 +86,14 @@ paths:
       summary: Изменение информации о комнате
     delete:
       operationId: deleteRoomById
-      security:
-        - cookieAuth: []
+      summary: Удаление комнаты
       responses:
         200:
           content:
             text/plain:
               schema:
-                type: string
-          description: Комната была удалена
+                $ref: "#/components/schemas/Ok"
+          description: Комната удалена
         400:
           $ref: "#/components/responses/BadRequest"
         401:
@@ -115,6 +106,8 @@ paths:
         - rooms
     get:
       operationId: getRoomById
+      security: []
+      summary: Получение информации о комнате
       responses:
         200:
           content:
@@ -128,8 +121,146 @@ paths:
           $ref: "#/components/responses/ServerError"
       tags:
         - rooms
+  /users:
+    get:
+      summary: Получение списка пользователей
+      operationId: getUsers
+      responses:
+        200:
+          description: Список всех пользователей
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ShortUserInfo"
+        500:
+          $ref: "#/components/responses/ServerError"
+      tags:
+        - users
+  /users/{userId}:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    put:
+      operationId: editUserById
+      summary: Изменение информации о пользователе
+      responses:
+        200:
+          description: Информация о пользователе изменена
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/Ok"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/ServerError"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserInfo"
+      tags:
+        - users
+    delete:
+      operationId: deleteUserById
+      summary: Удаление пользователя
+      responses:
+        200:
+          description: Пользователь удален
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/Ok"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/ServerError"
+      tags:
+        - users
+    get:
+      operationId: getUserById
+      summary: Получение информации о пользователе
+      responses:
+        200:
+          description: Информация о пользователе
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserInfo"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/ServerError"
+      tags:
+        - users
+  /users/{userId}/permissions:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    put:
+      operationId: editUserPermissionsById
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ok"
+          description: Разрешения пользователя изменены
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/ServerError"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/UserPermission"
+      summary: Изменение разрешений пользователя
+      tags:
+        - users
+    get:
+      operationId: getUserPermissionsById
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserPermission"
+          description: Массив разрешений пользователей
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/ServerError"
+      summary: Получение разрешения пользователя
+      tags:
+        - users
   /login:
     post:
+      security: []
       operationId: login
       summary: Авторизация и получение куки
       requestBody:
@@ -155,6 +286,181 @@ paths:
           $ref: "#/components/responses/BadRequest"
       tags:
         - auth
+  /logout:
+    delete:
+      operationId: logout
+      summary: Выход из учетной записи
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ok"
+                default: Logout successful
+          description: Выход из учетной записи произошел успешно
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        500:
+          $ref: "#/components/responses/ServerError"
+      tags:
+        - auth
+  /register:
+    post:
+      operationId: register
+      summary: Регистрация нового пользователя и получение куки
+      security: []
+      responses:
+        200:
+          description: Успешно авторизован
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserId"
+        500:
+          $ref: "#/components/responses/ServerError"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewUserInfo"
+      tags:
+        - auth
+  /auth/validate-token:
+    get:
+      operationId: validateToken
+      summary: Валидация куки и получение id пользователя
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserId"
+          description: Возвращает id текущего пользователя
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        500:
+          $ref: "#/components/responses/ServerError"
+      tags:
+        - auth
+  /reserve:
+    post:
+      operationId: createReserve
+      summary: Создание резервации
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reservation"
+          description: Резервация создана
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/ServerError"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReservationRequest"
+      tags:
+        - reserve
+  /reservations:
+    post:
+      operationId: createReservation
+      summary: Создание резервации
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reservation"
+          description: Резервация создана
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/ServerError"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReservationRequest"
+      tags:
+        - reserve
+  /reservations/{id}:
+    delete:
+      operationId: deleteReservationById
+      summary: Удаление резервации
+      responses:
+        200:
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/Ok"
+          description: Резервация удалена
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/ServerError"
+      tags:
+        - reserve
+  /reservations/by-room/{roomId}:
+    get:
+      operationId: getReservationsForRoomById
+      summary: Получение списка резерваций для комнаты
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Reservation"
+          description: Список резерваций у комнаты
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/ServerError"
+      tags:
+        - reserve
+  /reservations/by-user/{userId}:
+    get:
+      operationId: getReservationsForUserById
+      summary: Получение списка резерваций для пользователя
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Reservation"
+          description: Список резерваций у пользователя
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/ServerError"
+      tags:
+        - reserve
 
 
 components:
@@ -163,7 +469,25 @@ components:
       type: apiKey
       in: cookie
       name: auth-session
+  parameters:
+    RoomId:
+      in: path
+      name: roomId
+      schema:
+        type: integer
+      required: true
+      description: Id комнаты, с которой будет производится операция
+    UserId:
+      in: path
+      name: userId
+      schema:
+        type: integer
+      required: true
+      description: Id пользователя, с которой будет производится операция
   schemas:
+    Ok:
+      type: string
+      default: Ok
     NewRoom:
       type: object
       required:
@@ -190,8 +514,11 @@ components:
     ShortRoomInfo:
       type: object
       required:
+        - id
         - name
       properties:
+        id:
+          type: integer
         name:
           type: string
     LoginUserInfo:
@@ -292,9 +619,11 @@ components:
         from:
           description: ISO-8601 формат времени начала новой регистрации
           type: string
+          example: 1970-01-01T00:00:00Z
         until:
           description: ISO-8601 формат времени конца новой регистрации
           type: string
+          example: 1970-01-01T00:00:00Z
     ReservationRequest:
       type: object
       required:
@@ -307,9 +636,11 @@ components:
         from:
           description: ISO-8601 формат времени начала новой регистрации
           type: string
+          example: 1970-01-01T00:00:00Z
         until:
           description: ISO-8601 формат времени конца новой регистрации
           type: string
+          example: 1970-01-01T00:00:00Z
     Reservation:
       type: object
       required:
@@ -330,9 +661,11 @@ components:
         from:
           description: ISO-8601 формат времени начала регистрации
           type: string
+          example: 1970-01-01T00:00:00Z
         until:
           description: ISO-8601 формат времени конца регистрации
           type: string
+          example: 1970-01-01T00:00:00Z
   responses:
     ServerError:
       description: Внутренняя ошибка сервера
