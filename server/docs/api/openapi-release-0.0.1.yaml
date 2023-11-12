@@ -318,6 +318,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserId"
+          headers:
+            Set-Cookie:
+              schema:
+                $ref: "#/components/schemas/AuthSession"
         500:
           $ref: "#/components/responses/ServerError"
       requestBody:
