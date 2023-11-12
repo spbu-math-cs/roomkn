@@ -19,6 +19,8 @@ import org.tod87et.roomkn.server.auth.AuthConfig
 import org.tod87et.roomkn.server.auth.userId
 import org.tod87et.roomkn.server.database.DatabaseFactory
 import org.tod87et.roomkn.server.models.permissions.UserPermission
+import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
+import org.tod87et.roomkn.server.models.rooms.RoomInfo
 import org.tod87et.roomkn.server.models.users.LoginUserInfo
 import org.tod87et.roomkn.server.models.users.UnregisteredUserInfo
 import kotlin.test.assertEquals
@@ -73,7 +75,7 @@ object KtorTestEnv {
             email,
             listOf(
                 UserPermission.UsersAdmin,
-                UserPermission.ReservationsAdmin,
+                UserPermission.RoomsAdmin,
                 UserPermission.ReservationsAdmin,
             )
         )
@@ -110,6 +112,10 @@ object KtorTestEnv {
         assertEquals(HttpStatusCode.OK, auth.status)
 
         return initialSession.userId
+    }
+
+    fun createRoom(name: String, desc: String = "Description of $name"): RoomInfo {
+        return DatabaseFactory.database.createRoom(NewRoomInfo(name, desc)).getOrThrow()
     }
 
     fun resetDatabase() {

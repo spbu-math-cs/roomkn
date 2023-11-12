@@ -1,5 +1,7 @@
 package org.tod87et.roomkn.server.models
 
+import org.tod87et.roomkn.server.models.reservations.Reservation
+import org.tod87et.roomkn.server.models.reservations.ReservationRequest
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 import org.tod87et.roomkn.server.models.rooms.RoomInfo
 import org.tod87et.roomkn.server.models.rooms.ShortRoomInfo
@@ -14,3 +16,12 @@ fun RoomInfo.toShort() = ShortRoomInfo(
     id = id,
     name = name
 )
+
+fun ReservationRequest.toRegistered(userId: Int, reservationId: Int) =
+    Reservation(
+        id = reservationId,
+        userId = userId,
+        roomId = roomId,
+        from = from,
+        until = until
+    )
