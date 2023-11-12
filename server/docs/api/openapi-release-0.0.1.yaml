@@ -284,6 +284,8 @@ paths:
                 $ref: "#/components/schemas/AuthSession"
         400:
           $ref: "#/components/responses/BadRequest"
+        500:
+          $ref: "#/components/responses/ServerError"
       tags:
         - auth
   /logout:
