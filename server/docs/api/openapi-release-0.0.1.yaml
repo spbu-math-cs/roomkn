@@ -500,6 +500,9 @@ components:
           type: string
         description:
           type: string
+      example:
+        name: "1001"
+        description: "Симметричная комната"
     RoomInfo:
       type: object
       required:
@@ -513,6 +516,10 @@ components:
           type: string
         description:
           type: string
+      example:
+        id: 1
+        name: "1234"
+        description: "Возрастающая комната"
     ShortRoomInfo:
       type: object
       required:
@@ -523,6 +530,9 @@ components:
           type: integer
         name:
           type: string
+      example:
+        id: 1
+        name: "1234"
     LoginUserInfo:
       type: object
       required:
@@ -533,6 +543,9 @@ components:
           type: string
         password:
           type: string
+      default:
+        username: admin
+        password: admin
     ShortUserInfo:
       type: object
       required:
@@ -556,6 +569,10 @@ components:
           type: string
         password:
           type: string
+      example:
+        username: admin
+        email: admin@roomkn.org
+        password: admin
     UpdateUserInfo:
       type: object
       required:
