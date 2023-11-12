@@ -7,7 +7,7 @@ import org.tod87et.roomkn.server.auth.AccountController
 fun Route.apiRouting(accountController: AccountController) {
     route("/api/v0") {
         pingRouting()
-        reserveRouting()
+        reservationsRouting()
         roomsRouting()
         accountRouting(accountController)
         usersRouting()

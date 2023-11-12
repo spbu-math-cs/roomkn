@@ -31,8 +31,8 @@ class RoomsRoutesTests {
         with(KtorTestEnv) {
             client.createAndAuthAdmin()
         }
-        val room1 = createRoom("301", "The one with a broken desc(")
-        val room2 = createRoom("Study room", "Ideal place to study at")
+        val room1 = KtorTestEnv.createRoom("301", "The one with a broken desk(")
+        val room2 = KtorTestEnv.createRoom("Study room", "Ideal place to study at")
         val rooms = client.get(roomsPath).body<List<ShortRoomInfo>>()
 
         assertEquals(setOf(room1.toShort(), room2.toShort()), rooms.toSet())
@@ -43,7 +43,7 @@ class RoomsRoutesTests {
         with(KtorTestEnv) {
             client.createAndAuthUser()
         }
-        val room = createRoom("A", "B")
+        val room = KtorTestEnv.createRoom("A", "B")
 
 
         val room2 = client.get(roomPath(room.id)).body<RoomInfo>()
@@ -55,7 +55,7 @@ class RoomsRoutesTests {
         with(KtorTestEnv) {
             client.createAndAuthAdmin()
         }
-        val room = createRoom("A", "B")
+        val room = KtorTestEnv.createRoom("A", "B")
         val shortRoom = room.toShort()
         assertTrue(DatabaseFactory.database.getRooms().getOrThrow().contains(shortRoom))
 
@@ -69,7 +69,7 @@ class RoomsRoutesTests {
         with(KtorTestEnv) {
             client.createAndAuthAdmin()
         }
-        val room = createRoom("301", "VK -- the meeting point")
+        val room = KtorTestEnv.createRoom("301", "VK -- the meeting point")
         val newRoom = NewRoomInfo("301", "Be kind, be friendly, be MCS")
 
         val resp = client.put(roomPath(room.id)) {
@@ -81,10 +81,6 @@ class RoomsRoutesTests {
             DatabaseFactory.database.getRoom(room.id).getOrThrow(),
             newRoom.toCreated(room.id)
         )
-    }
-
-    private fun createRoom(name: String, desc: String = "Description of $name"): RoomInfo {
-        return DatabaseFactory.database.createRoom(NewRoomInfo(name, desc)).getOrThrow()
     }
 
     @AfterEach
