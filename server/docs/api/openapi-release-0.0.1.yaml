@@ -59,9 +59,41 @@ paths:
       summary: Получение списка короткой информации о всех комнатах
       tags:
         - rooms
+  /login:
+    post:
+      operationId: login
+      summary: Авторизация и получение куки
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginUserInfo"
+            example:
+              username: admin
+              password: admin
+      responses:
+        200:
+          description: Успешно авторизован
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserId"
+          headers:
+            Set-Cookie:
+              schema:
+                $ref: "#/components/schemas/AuthSession"
+        400:
+          $ref: "#/components/responses/BadRequest"
+      tags:
+        - auth
 
 
 components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: auth-session
   schemas:
     NewRoom:
       type: object
@@ -87,6 +119,146 @@ components:
       properties:
         name:
           type: string
+    LoginUserInfo:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+    ShortUserInfo:
+      type: object
+      required:
+        - id
+        - username
+      properties:
+        username:
+          type: string
+        id:
+          type: integer
+    NewUserInfo:
+      type: object
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+    UpdateUserInfo:
+      type: object
+      required:
+        - username
+        - email
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+    UserId:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: integer
+    UserInfo:
+      type: object
+      required:
+        - id
+        - username
+        - email
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+    UserPermission:
+      type: object
+      description: "
+        Номер: Разрешение  \n
+        - 0: `ReservationsCreate`\n
+        - 1: `ReservationsAdmin` \n
+        - 2: `RoomsAdmin`        \n 
+        - 3: `UsersAdmin`        \n 
+        - 4: `GroupsAdmin`"
+      required:
+        - id
+      properties:
+        id:
+          description: Номер одно из разрешений, которые есть у пользователя
+          type: integer
+          maximum: 4
+          minimum: 0
+    AuthSession:
+      type: object
+      description: Json веб токен
+      required:
+        - token
+      properties:
+        token:
+          type: string
+    NewReservation:
+      type: object
+      properties:
+        user_id:
+          type: integer
+        room_id:
+          type: integer
+        from:
+          description: ISO-8601 формат времени начала новой регистрации
+          type: string
+        until:
+          description: ISO-8601 формат времени конца новой регистрации
+          type: string
+    ReservationRequest:
+      type: object
+      required:
+        - room_id
+        - from
+        - until
+      properties:
+        room_id:
+          type: integer
+        from:
+          description: ISO-8601 формат времени начала новой регистрации
+          type: string
+        until:
+          description: ISO-8601 формат времени конца новой регистрации
+          type: string
+    Reservation:
+      type: object
+      required:
+        - id
+        - user_id
+        - room_id
+        - from
+        - until
+      properties:
+        id:
+          type: integer
+        user_id:
+          description: id пользователя, который сделал регистрацию
+          type: integer
+        room_id:
+          description: id комнаты, для который сделана регистрация
+          type: integer
+        from:
+          description: ISO-8601 формат времени начала регистрации
+          type: string
+        until:
+          description: ISO-8601 формат времени конца регистрации
+          type: string
+
   responses:
     ServerError:
       description: Внутренняя ошибка сервера
