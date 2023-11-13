@@ -104,13 +104,6 @@ function BookingForm({room_id, triggerGetReservations}) {
         )
     }
 
-    const HandleSubmit = (e) => {
-        e.preventDefault();
-
-        if (getMinutesByTime(from) <= getMinutesByTime(until)) triggerFetch()
-        triggerGetReservations()
-    };
-
     function getTimeByMinutes(minutes) {
         const hour = Math.floor(minutes / 60)
         const minute = minutes % 60
@@ -125,18 +118,25 @@ function BookingForm({room_id, triggerGetReservations}) {
         return hour * 60 + minutes
     }
 
+    const HandleSubmit = (e) => {
+        e.preventDefault();
+
+        if (getMinutesByTime(from) <= getMinutesByTime(until)) triggerFetch()
+        triggerGetReservations()
+    };
+
     const onFromChange = (e) => {
         let value = e.target.value.toString()
 
-        let valueMinutes = getMinutesByTime(value)
-        const minMinutes = getMinutesByTime(Start_day_time)
-        const maxMinutes = getMinutesByTime(Finish_day_time)
-        const untilMinutes = getMinutesByTime(until)
-
-        valueMinutes = Math.min(valueMinutes, untilMinutes)
-        valueMinutes = Math.min(valueMinutes, maxMinutes)
-
-        value = getTimeByMinutes(valueMinutes)
+        // let valueMinutes = getMinutesByTime(value)
+        // const minMinutes = getMinutesByTime(Start_day_time)
+        // const maxMinutes = getMinutesByTime(Finish_day_time)
+        // const untilMinutes = getMinutesByTime(until)
+        //
+        // valueMinutes = Math.min(valueMinutes, untilMinutes)
+        // valueMinutes = Math.min(valueMinutes, maxMinutes)
+        //
+        // value = getTimeByMinutes(valueMinutes)
         setFrom(value)
     }
 
@@ -165,7 +165,7 @@ function BookingForm({room_id, triggerGetReservations}) {
 
                     </input>
                 </div>
-                    <input className="form-submit" type="submit" value="Reserve"></input>
+                <input className="form-submit" type="submit" value="Reserve"></input>
             </form>
         </ContentWrapper>
     )
