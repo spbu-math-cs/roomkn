@@ -326,6 +326,8 @@ paths:
             Set-Cookie:
               schema:
                 type: string
+        409:
+          $ref: "#/components/responses/Conflict"
         500:
           $ref: "#/components/responses/ServerError"
       requestBody:
@@ -369,6 +371,8 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         403:
           $ref: "#/components/responses/Forbidden"
+        409:
+          $ref: "#/components/responses/Conflict"
         500:
           $ref: "#/components/responses/ServerError"
       requestBody:
@@ -395,6 +399,8 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         403:
           $ref: "#/components/responses/Forbidden"
+        409:
+          $ref: "#/components/responses/Conflict"
         500:
           $ref: "#/components/responses/ServerError"
       requestBody:
@@ -701,3 +707,5 @@ components:
       description: Неправильно сформулированный запрос
     Forbidden:
       description: У пользователя нет нужного разрешения
+    Conflict:
+      description: Произошел конфликт данных
