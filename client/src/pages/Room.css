@@ -1,162 +1,162 @@
 .room-wrapper {
-    display: flex;
+        display: flex;
 }
 
 .room-info {
-    width: 50%;
-    height: 100%;
+        width: 50%;
+        height: 100%;
 }
 
 .room-booking-form {
-    height: 100%;
-    width: 50%;
+        height: 100%;
+        width: 50%;
 }
 
 .room-name {
-    font-size: 40px;
+        font-size: 40px;
 }
 
 .room-description {
-    font-size: 30px;
-    margin-bottom: 20px;
+        font-size: 30px;
+        margin-bottom: 20px;
 }
 
 .room-date {
-    display: flex;
-    margin-bottom: 20px;
+        display: flex;
+        margin-bottom: 20px;
 }
 
 .room-date-label {
-    margin-right: 20px;
+        margin-right: 20px;
 }
 
 .room-date-value {
-    margin-right: 20px;
+        margin-right: 20px;
 }
 
 .room-date-buttons {
-    height: 100%;
-    display: flex;
+        height: 100%;
+        display: flex;
 }
 
 .room-date-button-wrapper {
-    /*height: 50%;*/
+        /*height: 50%;*/
 }
 
 .room-date-button {
-    background: transparent;
-    font-size: 30px;
-    border: #f2f3f5;
-    color: #1E1F22;
+        background: transparent;
+        font-size: 30px;
+        border: #f2f3f5;
+        color: #1E1F22;
 }
 
 .room-date-button:hover {
-    color: black;
-    border: transparent;
+        color: black;
+        border: transparent;
 }
 
 .form-input {
-    display: flex;
-    font-size: 30px;
+        display: flex;
+        font-size: 30px;
 }
 
 .form-name {
-    font-size: 30px;
+        font-size: 30px;
 }
 
 .form-field {
-    font-size: 30px;
+        font-size: 30px;
 }
 
 .form-label {
-    float: left;
-    width: 20%;
+        float: left;
+        width: 20%;
 }
 
 .form-submit {
-    align-self: self-end;
-    font-size: 40px;
+        align-self: self-end;
+        font-size: 40px;
 }
 
 .reservations-label {
-    font-size: 30px;
-    margin-bottom: 20px;
+        font-size: 30px;
+        margin-bottom: 20px;
 }
 
 .reservation-list-wrapper {
-    /*display: flex;*/
-    /*flex-direction: column;*/
-    /*background: white;*/
-    height: 150px;
-    width: 90%;
-    position: relative;
+        /*display: flex;*/
+        /*flex-direction: column;*/
+        /*background: white;*/
+        height: 150px;
+        width: 90%;
+        position: relative;
 
 }
 
 .reservation-list-background {
-    /*display: flex;*/
-    /*flex-direction: column;*/
-    position: relative;
-    /*background: #1E1F22;*/
-    height: 146px;
-    width: 100%;
+        /*display: flex;*/
+        /*flex-direction: column;*/
+        position: relative;
+        /*background: #1E1F22;*/
+        height: 146px;
+        width: 100%;
 
-    border-top: 2px solid var(--idea-border-black, #1E1F22);
-    border-right: 2px solid var(--idea-border-black, #1E1F22);
-    border-left: 2px solid var(--idea-border-black, #1E1F22);
-    border-bottom: 2px solid var(--idea-border-black, #1E1F22);
-    /*height: 100px;*/
+        border-top: 2px solid var(--idea-border-black, #1E1F22);
+        border-right: 2px solid var(--idea-border-black, #1E1F22);
+        border-left: 2px solid var(--idea-border-black, #1E1F22);
+        border-bottom: 2px solid var(--idea-border-black, #1E1F22);
+        /*height: 100px;*/
 }
 
 .reservation-row {
-    position: absolute;
+        position: absolute;
 }
 
 .reservation-wrapper {
-    color: black;
-    background: darkslateblue;
-    border-top: 2px solid var(--idea-border-black, #1E1F22);
-    border-right: 2px solid var(--idea-border-black, #1E1F22);
-    border-left: 2px solid var(--idea-border-black, #1E1F22);
-    border-bottom: 2px solid var(--idea-border-black, #1E1F22);
-    border-radius: 2px;
-    height: 146px;
-    z-index: 1;
+        color: black;
+        background: darkslateblue;
+        border-top: 2px solid var(--idea-border-black, #1E1F22);
+        border-right: 2px solid var(--idea-border-black, #1E1F22);
+        border-left: 2px solid var(--idea-border-black, #1E1F22);
+        border-bottom: 2px solid var(--idea-border-black, #1E1F22);
+        border-radius: 2px;
+        height: 146px;
+        z-index: 1;
 }
 
 .reservation-current-wrapper {
-    color: black;
-    background: blue;
-    border-top: 2px solid var(--idea-border-black, #1E1F22);
-    border-right: 2px solid var(--idea-border-black, #1E1F22);
-    border-left: 2px solid var(--idea-border-black, #1E1F22);
-    border-bottom: 2px solid var(--idea-border-black, #1E1F22);
-    border-radius: 2px;
-    height: 146px;
-    z-index: 0;
+        color: black;
+        background: blue;
+        border-top: 2px solid var(--idea-border-black, #1E1F22);
+        border-right: 2px solid var(--idea-border-black, #1E1F22);
+        border-left: 2px solid var(--idea-border-black, #1E1F22);
+        border-bottom: 2px solid var(--idea-border-black, #1E1F22);
+        border-radius: 2px;
+        height: 146px;
+        z-index: 0;
 }
 
 .reservation-info {
-    writing-mode: sideways-lr;
-    height: 100%;
-    text-align: center;
+        writing-mode: sideways-lr;
+        height: 100%;
+        text-align: center;
 }
 
 .reservation-time-label {
-    font-size: 20px;
+        font-size: 20px;
 }
 
 .reservation-user-label {
-    font-size: 20px;
+        font-size: 20px;
 }
 
 .not-authorized-label {
-    font-size: 20px;
-    display: flex;
+        font-size: 20px;
+        display: flex;
 }
 
 .not-authorized-link {
-    color:blue;
-    font-size: 20px;
-    display: flex;
+        color:blue;
+        font-size: 20px;
+        display: flex;
 }

@@ -262,21 +262,21 @@ function ReservationsList({reservations}) {
             )
         })
 
-      if (isAuthorized && currentUser != null) {
+    if (isAuthorized) {
         const current_reservation = {
-          from: toAPITime(date, from),
-          until: toAPITime(date, until),
-          user_id: currentUser?.user_id
+            from: toAPITime(date, from),
+            until: toAPITime(date, until),
+            user_id: user_id
         }
         reservationsList.push(<Reservation reservation={current_reservation} is_current_reservation={true}></Reservation>)
-      }
+    }
 
 
     return (
-        <div className="reservation-list-wrapper">
-            <div className="reservation-list-background"/>
-            {reservationsList}
-        </div>
+            <div className="reservation-list-wrapper">
+                    <div className="reservation-list-background"/>
+                    {reservationsList}
+            </div>
     )
 }
 
