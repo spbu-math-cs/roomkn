@@ -281,7 +281,7 @@ paths:
           headers:
             Set-Cookie:
               schema:
-                $ref: "#/components/schemas/AuthSession"
+                type: string
         400:
           $ref: "#/components/responses/BadRequest"
         500:
@@ -321,7 +321,7 @@ paths:
           headers:
             Set-Cookie:
               schema:
-                $ref: "#/components/schemas/AuthSession"
+                type: string
         500:
           $ref: "#/components/responses/ServerError"
       requestBody:
