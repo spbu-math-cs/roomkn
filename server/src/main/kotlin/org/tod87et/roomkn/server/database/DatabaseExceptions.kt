@@ -8,6 +8,8 @@ class ReservationException : DatabaseException("Failed to create a reservation")
 
 class MissingElementException : DatabaseException("Missing element")
 
+class SerializationException : DatabaseException("Serialization failure")
+
 class ConstraintViolationException(
     val constraint: Constraint,
     cause: Throwable,
