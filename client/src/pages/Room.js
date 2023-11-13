@@ -2,7 +2,7 @@ import {NavLink, useLocation, useNavigate} from 'react-router-dom'
 
 import './Room.css'
 import ContentWrapper from '../components/Content';
-import React, {createContext, useContext, useEffect, useState} from 'react';
+import React, {createContext, useContext, useEffect} from 'react';
 import {toAPITime, fromAPITime} from '../api/API';
 import useSomeAPI from '../api/FakeAPI';
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
@@ -149,23 +149,23 @@ function BookingForm({room_id, triggerGetReservations}) {
     return (
         <ContentWrapper page_name='Reservation'>
             <form className="form-wrapper" onSubmit={HandleSubmit}>
-                <div className="form-field">
-                    <label className="form-label">
-                        From
-                    </label>
-                    <input className="form-input" type="time" value={from} onChange={onFromChange}>
+                    <div className="form-field">
+                            <label className="form-label">
+                                    From
+                            </label>
+                            <input className="form-input" type="time" min = {Start_day_time} max = {Finish_day_time} value={from} onChange={onFromChange}>
 
-                    </input>
-                </div>
-                <div className="form-field">
-                    <label className="form-label">
-                        Until
-                    </label>
-                    <input className="form-input" type="time" value={until} onChange={onUntilChange}>
-
-                    </input>
-                </div>
-                <input className="form-submit" type="submit" value="Reserve"></input>
+                            </input>
+                    </div>
+                    <div className="form-field">
+                            <label className="form-label">
+                                    Until
+                            </label>
+                            <input className="form-input" type="time" min = {Start_day_time} max = {Finish_day_time} value={until} onChange={onUntilChange}>
+                                    
+                            </input>
+                    </div>
+                    <input className="form-submit" type="submit" value="Reserve"></input>
             </form>
         </ContentWrapper>
     )
@@ -349,7 +349,7 @@ function Room() {
 
     return (
         <ContentWrapper page_name={page_name}>
-        <CurrentReservationContext.Provider value={{date, setDate, from, setFrom, until, setUntil}}>
+        CurrentReservationContext.Provider value={{date, setDate, from, setFrom, until, setUntil}}>
             <div className="room-wrapper">
                 <div className='room-info'>
                     <div className='room-description'>{room_info.description}</div>
@@ -357,7 +357,7 @@ function Room() {
                         <RoomDate date={date} setDate={setDate}/>
                     </div>
                     <div className='reservations-info'>
-                        <div>
+                     <   <div>
                             <div className='reservations-label'>Reservations on {date}:</div>
                         </div>
                         <ReservationsList reservations={reservations}></ReservationsList>
