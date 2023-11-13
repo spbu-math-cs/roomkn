@@ -17,7 +17,7 @@ val Di.authModule: Module get() = module
 private val module: Module = module {
     single<AuthConfig> {
         AuthConfig.Builder()
-            .loadEnvironment(get<ApplicationEnvironment>())
+            .loadFromApplicationConfig(get<ApplicationEnvironment>().config)
             .database(get<Database>())
             .credentialsDatabase(get<CredentialsDatabase>())
             .build()

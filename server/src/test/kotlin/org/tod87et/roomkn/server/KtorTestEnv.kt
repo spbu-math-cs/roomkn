@@ -12,7 +12,6 @@ import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.*
 import io.ktor.server.application.Application
 import io.ktor.server.config.ApplicationConfig
-import io.ktor.server.config.tryGetString
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import io.ktor.util.logging.KtorSimpleLogger
@@ -49,10 +48,7 @@ object KtorTestEnv {
     private val authConfig = AuthConfig.Builder()
         .database(databaseSession)
         .credentialsDatabase(databaseSession)
-        .pepper(kTorConfig.tryGetString("auth.pepper")!!)
-        .secret(kTorConfig.tryGetString("jwt.secret")!!)
-        .issuer(kTorConfig.tryGetString("jwt.issuer")!!)
-        .audience(kTorConfig.tryGetString("jwt.audience")!!)
+        .loadFromApplicationConfig(kTorConfig)
         .build()
 
     init {
