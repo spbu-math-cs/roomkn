@@ -23,7 +23,7 @@ function EditUserRow({user, refresh}) {
     }
     const [permissions, setPermissions] = useState(permissionsDefault)
 
-    const {triggerFetch: permGetTriggerFetch, finished: permGetFinished, result: permGetResult} = useSomeAPI("/api/v0/users/" + user.id + "/permissions", null, "GET")
+    const {triggerFetch: permGetTriggerFetch, finished: permGetFinished, result: permGetResult} = useSomeAPI("/api/v0/users/" + user.id + "/permissions")
 
     useEffect(() => {
         permGetTriggerFetch()
@@ -64,8 +64,8 @@ function EditUserRow({user, refresh}) {
         }
     }
 
-    const putObj = useSomeAPI("/api/v0/users/" + user.id + "/edit", put_data, "PUT")
-    const deleteObj = useSomeAPI("/api/v0/users/" + user.id + "/remove", null, "DELETE")
+    const putObj = useSomeAPI("/api/v0/users/" + user.id, put_data, "PUT")
+    const deleteObj = useSomeAPI("/api/v0/users/" + user.id, null, "DELETE")
 
     const [putStatusCode, triggerPut, putFinished] = [putObj.statusCode, putObj.triggerFetch, putObj.finished]
     const [deleteStatusCode, triggerDelete, deleteFinished] = [deleteObj.statusCode, deleteObj.triggerFetch, deleteObj.finished]
@@ -122,7 +122,7 @@ function AddUser({refresh}) {
         name: name,
     }
 
-    const addObj = useSomeAPI("/api/v0/users/create", put_data, "PUT")
+    const addObj = useSomeAPI("/api/v0/users", put_data, "POST")
 
     const [addStatusCode, triggerAdd, addFinished] = [addObj.statusCode, addObj.triggerFetch, addObj.finished]
 
