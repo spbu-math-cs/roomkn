@@ -104,6 +104,13 @@ function BookingForm({room_id, triggerGetReservations}) {
         )
     }
 
+    const HandleSubmit = (e) => {
+        e.preventDefault();
+
+        if (getMinutesByTime(from) <= getMinutesByTime(until)) triggerFetch()
+        triggerGetReservations()
+    };
+
     function getTimeByMinutes(minutes) {
         const hour = Math.floor(minutes / 60)
         const minute = minutes % 60
@@ -118,46 +125,46 @@ function BookingForm({room_id, triggerGetReservations}) {
         return hour * 60 + minutes
     }
 
-    const HandleSubmit = (e) => {
-        e.preventDefault();
-
-        if (getMinutesByTime(from) <= getMinutesByTime(until)) triggerFetch()
-        triggerGetReservations()
-    };
-
     const onFromChange = (e) => {
-      let value = e.target.value
-      value = Math.min(value, "23:59")
-      value = Math.min(value, until)
-      setFrom(Math.max(value, "09:30"))
+        let value = e.target.value.toString()
+
+        let valueMinutes = getMinutesByTime(value)
+        const minMinutes = getMinutesByTime(Start_day_time)
+        const maxMinutes = getMinutesByTime(Finish_day_time)
+        const untilMinutes = getMinutesByTime(until)
+
+        valueMinutes = Math.min(valueMinutes, untilMinutes)
+        valueMinutes = Math.min(valueMinutes, maxMinutes)
+
+        value = getTimeByMinutes(valueMinutes)
+        setFrom(value)
     }
 
     const onUntilChange = (e) => {
-      let value = e.target.value
-      value = Math.Math.min(value, "23:59")
-      value = Math.max(value, from)
-      setUntil(Math.max(value, "09:30"))
+        let value = e.target.value
+
+        setUntil(value)
     }
 
     return (
         <ContentWrapper page_name='Reservation'>
             <form className="form-wrapper" onSubmit={HandleSubmit}>
-                    <div className="form-field">
-                            <label className="form-label">
-                                    From
-                            </label>
-                            <input className="form-input" type="time" value={from} onChange={onFromChange}>
+                <div className="form-field">
+                    <label className="form-label">
+                        From
+                    </label>
+                    <input className="form-input" type="time" value={from} onChange={onFromChange}>
 
-                            </input>
-                    </div>
-                    <div className="form-field">
-                            <label className="form-label">
-                                    Until
-                            </label>
-                            <input className="form-input" type="time" value={until} onChange={onUntilChange}>
-                                    
-                            </input>
-                    </div>
+                    </input>
+                </div>
+                <div className="form-field">
+                    <label className="form-label">
+                        Until
+                    </label>
+                    <input className="form-input" type="time" value={until} onChange={onUntilChange}>
+
+                    </input>
+                </div>
                     <input className="form-submit" type="submit" value="Reserve"></input>
             </form>
         </ContentWrapper>
@@ -266,10 +273,10 @@ function ReservationsList({reservations}) {
 
 
     return (
-            <div className="reservation-list-wrapper">
-                    <div className="reservation-list-background"/>
-                    {reservationsList}
-            </div>
+        <div className="reservation-list-wrapper">
+            <div className="reservation-list-background"/>
+            {reservationsList}
+        </div>
     )
 }
 
@@ -342,7 +349,7 @@ function Room() {
 
     return (
         <ContentWrapper page_name={page_name}>
-        CurrentReservationContext.Provider value={{date, setDate, from, setFrom, until, setUntil}}>
+        <CurrentReservationContext.Provider value={{date, setDate, from, setFrom, until, setUntil}}>
             <div className="room-wrapper">
                 <div className='room-info'>
                     <div className='room-description'>{room_info.description}</div>
@@ -350,7 +357,7 @@ function Room() {
                         <RoomDate date={date} setDate={setDate}/>
                     </div>
                     <div className='reservations-info'>
-                     <   <div>
+                        <div>
                             <div className='reservations-label'>Reservations on {date}:</div>
                         </div>
                         <ReservationsList reservations={reservations}></ReservationsList>
