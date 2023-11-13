@@ -35,9 +35,13 @@ function Reservation(reservation) {
 }
 
 function useReservationsList(user_id) {
-    let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/by-user/' + user_id)
+    let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/reservations/by-user/' + user_id)
 
     useEffect(() => triggerFetch(), [])
+
+    console.log("reservations result:" + result)
+    console.log("StatusCode:" + statusCode)
+    console.log("user_id:" + user_id)
 
     if (statusCode === 200 && finished && result != null) {
         return {
