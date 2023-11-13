@@ -1,61 +1,61 @@
 .edit-user-row {
-    width: 100%;
-    margin-bottom: 10px;
+        width: 100%;
+        margin-bottom: 10px;
 }
 
 .edit-user-row-id {
-    width: 10%;
+        width: 10%;
 }
 
 .edit-user-row-name {
-    color: #f2f3f5;
-    background: #1E1F22;
+        color: #f2f3f5;
+        background: #1E1F22;
 }
 
 .edit-user-row-desc {
-    color: #f2f3f5;
-    background: #1E1F22;
+        color: #f2f3f5;
+        background: #1E1F22;
 }
 
 .edit-user-row-update {
-    color: #f2f3f5;
-    background: darkgreen;
+        color: #f2f3f5;
+        background: darkgreen;
 }
 
 .edit-user-row-reset {
-    color: #f2f3f5;
-    background: #1E1F22;
+        color: #f2f3f5;
+        background: #1E1F22;
 }
 
 .edit-user-row-delete {
-    color: #f2f3f5;
-    background: darkred;
-    right: 0;
-    position: relative;
+        color: #f2f3f5;
+        background: darkred;
+        right: 0;
+        position: relative;
 }
 
 .add-user-row {
-    width: 100%;
-    margin-top: 40px;
+        width: 100%;
+        margin-top: 40px;
 }
 
 .add-user-row-name {
-    color: #f2f3f5;
-    background: #1E1F22;
+        color: #f2f3f5;
+        background: #1E1F22;
 }
 
 .add-user-row-desc {
-    color: #f2f3f5;
-    background: #1E1F22;
+        color: #f2f3f5;
+        background: #1E1F22;
 }
 
 .add-user-row-add {
-    color: #f2f3f5;
-    background: green;
-    right: 0;
-    position: relative;
+        color: #f2f3f5;
+        background: green;
+        right: 0;
+        position: relative;
 }
 
 .perm-checkbox-default {
-    background: darkorchid;
+        background: darkorchid;
 }

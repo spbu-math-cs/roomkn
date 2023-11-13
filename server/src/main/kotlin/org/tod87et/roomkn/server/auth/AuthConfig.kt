@@ -10,7 +10,7 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 
 class AuthConfig(
-    val issuer: String,
+      val issuer: String,
     val audience: String,
     val secret: ByteArray,
     val pepper: ByteArray,

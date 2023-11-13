@@ -2,41 +2,41 @@
 }
 
 .authorization-label-not-authorized {
-    font-size: 60px;
-    color: brown;
+        font-size: 60px;
+        color: brown;
 }
 
 .authorization-label-authorized {
-    font-size: 60px;
-    color: green;
+        font-size: 60px;
+        color: green;
 }
 
 .sign-in-form {
-    height: 100%;
-    width: 100%;
-    margin-bottom: 30px;
+        height: 100%;
+        width: 100%;
+        margin-bottom: 30px;
 }
 
 .sign-in-form-name {
-    margin-bottom: 20px;
+        margin-bottom: 20px;
 }
 
 .sign-in-form-label {
-    font-size: 30px;
+        font-size: 30px;
 }
 
 .sign-in-form-input {
-    display: flex;
-    font-size: 30px;
-    float: right;
+        display: flex;
+        font-size: 30px;
+        float: right;
 }
 
 .sign-in-form-field {
-    font-size: 30px;
-    margin-bottom: 20px;
+        font-size: 30px;
+        margin-bottom: 20px;
 }
 
 .sign-in-form-submit {
-    font-size: 40px;
-    /*float: right;*/
+        font-size: 40px;
+        /*float: right;*/
 }

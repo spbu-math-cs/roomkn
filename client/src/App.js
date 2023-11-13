@@ -23,11 +23,11 @@ import AdminUserList from "./pages/admin/AdminUserList";
 
 function PageNotFound() {
     return (
-      <div>
+        <div>
         <h2>404 Page not found</h2>
-      </div>
+        </div>
     );
-  }
+    }
 
 function AccessDenied() {
     return (

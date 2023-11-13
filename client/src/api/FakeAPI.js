@@ -6,8 +6,8 @@ export function useSomeAPI(url, data=null, method='GET') {
     return useAPI(url, data, method);
 }
 
-function useFakeAPI(url, data=null, method='GET') {
 
+function useFakeAPI(url, data=null, method='GET') {
     const [result, setResult] = useState();
     const [loading, setLoading] = useState(true);
     const [finished, setFinished] = useState(false);
