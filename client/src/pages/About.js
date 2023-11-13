@@ -2,11 +2,11 @@ import React from "react";
 import ContentWrapper from "../components/Content";
  
 const About = () => {
-    return (
-        <ContentWrapper page_name="About">
+        return (
+                <ContentWrapper page_name="About">
 
-        </ContentWrapper>
-    );
+                </ContentWrapper>
+        );
 };
  
 export default About;
