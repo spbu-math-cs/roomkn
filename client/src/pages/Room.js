@@ -2,7 +2,7 @@ import {NavLink, useLocation, useNavigate} from 'react-router-dom'
 
 import './Room.css'
 import ContentWrapper from '../components/Content';
-import React, {createContext, useContext, useEffect} from 'react';
+import React, {createContext, useContext, useEffect, useState} from 'react';
 import {toAPITime, fromAPITime} from '../api/API';
 import useSomeAPI from '../api/FakeAPI';
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
@@ -153,9 +153,18 @@ function Reservation ({reservation, is_current_reservation=false}) {
   const from_date = new Date(from_obj.date + " " + from_obj.time)
   const until_date = new Date(until_obj.date + " " + until_obj.time)
   const day_start_date = new Date(until_obj.date + " 09:00")
+  const day_finish_date = new Date(from_obj.date + " " + "23:59")
 
-  const duration_in_seconds = (until_date.getTime() - from_date.getTime()) / 1000
-  const from_start_in_seconds = (from_date.getTime() - day_start_date.getTime()) / 1000
+  const day_finish_time = day_finish_date.getTime()
+  const from_time = from_date.getTime()
+  const day_start_time = day_start_date.getTime()
+  const timeline_from_time = (from_time >= day_start_time ? from_time : day_start_time)
+  const until_time = until_date.getTime()
+  const timeline_finish_time = (from_time < until_time ? until_time : day_finish_time)
+
+  const old_duration_in_second = (timeline_finish_time - timeline_from_time) / 1000
+  const duration_in_seconds = (old_duration_in_second >= 0 ? old_duration_in_second : 0)
+  const from_start_in_seconds = (timeline_from_time - day_start_date.getTime()) / 1000
   const day_duration_in_seconds = 14 * 60 * 60
 
   const left_offset = (from_start_in_seconds / day_duration_in_seconds * 100) + "%"
