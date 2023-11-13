@@ -215,6 +215,19 @@ paths:
       - $ref: "#/components/parameters/UserId"
     put:
       operationId: editUserPermissionsById
+      description: "После выполнения операции у пользователя будут только те разрешения, которые были в массиве в запросе\n \n
+        **Пример**: \n \n
+        Массив разрешений пользователя до запроса \n 
+        - ReservationsCreate \n
+        - ReservationsAdmin \n 
+        \n
+        Массив запроса: \n
+        - ReservationsCreate \n
+        - RoomsAdmin \n \n
+        Массив разрешений пользователя после запроса\n
+        - ReservationsCreate \n
+        - RoomsAdmin "
+
       responses:
         200:
           content:
@@ -617,30 +630,20 @@ components:
         email:
           type: string
     UserPermission:
-      type: object
+      type: string
       description: "
-        Номер: Разрешение  \n
-        - 0: `ReservationsCreate`\n
-        - 1: `ReservationsAdmin` \n
-        - 2: `RoomsAdmin`        \n 
-        - 3: `UsersAdmin`        \n 
-        - 4: `GroupsAdmin`"
-      required:
-        - id
-      properties:
-        id:
-          description: Номер одно из разрешений, которые есть у пользователя
-          type: integer
-          maximum: 4
-          minimum: 0
-    AuthSession:
-      type: object
-      description: Json веб токен
-      required:
-        - token
-      properties:
-        token:
-          type: string
+        Названия разрешений   \n
+        - `ReservationsCreate`\n
+        - `ReservationsAdmin` \n
+        - `RoomsAdmin`        \n 
+        - `UsersAdmin`        \n 
+        - `GroupsAdmin`"
+      enum:
+        - ReservationsCreate
+        - ReservationsAdmin
+        - RoomsAdmin
+        - UsersAdmin
+        - GroupsAdmin
     NewReservation:
       type: object
       properties:
