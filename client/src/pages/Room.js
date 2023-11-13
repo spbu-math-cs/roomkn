@@ -111,6 +111,20 @@ function BookingForm({room_id, triggerGetReservations}) {
             triggerGetReservations()
     };
 
+    const onFromChange = (e) => {
+      let value = e.target.value
+      value = Math.min(value, "23:59")
+      value = Math.min(value, until)
+      setFrom(Math.max(value, "09:30"))
+    }
+  
+    const onUntilChange = (e) => {
+      let value = e.target.value
+      value = Math.Math.min(value, "23:59")
+      value = Math.max(value, from)
+      setUntil(Math.max(value, "09:30"))
+    }
+
     return (
         <ContentWrapper page_name='Reservation'>
             <form className="form-wrapper" onSubmit={HandleSubmit}>
@@ -118,7 +132,7 @@ function BookingForm({room_id, triggerGetReservations}) {
                             <label className="form-label">
                                     From
                             </label>
-                            <input className="form-input" type="time" min = {Start_day_time} max = {Finish_day_time} value={from} onChange={(e) => setFrom(e.target.value)}>
+                            <input className="form-input" type="time" value={from} onChange={onFromChange}>
                                     
                             </input>
                     </div>
@@ -126,7 +140,7 @@ function BookingForm({room_id, triggerGetReservations}) {
                             <label className="form-label">
                                     Until
                             </label>
-                            <input className="form-input" type="time" min = {Start_day_time} max = {Finish_day_time} value={until} onChange={(e) => setUntil(e.target.value)}>
+                            <input className="form-input" type="time" value={until} onChange={onUntilChange}>
                                     
                             </input>
                     </div>
