@@ -12,6 +12,8 @@ import About from './pages/About';
 import SignUp from './pages/SignUp';
 import SignIn from './pages/SignIn';
 
+import Profile from './pages/Profile';
+
 import {AuthorizationProvider} from './components/Auth'
 
 import AdminPanel from "./pages/admin/AdminPanel";
@@ -49,6 +51,7 @@ function App() {
                     {/* <Route path='/contact' element={<Contact />} />
                 <Route path='/blogs' element={<Blogs />} />
                 <Route path='/sign-up' element={<SignUp />} /> */}
+                    <Route path='profile' element={<Profile />}/>
                     <Route path="*" element={<PageNotFound />} status={404}/>
                     <Route path="*" element={<AccessDenied />} status={403}/>
                     {

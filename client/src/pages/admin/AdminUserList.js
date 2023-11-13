@@ -8,12 +8,7 @@ import AdminWrapper from "../../components/AdminWrapper";
 
 function EditUserRow({user, refresh}) {
 
-    const [name, setName] = useState(user.username)
-
-    const put_data = {
-        name: name
-    }
-
+    const [name, setName] = useState(user.username) 
     const permissionsDefault = {
         "ReservationsCreate"    : false,
         "ReservationsAdmin"     : false,
@@ -22,6 +17,11 @@ function EditUserRow({user, refresh}) {
         "GroupsAdmin"           : false
     }
     const [permissions, setPermissions] = useState(permissionsDefault)
+
+    const checked_perms = []
+    for (var perm in permissions) {
+        if (permissions[perm]) checked_perms.push(perm)
+    }
 
     const {triggerFetch: permGetTriggerFetch, finished: permGetFinished, result: permGetResult} = useSomeAPI("/api/v0/users/" + user.id + "/permissions")
 
@@ -47,10 +47,11 @@ function EditUserRow({user, refresh}) {
     if (permissions != null) {
         for (let perm in permissions) {
             console.log(user.id, permissions[perm])
-            const onchange = () => {
+            const onchange = (e) => {
+                console.log("changed perm")
                 const tmp_perms2 = permissions
                 tmp_perms2[perm] = !permissions[perm];
-                console.log("sdsdsdfsdg", tmp_perms2)
+                // console.log("sdsdsdfsdg", tmp_perms2)
                 setPermissions(tmp_perms2)
             }
             permissions_draw.push(
@@ -64,7 +65,7 @@ function EditUserRow({user, refresh}) {
         }
     }
 
-    const putObj = useSomeAPI("/api/v0/users/" + user.id, put_data, "PUT")
+    const putObj = useSomeAPI("/api/v0/users/" + user.id + "/permissions", checked_perms, "PUT")
     const deleteObj = useSomeAPI("/api/v0/users/" + user.id, null, "DELETE")
 
     const [putStatusCode, triggerPut, putFinished] = [putObj.statusCode, putObj.triggerFetch, putObj.finished]
