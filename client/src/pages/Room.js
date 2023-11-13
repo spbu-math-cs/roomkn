@@ -2,13 +2,15 @@ import {NavLink, useLocation, useNavigate} from 'react-router-dom'
 
 import './Room.css'
 import ContentWrapper from '../components/Content';
-import React, {createContext, useContext, useEffect, useState} from 'react';
+import React, {createContext, useContext, useEffect} from 'react';
 import {toAPITime, fromAPITime} from '../api/API';
 import useSomeAPI from '../api/FakeAPI';
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
 // import Form from '../components/Form'
 
 const CurrentReservationContext = createContext()
+const Start_day_time = "09:00"
+const Finish_day_time = "23:59"
 
 function GetRoomInfo() {
     const location = useLocation();
@@ -116,16 +118,16 @@ function BookingForm({room_id, triggerGetReservations}) {
                             <label className="form-label">
                                     From
                             </label>
-                            <input className="form-input" type="time" value={from} onChange={(e) => setFrom(e.target.value)}>
-
+                            <input className="form-input" type="time" min = {Start_day_time} max = {Finish_day_time} value={from} onChange={(e) => setFrom(e.target.value)}>
+                                    
                             </input>
                     </div>
                     <div className="form-field">
                             <label className="form-label">
                                     Until
                             </label>
-                            <input className="form-input" type="time" value={until} onChange={(e) => setUntil(e.target.value)}>
-
+                            <input className="form-input" type="time" min = {Start_day_time} max = {Finish_day_time} value={until} onChange={(e) => setUntil(e.target.value)}>
+                                    
                             </input>
                     </div>
                     <input className="form-submit" type="submit" value="Reserve"></input>
@@ -152,8 +154,8 @@ function Reservation ({reservation, is_current_reservation=false}) {
 
     const from_date = new Date(from_obj.date + " " + from_obj.time)
     const until_date = new Date(until_obj.date + " " + until_obj.time)
-    const day_start_date = new Date(until_obj.date + " 09:00")
-    const day_finish_date = new Date(from_obj.date + " " + "23:59")
+    const day_start_date = new Date(until_obj.date + " " + Start_day_time)
+    const day_finish_date = new Date(from_obj.date + " " + Finish_day_time)
 
     const day_finish_time = day_finish_date.getTime()
     const from_time = from_date.getTime()
