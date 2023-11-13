@@ -11,13 +11,19 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.sessions.Sessions
 import io.ktor.server.sessions.cookie
+import org.koin.ktor.ext.inject
 import org.tod87et.roomkn.server.auth.AccountController
 import org.tod87et.roomkn.server.auth.AuthConfig
 import org.tod87et.roomkn.server.auth.AuthSession
 import org.tod87et.roomkn.server.auth.AuthenticationProvider
 
-fun Application.configureAuthentication(authConfig: AuthConfig, accountController: AccountController) {
+fun Application.configureAuthentication() {
+    val authConfig: AuthConfig by inject()
+    val accountController: AccountController by inject()
+
     val realm = environment.config.property("jwt.realm").getString()
+
+    accountController.createZeroAdminIfRequested()
 
     install(Sessions) {
         cookie<AuthSession>("auth_session") {

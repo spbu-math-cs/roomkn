@@ -13,6 +13,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.sessions.sessions
 import io.ktor.server.sessions.set
+import org.koin.ktor.ext.inject
 import org.tod87et.roomkn.server.auth.AccountController
 import org.tod87et.roomkn.server.auth.AuthFailedException
 import org.tod87et.roomkn.server.auth.AuthSession
@@ -25,7 +26,8 @@ import org.tod87et.roomkn.server.models.users.UnregisteredUserInfo
 import org.tod87et.roomkn.server.models.users.UserId
 import org.tod87et.roomkn.server.util.defaultExceptionHandler
 
-fun Route.accountRouting(accountController: AccountController) {
+fun Route.accountRouting() {
+    val accountController: AccountController by inject()
     loginRouting(accountController)
     logoutRouting(accountController)
     validateTokenRouting()

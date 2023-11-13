@@ -8,10 +8,7 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import org.tod87et.roomkn.server.database.DatabaseFactory
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 import org.tod87et.roomkn.server.models.rooms.RoomInfo
 import org.tod87et.roomkn.server.models.rooms.ShortRoomInfo
@@ -57,11 +54,11 @@ class RoomsRoutesTests {
         }
         val room = KtorTestEnv.createRoom("A", "B")
         val shortRoom = room.toShort()
-        assertTrue(DatabaseFactory.database.getRooms().getOrThrow().contains(shortRoom))
+        assertTrue(KtorTestEnv.database.getRooms().getOrThrow().contains(shortRoom))
 
         val resp = client.delete(roomPath(room.id))
         assertEquals(HttpStatusCode.OK, resp.status)
-        assertFalse(DatabaseFactory.database.getRooms().getOrThrow().contains(shortRoom))
+        assertFalse(KtorTestEnv.database.getRooms().getOrThrow().contains(shortRoom))
     }
 
     @Test
@@ -78,21 +75,8 @@ class RoomsRoutesTests {
         }
         assertEquals(HttpStatusCode.OK, resp.status)
         assertEquals(
-            DatabaseFactory.database.getRoom(room.id).getOrThrow(),
+            KtorTestEnv.database.getRoom(room.id).getOrThrow(),
             newRoom.toCreated(room.id)
         )
-    }
-
-    @AfterEach
-    fun clearTestDatabase() {
-        DatabaseFactory.database.clear()
-    }
-
-    companion object {
-        @JvmStatic
-        @BeforeAll
-        fun connectToTestDatabase() {
-            KtorTestEnv.resetDatabase()
-        }
     }
 }
