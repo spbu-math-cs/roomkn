@@ -1,10 +1,10 @@
 package org.tod87et.roomkn.server.database
 
 import io.zonky.test.db.postgres.embedded.EmbeddedPostgres
+import java.util.GregorianCalendar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import org.junit.jupiter.api.AfterAll
 import javax.sql.DataSource
@@ -22,8 +22,12 @@ class ReservationStressTest {
     private val reservationNum = 10000
     private val coroutineNum = 8
 
-    private val lowerBound = Clock.System.now().toEpochMilliseconds()
+    private val date = GregorianCalendar(2070, 1, 1, 1, 1, 1).toInstant()
+
+    private val lowerBound = date.toEpochMilli()
     private val upperBound = lowerBound + 7.days.inWholeMilliseconds
+
+    private val random = Random(1)
 
     private fun createReservation(reservation: UnregisteredReservation) {
         while (true) {
@@ -40,12 +44,12 @@ class ReservationStressTest {
     @Test
     fun stressTest() {
         val reservationsPerCoroutine = reservationNum / coroutineNum
-        val userInfo = RegistrationUserInfo("user", "email", byteArrayOf(1), byteArrayOf(1))
+        val userInfo = RegistrationUserInfo("user", "email", byteArrayOf(), byteArrayOf())
         val userId = database.registerUser(userInfo).getOrThrow().id
         val roomId = database.createRoom(NewRoomInfo("name", "description")).getOrThrow().id
         val reservations = List(reservationNum) {
-            val from = Random.nextLong(lowerBound, upperBound)
-            val until = Random.nextLong(from + 1, from + 1.hours.inWholeMilliseconds)
+            val from = random.nextLong(lowerBound, upperBound)
+            val until = random.nextLong(from + 1, from + 1.hours.inWholeMilliseconds)
             UnregisteredReservation(
                 userId,
                 roomId,
