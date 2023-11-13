@@ -44,10 +44,10 @@ class AuthConfig(
         fun loadFromApplicationConfig(config: ApplicationConfig) = apply {
             val decoder = Base64.getDecoder()
 
-            issuer = config.property("jwt.issuer").getString()
-            audience = config.property("jwt.audience").getString()
-            pepper = decoder.decode(config.property("auth.pepper").getString())
-            secret = decoder.decode(config.property("jwt.secret").getString())
+            issuer(config.property("jwt.issuer").getString())
+            audience(config.property("jwt.audience").getString())
+            pepper(decoder.decode(config.property("auth.pepper").getString()))
+            secret(decoder.decode(config.property("jwt.secret").getString()))
         }
 
         fun issuer(issuer: String) = apply { this.issuer = issuer }
