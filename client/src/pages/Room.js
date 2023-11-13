@@ -2,7 +2,7 @@ import {NavLink, useLocation, useNavigate} from 'react-router-dom'
 
 import './Room.css'
 import ContentWrapper from '../components/Content';
-import React, {createContext, useContext, useEffect} from 'react';
+import React, {createContext, useContext, useEffect, useState} from 'react';
 import {toAPITime, fromAPITime} from '../api/API';
 import useSomeAPI from '../api/FakeAPI';
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
@@ -139,7 +139,7 @@ function BookingForm({room_id, triggerGetReservations}) {
         // value = getTimeByMinutes(valueMinutes)
         setFrom(value)
     }
-  
+
     const onUntilChange = (e) => {
         let value = e.target.value
 
@@ -154,7 +154,7 @@ function BookingForm({room_id, triggerGetReservations}) {
                         From
                     </label>
                     <input className="form-input" type="time" value={from} onChange={onFromChange}>
-                        
+
                     </input>
                 </div>
                 <div className="form-field">
@@ -162,7 +162,7 @@ function BookingForm({room_id, triggerGetReservations}) {
                         Until
                     </label>
                     <input className="form-input" type="time" value={until} onChange={onUntilChange}>
-                        
+
                     </input>
                 </div>
                 <input className="form-submit" type="submit" value="Reserve"></input>
