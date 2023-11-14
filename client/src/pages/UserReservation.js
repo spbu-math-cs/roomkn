@@ -12,7 +12,7 @@ function EmptyReservationsPage() {
             You have no reservations
         </div>
     )
-}
+}// eslint-disable-next-line react-hooks/exhaustive-deps
 
 function Reservation(reservation) {
     const from_obj = fromAPITime(reservation.from)
@@ -23,6 +23,7 @@ function Reservation(reservation) {
 
     let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/rooms/' + room_id)
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [])
 
     if (statusCode === 200 && result != null && finished) {
@@ -37,7 +38,8 @@ function Reservation(reservation) {
 function useReservationsList(user_id) {
     let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/reservations/by-user/' + user_id)
 
-    useEffect(() => triggerFetch(), [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => triggerFetch(), [user_id])
 
     console.log("reservations result:" + result)
     console.log("StatusCode:" + statusCode)
@@ -95,7 +97,7 @@ function UserReservations() {
 
     return (
         <ContentWrapper page_name = {page_name}>
-            {ReservationsList()}
+            <ReservationsList/>
         </ContentWrapper>
     )
 }
