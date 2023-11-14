@@ -4,7 +4,6 @@ import React, { useEffect, useContext, useState } from "react";
 import ContentWrapper from "../components/Content";
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
 import useSomeAPI from "../api/FakeAPI";
-import { Form } from 'react-router-dom';
 
 
 function ProfilePermissions({currentUser}) {
@@ -60,11 +59,25 @@ function ProfileChangeForm({id, actUsername, actEmail, triggerRefetch}) {
 
     let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/users/' + id, put_data, 'PUT')
 
+    useEffect(() => {
+        if (finished) {
+            if (statusCode === 400) alert("Error: " + result)
+            else if (statusCode === 401) alert("Error: you are unauthorized.")
+            else if (statusCode === 403) alert("You are not allowed to change your credentials.")
+            else if (statusCode === 500) alert("Internal server error.")
+            else if (statusCode === 200) {
+                triggerRefetch()
+                alert("Credentials updated successfully!") 
+            }
+            else alert("Status Code: " + statusCode)
+        }
+        //eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [finished]);
+
     const handleSubmit = (e) => {
         e.preventDefault()
 
         triggerFetch()
-        triggerRefetch()
     }
 
     return (
