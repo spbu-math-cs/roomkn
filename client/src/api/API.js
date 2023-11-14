@@ -7,6 +7,7 @@ export function useAPI(url, data=null, method='GET') {
     const [result, setResult] = useState();
     const [loading, setLoading] = useState(true);
     const [finished, setFinished] = useState(false);
+    const [failed, setFailed] = useState(false);
     const [statusCode, setStatus] = useState(0);
     const [fetchFlag, setFetchFlag] = useState(0)
     const [headers, setHeaders] = useState({})
@@ -42,16 +43,22 @@ export function useAPI(url, data=null, method='GET') {
             .then(r => {
                 r.json().then(rjson => {
                     setResult(rjson)
+
+                    setLoading(false)
+                    setFinished(true)
                 }).catch(error => {
                     setResult(error)
+
+                    setLoading(false)
+                    setFinished(true)
+                    setFailed(true)
                 })
-                setLoading(false);
-                setFinished(true)
             })
             .catch(error => {
                 setResult(error)
                 setStatus(0)
                 setFinished(true)
+                setFailed(true)
             });
         //eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fetchFlag]);
@@ -60,7 +67,7 @@ export function useAPI(url, data=null, method='GET') {
         setFetchFlag(fetchFlag + 1)
     }
 
-    return {triggerFetch, result, loading, statusCode, headers, finished, fetchFlag};
+    return {triggerFetch, result, loading, statusCode, headers, finished, fetchFlag, failed};
 }
 
 export function toAPITime(date, time) {

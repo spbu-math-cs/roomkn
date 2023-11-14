@@ -36,28 +36,26 @@ function Reservation(reservation) {
 }
 
 function useReservationsList(user_id) {
-    let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/reservations/by-user/' + user_id)
+    let {triggerFetch, result, finished, statusCode, failed} = useSomeAPI('/api/v0/reservations/by-user/' + user_id)
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [user_id])
 
-    console.log("reservations result:" + result)
-    console.log("StatusCode:" + statusCode)
-    console.log("user_id:" + user_id)
-
-    if (statusCode === 200 && finished && result != null) {
+    if (statusCode === 200 && finished && result != null && !failed) {
         return {
             reservations: result,
             triggerFetch: triggerFetch
         }
     }
+
+    return {}
 }
 
 function ReservationsList() {
     const {currentUser} = useContext(CurrentUserContext)
     const {isAuthorized} = useContext(IsAuthorizedContext)
 
-    const reservations = useReservationsList(currentUser?.user_id)?.reservations
+    const {reservations} = useReservationsList(currentUser?.user_id)
 
     if (!isAuthorized) return (
         <div>
