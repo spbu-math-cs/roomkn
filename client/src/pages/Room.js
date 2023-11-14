@@ -194,7 +194,7 @@ function Reservation ({reservation, is_current_reservation=false}) {
 }
 
 function ReservationsList({reservations}) {
-  const {user_id} = useContext(CurrentUserContext)
+  const {currentUser} = useContext(CurrentUserContext)
   const {isAuthorized} = useContext(IsAuthorizedContext)
   const {from, until, date} = useContext(CurrentReservationContext)
 
@@ -216,11 +216,11 @@ function ReservationsList({reservations}) {
         )
     })
 
-  if (isAuthorized) {
+  if (isAuthorized && currentUser != null) {
     const current_reservation = {
       from: toAPITime(date, from),
       until: toAPITime(date, until),
-      user_id: user_id
+      user_id: currentUser?.user_id
     }
     reservationsList.push(<Reservation reservation={current_reservation} is_current_reservation={true}></Reservation>)
   }
