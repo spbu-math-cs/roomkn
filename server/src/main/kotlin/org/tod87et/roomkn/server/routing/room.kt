@@ -29,12 +29,18 @@ fun Route.roomsRouting() {
     route("/rooms") {
         rooms()
         roomById()
-        roomReservations()
+        roomReservationsRouting()
         authenticate(AuthenticationProvider.SESSION) {
             createRoom()
             updateRoom()
             deleteRoom()
         }
+    }
+}
+
+private fun Route.roomReservationsRouting() {
+    get("{id}/reservations") {
+        roomReservationsRouteHandler()
     }
 }
 
@@ -139,28 +145,6 @@ private fun Route.roomById() {
     }
 }
 
-private fun Route.roomReservations() {
-    get("/{id}/reservations") {
-        val id = call.parameters["id"]?.toIntOrNull() ?: return@get call.respondText(
-            "Id should be int",
-            status = HttpStatusCode.BadRequest
-        )
-
-        val result = database.getRoomReservations(id)
-
-        result.onSuccess {
-            call.respond(HttpStatusCode.OK, it)
-        }
-
-        result.onFailure {
-            return@get call.respondText(
-                "Room with this id not found",
-                status = HttpStatusCode.NotFound
-            )
-        }
-    }
-}
-
 private suspend fun ApplicationCall.handleException(ex: Throwable) {
     when (ex) {
         is MissingElementException -> {
@@ -171,13 +155,6 @@ private suspend fun ApplicationCall.handleException(ex: Throwable) {
             defaultExceptionHandler(ex)
         }
     }
-}
-
-private suspend fun ApplicationCall.onMissingPermission() {
-    respondText("Missing permission", status = HttpStatusCode.Forbidden)
-}
-private suspend fun ApplicationCall.onMissingId() {
-    respondText("id should be int", status = HttpStatusCode.BadRequest)
 }
 
 private inline fun ApplicationCall.requirePermission(

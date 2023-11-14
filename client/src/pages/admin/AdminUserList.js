@@ -18,6 +18,7 @@ function EditUserRow({user, refresh}) {
     }
     const [permissions, setPermissions] = useState(permissionsDefault)
 
+
     const checked_perms = []
     for (var perm in permissions) {
         if (permissions[perm]) checked_perms.push(perm)
@@ -64,6 +65,7 @@ function EditUserRow({user, refresh}) {
             )
         }
     }
+
 
     const putObj = useSomeAPI("/api/v0/users/" + user.id + "/permissions", checked_perms, "PUT")
     const deleteObj = useSomeAPI("/api/v0/users/" + user.id, null, "DELETE")

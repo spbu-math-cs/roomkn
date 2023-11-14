@@ -1,39 +1,39 @@
 package org.tod87et.roomkn.server.database
 
+import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.transaction
-import org.tod87et.roomkn.server.models.users.RegistrationUserInfo
-import org.tod87et.roomkn.server.models.reservations.Reservation
-import org.tod87et.roomkn.server.models.rooms.RoomInfo
-import org.tod87et.roomkn.server.models.rooms.ShortRoomInfo
-import org.tod87et.roomkn.server.models.users.ShortUserInfo
-import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
-import org.tod87et.roomkn.server.models.users.UserCredentialsInfo
-import org.tod87et.roomkn.server.models.users.UserInfo
-import java.sql.Connection
-import javax.sql.DataSource
-import org.tod87et.roomkn.server.database.Database as RooMknDatabase
-import kotlinx.datetime.Clock
-import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
 import org.jetbrains.exposed.sql.Transaction
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import org.jetbrains.exposed.sql.upsert
 import org.postgresql.util.PSQLException
 import org.tod87et.roomkn.server.database.InvalidatedTokens.tokenHash
 import org.tod87et.roomkn.server.models.permissions.UserPermission
+import org.tod87et.roomkn.server.models.reservations.Reservation
+import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
+import org.tod87et.roomkn.server.models.rooms.RoomInfo
+import org.tod87et.roomkn.server.models.rooms.ShortRoomInfo
+import org.tod87et.roomkn.server.models.users.RegistrationUserInfo
+import org.tod87et.roomkn.server.models.users.ShortUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
+import org.tod87et.roomkn.server.models.users.UserCredentialsInfo
+import org.tod87et.roomkn.server.models.users.UserInfo
+import java.sql.Connection
+import javax.sql.DataSource
+import org.tod87et.roomkn.server.database.Database as RooMknDatabase
 
 class DatabaseSession private constructor(private val database: Database) :
     RooMknDatabase, CredentialsDatabase {
@@ -175,6 +175,21 @@ class DatabaseSession private constructor(private val database: Database) :
 
         transaction(db = database, transactionIsolation = Connection.TRANSACTION_SERIALIZABLE) {
             tryCreateReservation(reservation) ?: throw ReservationException()
+        }
+    }
+
+    override fun getReservation(reservationId: Int): Result<Reservation> = queryWrapper {
+        transaction(database) {
+            val row = Reservations.select { Reservations.id eq reservationId }.firstOrNull()
+                ?: throw MissingElementException()
+
+            Reservation(
+                row[Reservations.id],
+                row[Reservations.userId],
+                row[Reservations.roomId],
+                row[Reservations.from],
+                row[Reservations.until],
+            )
         }
     }
 
@@ -355,7 +370,16 @@ class DatabaseSession private constructor(private val database: Database) :
      *
      * @see <a href="https://www.postgresql.org/docs/current/errcodes-appendix.html">PostgreSQL error codes</a>
      */
+    private fun Throwable.isSerializationFailure(): Boolean =
+        this is PSQLException && sqlState == "40001" || this is ExposedSQLException && sqlState == "40001"
+
+    /**
+     * For PostgreSQL only
+     *
+     * @see <a href="https://www.postgresql.org/docs/current/errcodes-appendix.html">PostgreSQL error codes</a>
+     */
     private fun ExposedSQLException.isConnectionException() = sqlState.startsWith("08")
+
     /**
      * For PostgreSQL only
      *
@@ -384,6 +408,7 @@ class DatabaseSession private constructor(private val database: Database) :
             .onFailure { e ->
                 val mappedException = when {
                     e is DatabaseException -> e
+                    e.isSerializationFailure() -> SerializationException()
                     e !is ExposedSQLException -> UnknownException(e)
                     e.isConnectionException() -> ConnectionException(e)
                     e.isConstraintViolation() -> mapConstraintViolationException(e)
@@ -411,4 +436,6 @@ class DatabaseSession private constructor(private val database: Database) :
 
         return result
     }
+
+
 }
