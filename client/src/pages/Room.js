@@ -104,13 +104,13 @@ function BookingForm({room_id, triggerGetReservations}) {
         )
     }
 
-    function getTimeByMinutes(minutes) {
-        const hour = Math.floor(minutes / 60)
-        const minute = minutes % 60
-        const hourString = (hour < 10 ? "0" : "") + hour.toString()
-        const minuteString = (minute < 10 ? "0" : "") + minute.toString()
-        return hourString + ":" + minuteString
-    }
+    // function getTimeByMinutes(minutes) {
+    //     const hour = Math.floor(minutes / 60)
+    //     const minute = minutes % 60
+    //     const hourString = (hour < 10 ? "0" : "") + hour.toString()
+    //     const minuteString = (minute < 10 ? "0" : "") + minute.toString()
+    //     return hourString + ":" + minuteString
+    // }
 
     function getMinutesByTime(time) {
         const hour = parseInt(time.slice(0, 2))
