@@ -1,0 +1,30 @@
+.profile-field {
+    font-size: 30px;
+}
+
+.profile-user-perm {
+    font-size: 20px;
+}
+
+.form-input {
+    display: flex;
+    font-size: 30px;
+}
+
+.credentials-form {
+    
+}
+
+.form-field {
+    font-size: 30px;
+}
+
+.form-label {
+    float: left;
+    width: 20%;
+}
+
+.form-submit {
+    align-self: self-end;
+    font-size: 40px;
+}
