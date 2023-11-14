@@ -1,9 +1,10 @@
 import './Profile.css';
 
-import React, { useEffect, useContext } from "react";
+import React, { useEffect, useContext, useState } from "react";
 import ContentWrapper from "../components/Content";
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
 import useSomeAPI from "../api/FakeAPI";
+import { Form } from 'react-router-dom';
 
 
 function ProfilePermissions({currentUser}) {
@@ -46,6 +47,51 @@ function ProfilePermissions({currentUser}) {
         return <ul>{perm_draw}</ul>
     }
 }
+
+function ProfileChangeForm({id, actUsername, actEmail, triggerRefetch}) {
+
+    const [username, setUsername] = useState(actUsername)
+    const [email, setEmail] = useState(actEmail)
+
+    const put_data = {
+        username: username,
+        email: email
+    }
+
+    let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/users/' + id, put_data, 'PUT')
+
+    const handleSubmit = (e) => {
+        e.preventDefault()
+
+        triggerFetch()
+        triggerRefetch()
+    }
+
+    return (
+        <ContentWrapper page_name="Change credentials">
+            <form className="credentials-form" onSubmit={handleSubmit}>
+                <div className="form-field">
+                    <label className="form-label">
+                        New username:
+                    </label>
+                    <input className="form-input" value={username} onChange={(e) => setUsername(e.target.value)}>
+                  
+                    </input>
+                </div>
+                <div className="form-field">
+                    <label className="form-label">
+                        New email:
+                    </label>
+                    <input className="form-input" value={email} onChange={(e) => setEmail(e.target.value)}>
+                  
+                    </input>
+                </div>
+                <input className="form-submit" type="submit" value="Change"></input>
+            </form>
+        </ContentWrapper>
+    )
+
+}
  
 const Profile = () => {
 
@@ -80,6 +126,7 @@ const Profile = () => {
                 <div className='profile-field'> My email: {result.email}</div>
                 <div className='profile-field'>My permissions:</div>
                 <ProfilePermissions currentUser={currentUser}></ProfilePermissions>
+                <ProfileChangeForm id={currentUser?.user_id} actUsername={result.username} actEmail={result.email} triggerRefetch={triggerFetch}></ProfileChangeForm>
             </ContentWrapper>
         )
     }
