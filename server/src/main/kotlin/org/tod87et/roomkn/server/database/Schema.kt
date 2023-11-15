@@ -2,6 +2,7 @@ package org.tod87et.roomkn.server.database
 
 import kotlinx.datetime.Instant
 import org.jetbrains.exposed.sql.Column
+import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
@@ -26,8 +27,10 @@ object Rooms : Table() {
 
 object Reservations : Table() {
     val id: Column<Int> = integer("id").autoIncrement()
-    val userId: Column<Int> = integer("userId").references(Users.id, fkName = "fk_reservations_userid")
-    val roomId: Column<Int> = integer("roomId").references(Rooms.id, fkName = "fk_reservations_roomid")
+    val userId: Column<Int> = integer("userId")
+        .references(Users.id, fkName = "fk_reservations_userid", onDelete = ReferenceOption.CASCADE)
+    val roomId: Column<Int> = integer("roomId")
+        .references(Rooms.id, fkName = "fk_reservations_roomid", onDelete = ReferenceOption.CASCADE)
 
     val from: Column<Instant> = timestamp("from")
     val until: Column<Instant> = timestamp("until")
