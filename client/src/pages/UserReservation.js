@@ -1,3 +1,5 @@
+import './UserReservation.css';
+
 import {NavLink} from 'react-router-dom'
 
 import ContentWrapper from '../components/Content';
@@ -14,11 +16,19 @@ function EmptyReservationsPage() {
     )
 }// eslint-disable-next-line react-hooks/exhaustive-deps
 
-function Reservation(reservation) {
+function Reservation({reservation}) {
+
+    // console.log('reservation1: ' + reservation1)
+
+    // const reservation = reservation1.reservation
+
+    console.log('reservation object: ' + reservation)
+    console.log('from: ' + reservation.from)
+    console.log('until: ' + reservation.until)
     const from_obj = fromAPITime(reservation.from)
     const until_obj = fromAPITime(reservation.until)
-    const from_date = new Date(from_obj.date + " " + from_obj.time)
-    const until_date = new Date(until_obj.date + " " + until_obj.time)
+    // const from_date = new Date(from_obj.date + " " + from_obj.time)
+    // const until_date = new Date(until_obj.date + " " + until_obj.time)
     const room_id = reservation.room_id
 
     let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/rooms/' + room_id)
@@ -28,8 +38,8 @@ function Reservation(reservation) {
 
     if (statusCode === 200 && result != null && finished) {
         const room_name = result.name
-        return <label>
-            Комната {room_name}; с {from_date} по {until_date}
+        return <label className='reservation-info-label'>
+            Комната {room_name}; на {from_obj.date} с {from_obj.time} по {until_obj.time}
         </label>
     }
     return <div></div>
@@ -48,14 +58,17 @@ function useReservationsList(user_id) {
         }
     }
 
-    return {}
+    return {
+        reservations: [],
+        triggerFetch: () => {}
+    }
 }
 
 function ReservationsList() {
     const {currentUser} = useContext(CurrentUserContext)
     const {isAuthorized} = useContext(IsAuthorizedContext)
 
-    const {reservations} = useReservationsList(currentUser?.user_id)
+    const {reservations, triggerFetch} = useReservationsList(currentUser?.user_id)
 
     if (!isAuthorized) return (
         <div>
@@ -71,11 +84,13 @@ function ReservationsList() {
     console.log("reservations: " + reservations)
 
     const reservationsList = []
+    console.log('list is ' + reservations.length + 'elements')
     reservations?.forEach((reservation) => {
+        console.log(reservation)
         reservationsList.push (
-            // <li>
-            <Reservation reservation={reservation}/>
-            // </li>
+            <li>
+                <Reservation reservation={reservation}/>
+            </li>
         )
     })
 
@@ -85,7 +100,9 @@ function ReservationsList() {
 
     return (
         <div className="reservation-list">
-            {reservationsList}
+            <ul>
+                {reservationsList}
+            </ul>
         </div>
     )
 }
