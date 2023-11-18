@@ -370,6 +370,14 @@ class DatabaseSession private constructor(private val database: Database) :
      *
      * @see <a href="https://www.postgresql.org/docs/current/errcodes-appendix.html">PostgreSQL error codes</a>
      */
+    private fun Throwable.isSerializationFailure(): Boolean =
+        this is PSQLException && sqlState == "40001" || this is ExposedSQLException && sqlState == "40001"
+
+    /**
+     * For PostgreSQL only
+     *
+     * @see <a href="https://www.postgresql.org/docs/current/errcodes-appendix.html">PostgreSQL error codes</a>
+     */
     private fun ExposedSQLException.isConnectionException() = sqlState.startsWith("08")
 
     /**
@@ -400,6 +408,7 @@ class DatabaseSession private constructor(private val database: Database) :
             .onFailure { e ->
                 val mappedException = when {
                     e is DatabaseException -> e
+                    e.isSerializationFailure() -> SerializationException()
                     e !is ExposedSQLException -> UnknownException(e)
                     e.isConnectionException() -> ConnectionException(e)
                     e.isConstraintViolation() -> mapConstraintViolationException(e)
@@ -427,4 +436,6 @@ class DatabaseSession private constructor(private val database: Database) :
 
         return result
     }
+
+
 }
