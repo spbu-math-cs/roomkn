@@ -68,7 +68,7 @@ function ReservationsList() {
     const {currentUser} = useContext(CurrentUserContext)
     const {isAuthorized} = useContext(IsAuthorizedContext)
 
-    const {reservations, triggerFetch} = useReservationsList(currentUser?.user_id)
+    const {reservations} = useReservationsList(currentUser?.user_id)
 
     if (!isAuthorized) return (
         <div>
