@@ -266,7 +266,7 @@ function ReservationsList({reservations}) {
         const current_reservation = {
             from: toAPITime(date, from),
             until: toAPITime(date, until),
-            user_id: user_id
+            user_id: currentUser?.user_id
         }
         reservationsList.push(<Reservation reservation={current_reservation} is_current_reservation={true}></Reservation>)
     }
