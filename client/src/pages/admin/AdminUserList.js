@@ -8,13 +8,18 @@ import AdminWrapper from "../../components/AdminWrapper";
 
 function EditUserRow({user, refresh}) {
 
-    const [name, setName] = useState(user.username) 
+    const [name, setName] = useState(user.username)
+
+    const put_data = {
+            name: name
+    }
+
     const permissionsDefault = {
-        "ReservationsCreate"    : false,
-        "ReservationsAdmin"     : false,
-        "RoomsAdmin"            : false,
-        "UsersAdmin"            : false,
-        "GroupsAdmin"           : false
+            "ReservationsCreate"        : false,
+            "ReservationsAdmin"         : false,
+            "RoomsAdmin"                        : false,
+            "UsersAdmin"                        : false,
+            "GroupsAdmin"                     : false
     }
     const [permissions, setPermissions] = useState(permissionsDefault)
 
@@ -66,8 +71,7 @@ function EditUserRow({user, refresh}) {
         }
     }
 
-
-    const putObj = useSomeAPI("/api/v0/users/" + user.id + "/permissions", checked_perms, "PUT")
+    const putObj = useSomeAPI("/api/v0/users/" + user.id, put_data, "PUT")
     const deleteObj = useSomeAPI("/api/v0/users/" + user.id, null, "DELETE")
 
     const [putStatusCode, triggerPut, putFinished] = [putObj.statusCode, putObj.triggerFetch, putObj.finished]

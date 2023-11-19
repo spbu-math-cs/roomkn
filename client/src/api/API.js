@@ -7,6 +7,7 @@ export function useAPI(url, data=null, method='GET') {
     const [result, setResult] = useState();
     const [loading, setLoading] = useState(true);
     const [finished, setFinished] = useState(false);
+    const [failed, setFailed] = useState(false);
     const [statusCode, setStatus] = useState(0);
     const [fetchFlag, setFetchFlag] = useState(0)
     const [headers, setHeaders] = useState({})
@@ -30,37 +31,43 @@ export function useAPI(url, data=null, method='GET') {
         }
 
         fetch(API_HOST + url, options)
-        .then(r => {
-            setStatus(r.status)
-            // console.log(r.cookie ("userId"))
-            return r
-        })
-        .then(r => {
-            setHeaders(r.headers)
-            return r
-        })
-        .then(r => {
-            r.json().then(rjson => {
-                setResult(rjson)
-            }).catch(error => {
-                setResult(error)
+            .then(r => {
+                setStatus(r.status)
+                // console.log(r.cookie ("userId"))
+                return r
             })
-            setLoading(false);
-            setFinished(true)
-        })
-        .catch(error => {
-            setResult(error)
-            setStatus(0)
-            setFinished(true)
-        });
+            .then(r => {
+                setHeaders(r.headers)
+                return r
+            })
+            .then(r => {
+                r.json().then(rjson => {
+                    setResult(rjson)
+
+                    setLoading(false)
+                    setFinished(true)
+                }).catch(error => {
+                    setResult(error)
+
+                    setLoading(false)
+                    setFinished(true)
+                    setFailed(true)
+                })
+            })
+            .catch(error => {
+                setResult(error)
+                setStatus(0)
+                setFinished(true)
+                setFailed(true)
+            });
         //eslint-disable-next-line react-hooks/exhaustive-deps
-      }, [fetchFlag]);
+    }, [fetchFlag]);
 
     function triggerFetch() {
         setFetchFlag(fetchFlag + 1)
     }
-    
-    return {triggerFetch, result, loading, statusCode, headers, finished, fetchFlag};
+
+    return {triggerFetch, result, loading, statusCode, headers, finished, fetchFlag, failed};
 }
 
 export function toAPITime(date, time) {
@@ -70,8 +77,8 @@ export function toAPITime(date, time) {
 
 export function fromAPITime(ins) {
     // return {
-    //     date: "2022-10-12",
-    //     time: "8:30"
+    //         date: "2022-10-12",
+    //         time: "8:30"
     // }
 
     // console.log("fromAPITime: " + ins)
@@ -87,5 +94,5 @@ export function fromAPITime(ins) {
     }
 }
 
-    
+
 export default useAPI

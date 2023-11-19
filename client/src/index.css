@@ -1,16 +1,16 @@
 @import url('https://fonts.cdnfonts.com/css/gg-sans-2');
 
 body {
-  margin: 0;
-  font-family: 'gg sans', sans-serif;
-  font-family: 'gg sans Normal', sans-serif;
-  font-family: 'gg sans Medium', sans-serif;
-  font-family: 'gg sans SemiBold', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    font-family: 'gg sans', sans-serif;
+    font-family: 'gg sans Normal', sans-serif;
+    font-family: 'gg sans Medium', sans-serif;
+    font-family: 'gg sans SemiBold', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+        monospace;
 }

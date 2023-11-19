@@ -11,6 +11,7 @@ import Room from './pages/Room';
 import About from './pages/About';
 import SignUp from './pages/SignUp';
 import SignIn from './pages/SignIn';
+import UserReservations from "./pages/UserReservation";
 
 import Profile from './pages/Profile';
 
@@ -23,11 +24,11 @@ import AdminUserList from "./pages/admin/AdminUserList";
 
 function PageNotFound() {
     return (
-      <div>
+        <div>
         <h2>404 Page not found</h2>
-      </div>
+        </div>
     );
-  }
+    }
 
 function AccessDenied() {
     return (
@@ -48,6 +49,7 @@ function App() {
                     <Route path='/room/*' element={<Room />} />
                     <Route path='/sign-up' element={<SignUp />} />
                     <Route path='/sign-in' element={<SignIn />} />
+                    <Route path='/my-reservations' element={<UserReservations/>} />
                     {/* <Route path='/contact' element={<Contact />} />
                 <Route path='/blogs' element={<Blogs />} />
                 <Route path='/sign-up' element={<SignUp />} /> */}

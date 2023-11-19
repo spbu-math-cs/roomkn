@@ -77,6 +77,10 @@ const Navbar = () => {
                             <NavLink to="/about" className="navlink">
                                 About
                             </NavLink>
+                            <NavLink to="/my-reservations" className="navlink">
+                                My reservations
+                            </NavLink>
+
                         </div>
                         <div className="navbar-right">
                             <NavSignIn />
