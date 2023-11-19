@@ -129,7 +129,7 @@ function ReservationsList() {
     reservations?.forEach((reservation) => {
         console.log(reservation)
         reservationsList.push (
-            <Reservation reservation={reservation} onDelete={triggerFetch()}/>
+            <Reservation reservation={reservation} onDelete={triggerFetch}/>
         )
     })
 
