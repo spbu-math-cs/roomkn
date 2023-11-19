@@ -16,7 +16,7 @@ function EmptyReservationsPage() {
     )
 }// eslint-disable-next-line react-hooks/exhaustive-deps
 
-function Reservation({reservation}) {
+function Reservation({reservation, onDelete}) {
 
     // console.log('reservation1: ' + reservation1)
 
@@ -33,23 +33,59 @@ function Reservation({reservation}) {
 
     let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/rooms/' + room_id)
 
+    let deleteReturned = useDeleteReservation(reservation.id)
+
+    console.log("reservation number" + reservation.id)
+
+    let deleteTriggerFetch = deleteReturned.triggerFetch
+    let deleteFinished = deleteReturned.finished
+    let deleteStatusCode = deleteReturned.statusCode
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [])
 
+    const deleteSubmit = (e) => {
+        e.preventDefault();
+
+        deleteTriggerFetch()
+        onDelete()
+    };
+
+    if (deleteFinished) {
+        onDelete()
+        if (statusCode === 200) {
+            alert("Удалено!")
+        }
+        else alert("Error: " + deleteStatusCode)
+        return <div></div>
+    }
+
     if (statusCode === 200 && result != null && finished) {
         const room_name = result.name
-        return <label className='reservation-info-label'>
-            Комната {room_name}; на {from_obj.date} с {from_obj.time} по {until_obj.time}
-        </label>
+        return <div>
+            <label className='reservation-info-label'>
+                Комната {room_name}; на {from_obj.date} с {from_obj.time} по {until_obj.time}
+            </label>
+            <button onClick={deleteSubmit}>
+                Удалить
+            </button>
+        </div>
     }
     return <div></div>
 }
 
-function useReservationsList(user_id) {
+function useDeleteReservation(reservationId) {
+    let {triggerFetch, finished, statusCode} = useSomeAPI('/api/v0/reservations/' + reservationId, null, 'DELETE')
+    return {triggerFetch, finished, statusCode}
+}
+function useReservationsList(user_id, deletedCount) {
     let {triggerFetch, result, finished, statusCode, failed} = useSomeAPI('/api/v0/reservations/by-user/' + user_id)
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => triggerFetch(), [user_id])
+    useEffect(() => {
+        console.log("fetched")
+        triggerFetch()
+    }, [user_id, deletedCount])
 
     if (statusCode === 200 && finished && result != null && !failed) {
         return {
@@ -68,7 +104,9 @@ function ReservationsList() {
     const {currentUser} = useContext(CurrentUserContext)
     const {isAuthorized} = useContext(IsAuthorizedContext)
 
-    const {reservations} = useReservationsList(currentUser?.user_id)
+    let deletedCount = 0
+
+    const {reservations} = useReservationsList(currentUser?.user_id, deletedCount)
 
     if (!isAuthorized) return (
         <div>
@@ -83,13 +121,18 @@ function ReservationsList() {
 
     console.log("reservations: " + reservations)
 
+    function deleteSomething() {
+        console.log("deletedCount increased")
+        deletedCount = deletedCount + 1
+    }
+
     const reservationsList = []
     console.log('list is ' + reservations.length + 'elements')
     reservations?.forEach((reservation) => {
         console.log(reservation)
         reservationsList.push (
             <li>
-                <Reservation reservation={reservation}/>
+                <Reservation reservation={reservation} onDelete={deleteSomething}/>
             </li>
         )
     })
