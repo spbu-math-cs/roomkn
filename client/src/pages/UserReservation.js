@@ -68,11 +68,13 @@ function Reservation({reservation, onDelete}) {
 
     if (statusCode === 200 && result != null && finished) {
         const room_name = result.name
+        console.log("room id: " + room_id)
+        const link = "/room/" + room_id
         return (
         <tr>
             <td>
                 <label className='reservation-info-label'>
-                    Комната {room_name}; занята на {from_obj.date} с {from_obj.time} по {until_obj.time}
+                    Комната <NavLink to= {link}>{room_name} </NavLink>; занята на {from_obj.date} с {from_obj.time} по {until_obj.time}
                 </label>
             </td>
             <td>
