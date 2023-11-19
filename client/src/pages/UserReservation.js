@@ -57,21 +57,27 @@ function Reservation({reservation, onDelete}) {
             alert("Удалено!")
         }
         else alert("Error: " + deleteStatusCode)
-        return <div></div>
+        return <tr/>
     }
 
     if (statusCode === 200 && result != null && finished) {
         const room_name = result.name
-        return <div>
-            <label className='reservation-info-label'>
-                Комната {room_name}; на {from_obj.date} с {from_obj.time} по {until_obj.time}
-            </label>
-            <button onClick={deleteSubmit}>
-                Удалить
-            </button>
-        </div>
+        return (
+        <tr>
+            <td>
+                <label className='reservation-info-label'>
+                    Комната {room_name}; занята на {from_obj.date} с {from_obj.time} по {until_obj.time}
+                </label>
+            </td>
+            <td>
+                <button className='reservation-delete-button' onClick={deleteSubmit} >
+                    Удалить резервацию
+                </button>
+            </td>
+        </tr>
+        )
     }
-    return <div></div>
+    return <tr/>
 }
 
 function useDeleteReservation(reservationId) {
@@ -131,9 +137,7 @@ function ReservationsList() {
     reservations?.forEach((reservation) => {
         console.log(reservation)
         reservationsList.push (
-            <li>
-                <Reservation reservation={reservation} onDelete={deleteSomething}/>
-            </li>
+            <tr><Reservation reservation={reservation} onDelete={deleteSomething}/></tr>
         )
     })
 
@@ -142,11 +146,9 @@ function ReservationsList() {
     }
 
     return (
-        <div className="reservation-list">
-            <ul>
-                {reservationsList}
-            </ul>
-        </div>
+        <table className="reservation-list">
+            <tbody>{reservationsList}</tbody>
+        </table>
     )
 }
 
