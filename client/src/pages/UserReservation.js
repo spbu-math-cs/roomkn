@@ -93,9 +93,9 @@ function useDeleteReservation(reservationId) {
 function useReservationsList(user_id) {
     let {triggerFetch, result, finished, statusCode, failed} = useSomeAPI('/api/v0/reservations/by-user/' + user_id)
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         triggerFetch()
+        //eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user_id])
 
     if (statusCode === 200 && finished && result != null && !failed) {
