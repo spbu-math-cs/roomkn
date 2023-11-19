@@ -74,7 +74,8 @@ function Reservation({reservation, onDelete}) {
         <tr>
             <td>
                 <label className='reservation-info-label'>
-                    Комната <NavLink to= {link}>{room_name} </NavLink>; занята на {from_obj.date} с {from_obj.time} по {until_obj.time}
+                    Комната <NavLink to= {link}>{room_name} </NavLink>;
+                    занята на {from_obj.date} с {from_obj.time} по {until_obj.time}
                 </label>
             </td>
             <td>
