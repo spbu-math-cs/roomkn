@@ -39,7 +39,9 @@ function Reservation({reservation, onDelete}) {
 
     let deleteTriggerFetch = deleteReturned.triggerFetch
     let deleteFinished = deleteReturned.finished
+    let setDeleteFinished = deleteReturned.setFinished
     let deleteStatusCode = deleteReturned.statusCode
+
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [])
@@ -48,17 +50,20 @@ function Reservation({reservation, onDelete}) {
         e.preventDefault();
 
         deleteTriggerFetch()
-        onDelete()
     };
 
-    if (deleteFinished) {
-        onDelete()
-        if (statusCode === 200) {
-            alert("Удалено!")
+    useEffect(() => {
+        if (deleteFinished) {
+            onDelete()
+            setDeleteFinished(false)
+            console.log("")
+            if (statusCode === 200) {
+                alert("Удалено!")
+            }
+            else alert("Error: " + deleteStatusCode)
         }
-        else alert("Error: " + deleteStatusCode)
-        return <tr/>
-    }
+    }, [deleteFinished]);
+
 
     if (statusCode === 200 && result != null && finished) {
         const room_name = result.name
@@ -81,17 +86,16 @@ function Reservation({reservation, onDelete}) {
 }
 
 function useDeleteReservation(reservationId) {
-    let {triggerFetch, finished, statusCode} = useSomeAPI('/api/v0/reservations/' + reservationId, null, 'DELETE')
-    return {triggerFetch, finished, statusCode}
+    let {triggerFetch, finished, setFinished, statusCode} = useSomeAPI('/api/v0/reservations/' + reservationId, null, 'DELETE')
+    return {triggerFetch, finished, setFinished, statusCode}
 }
-function useReservationsList(user_id, deletedCount) {
+function useReservationsList(user_id) {
     let {triggerFetch, result, finished, statusCode, failed} = useSomeAPI('/api/v0/reservations/by-user/' + user_id)
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
-        console.log("fetched")
         triggerFetch()
-    }, [user_id, deletedCount])
+    }, [user_id])
 
     if (statusCode === 200 && finished && result != null && !failed) {
         return {
@@ -109,10 +113,7 @@ function useReservationsList(user_id, deletedCount) {
 function ReservationsList() {
     const {currentUser} = useContext(CurrentUserContext)
     const {isAuthorized} = useContext(IsAuthorizedContext)
-
-    let deletedCount = 0
-
-    const {reservations} = useReservationsList(currentUser?.user_id, deletedCount)
+    const {triggerFetch, reservations} = useReservationsList(currentUser?.user_id)
 
     if (!isAuthorized) return (
         <div>
@@ -129,7 +130,7 @@ function ReservationsList() {
 
     function deleteSomething() {
         console.log("deletedCount increased")
-        deletedCount = deletedCount + 1
+        triggerFetch()
     }
 
     const reservationsList = []
