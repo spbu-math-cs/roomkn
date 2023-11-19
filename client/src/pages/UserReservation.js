@@ -62,6 +62,7 @@ function Reservation({reservation, onDelete}) {
             }
             else alert("Error: " + deleteStatusCode)
         }
+        //eslint-disable-next-line react-hooks/exhaustive-deps
     }, [deleteFinished]);
 
 
