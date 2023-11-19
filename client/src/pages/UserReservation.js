@@ -138,7 +138,7 @@ function ReservationsList() {
     reservations?.forEach((reservation) => {
         console.log(reservation)
         reservationsList.push (
-            <tr><Reservation reservation={reservation} onDelete={deleteSomething}/></tr>
+            <Reservation reservation={reservation} onDelete={deleteSomething}/>
         )
     })
 
