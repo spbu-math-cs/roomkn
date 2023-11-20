@@ -9,8 +9,8 @@ import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
 import {fromAPITime} from "../api/API";
 
 function useDeleteReservation(reservationId) {
-    let {triggerFetch, finished, setFinished, statusCode} = useSomeAPI('/api/v0/reservations/' + reservationId, null, 'DELETE')
-    return {triggerFetch, finished, setFinished, statusCode}
+    let {triggerFetch, statusCode, finished, fetchFlag} = useSomeAPI('/api/v0/reservations/' + reservationId, null, 'DELETE')
+    return {triggerFetch, statusCode, finished, fetchFlag}
 }
 
 function Reservation({reservation, onDelete}) {
@@ -31,25 +31,23 @@ function Reservation({reservation, onDelete}) {
     let deleteReturned = useDeleteReservation(reservation.id)
 
     let deleteTriggerFetch = deleteReturned.triggerFetch
-    let deleteFinished = deleteReturned.finished
-    let setDeleteFinished = deleteReturned.setFinished
     let deleteStatusCode = deleteReturned.statusCode
+    let deleteFetchFlag = deleteReturned.fetchFlag
+    let deleteFinished = deleteReturned.finished
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => getRoomTriggerFetch(), [])
 
     useEffect(() => {
-        if (deleteFinished) {
-            onDelete()
-            setDeleteFinished(false)
-            console.log("")
-            if (getRoomStatusCode === 200) {
-                alert("Удалено!")
-            }
-            else alert("Error: " + deleteStatusCode)
+        if (deleteFetchFlag === 0 || !deleteFinished) return
+        onDelete()
+        console.log("deleteFetchFlag: " + deleteFetchFlag)
+        if (getRoomStatusCode === 200) {
+            alert("Удалено!")
         }
+        else alert("Error: " + deleteStatusCode)
         //eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [deleteFinished]);
+    }, [deleteFetchFlag, deleteFinished]);
 
     const deleteSubmit = (e) => {
         e.preventDefault();
