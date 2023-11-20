@@ -67,7 +67,7 @@ export function useAPI(url, data=null, method='GET') {
         setFetchFlag(fetchFlag + 1)
     }
 
-    return {triggerFetch, result, loading, statusCode, headers, finished, fetchFlag, failed};
+    return {triggerFetch, result, loading, statusCode, headers, finished, setFinished, fetchFlag, failed};
 }
 
 export function toAPITime(date, time) {
