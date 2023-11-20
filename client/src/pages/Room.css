@@ -114,7 +114,7 @@
 
 .reservation-wrapper {
     color: black;
-    background: darkslateblue;
+    background: #777799;
     border-top: 2px solid var(--idea-border-black, #1E1F22);
     border-right: 2px solid var(--idea-border-black, #1E1F22);
     border-left: 2px solid var(--idea-border-black, #1E1F22);
@@ -126,7 +126,7 @@
 
 .reservation-current-wrapper {
     color: black;
-    background: blue;
+    background: #9999ff;
     border-top: 2px solid var(--idea-border-black, #1E1F22);
     border-right: 2px solid var(--idea-border-black, #1E1F22);
     border-left: 2px solid var(--idea-border-black, #1E1F22);
@@ -156,7 +156,7 @@
 }
 
 .not-authorized-link {
-    color:blue;
+    color: blue;
     font-size: 20px;
     display: flex;
 }

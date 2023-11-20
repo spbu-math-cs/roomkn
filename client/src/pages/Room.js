@@ -3,9 +3,10 @@ import {NavLink, useLocation, useNavigate} from 'react-router-dom'
 import './Room.css'
 import ContentWrapper from '../components/Content';
 import React, {createContext, useContext, useEffect} from 'react';
-import {toAPITime, fromAPITime} from '../api/API';
+import {fromAPITime, toAPITime} from '../api/API';
 import useSomeAPI from '../api/FakeAPI';
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
+import {Box, Button, Slider, Stack, Typography} from "@mui/material";
 // import Form from '../components/Form'
 
 const CurrentReservationContext = createContext()
@@ -19,14 +20,14 @@ function GetRoomInfo() {
     const id = location.pathname.slice(6, location.pathname.length)
 
     let {triggerFetch, result, loading, statusCode} = useSomeAPI('/api/v0/rooms/' + id)
-        //eslint-disable-next-line react-hooks/exhaustive-deps
-        useEffect(() => triggerFetch(), [])
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => triggerFetch(), [])
 
-        // doRequest()
-        if (statusCode === 404) {
-                navigate('/pagenotfound', {replace: true})
+    // doRequest()
+    if (statusCode === 404) {
+        navigate('/pagenotfound', {replace: true})
 
-        }
+    }
     if (statusCode !== 200 || loading || result == null) {
         return {
             id: id
@@ -42,20 +43,20 @@ function GetReservations(room_id, date) {
     console.log("GetReservations invoked with date = " + date)
     console.log("used some api with /api/v0/rooms/" + room_id + "/reservations")
     let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/rooms/' + room_id + '/reservations')
-        //eslint-disable-next-line react-hooks/exhaustive-deps
-        useEffect(() => triggerFetch(), [])
-        console.log("after useSomeAPI")
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => triggerFetch(), [])
+    console.log("after useSomeAPI")
 
-        if (statusCode === 200 && finished && result != null) {
-            return {
-                    reservations: result.filter((reservation) => (fromAPITime(reservation.from).date === date)),
-                    triggerGetReservations: triggerFetch
-            }
+    if (statusCode === 200 && finished && result != null) {
+        return {
+            reservations: result.filter((reservation) => (fromAPITime(reservation.from).date === date)),
+            triggerGetReservations: triggerFetch
         }
+    }
 
     return {
-            reservations: null,
-            triggerGetReservations: triggerFetch
+        reservations: null,
+        triggerGetReservations: triggerFetch
     }
 }
 
@@ -71,10 +72,27 @@ function useBookRoom(room_id, user_id, date, from, to) {
     return {triggerFetch, result, loading, statusCode, finished}
 }
 
+function parseTimeMinutes(timeStr) {
+    return Date.parse(`1970-01-01T${timeStr}Z`) / 60000
+}
+
+function makeTimeMinutes(minutes) {
+    let h = (~~(minutes / 60)).toString().padStart(2, "0")
+    let m = (minutes % 60).toString().padStart(2, "0")
+
+    return h + ":" + m
+}
+
+const timeMarks = [...Array(25).keys()].map((_, idx, __) => {
+    return {
+        value: idx * 60,
+        label: idx.toString().padStart(2, "0") + ":00"
+    }
+})
 
 function BookingForm({room_id, triggerGetReservations}) {
 
-    const {from, setFrom, until, setUntil, date} = useContext(CurrentReservationContext)
+    const {date, setDate, from, setFrom, until, setUntil} = useContext(CurrentReservationContext)
 
     const {currentUser} = useContext(CurrentUserContext)
     const {triggerFetch, result, statusCode, finished} = useBookRoom(room_id, currentUser?.user_id, date, from, until);
@@ -125,53 +143,36 @@ function BookingForm({room_id, triggerGetReservations}) {
         triggerGetReservations()
     };
 
-    const onFromChange = (e) => {
-        let value = e.target.value.toString()
-
-        // let valueMinutes = getMinutesByTime(value)
-        // const minMinutes = getMinutesByTime(Start_day_time)
-        // const maxMinutes = getMinutesByTime(Finish_day_time)
-        // const untilMinutes = getMinutesByTime(until)
-        //
-        // valueMinutes = Math.min(valueMinutes, untilMinutes)
-        // valueMinutes = Math.min(valueMinutes, maxMinutes)
-        //
-        // value = getTimeByMinutes(valueMinutes)
-        setFrom(value)
-    }
-
-    const onUntilChange = (e) => {
-        let value = e.target.value
-
-        setUntil(value)
-    }
-
     return (
         <ContentWrapper page_name='Reservation'>
-            <form className="form-wrapper" onSubmit={HandleSubmit}>
-                <div className="form-field">
-                    <label className="form-label">
-                        From
-                    </label>
-                    <input className="form-input" type="time" value={from} onChange={onFromChange}>
-
-                    </input>
-                </div>
-                <div className="form-field">
-                    <label className="form-label">
-                        Until
-                    </label>
-                    <input className="form-input" type="time" value={until} onChange={onUntilChange}>
-
-                    </input>
-                </div>
-                <input className="form-submit" type="submit" value="Reserve"></input>
-            </form>
+            <Typography fontSize="18pt">
+                <Stack spacing={1}>
+                    <Box sx={{paddingRight: "10pt", paddingLeft: "10pt"}}>
+                        <Slider
+                            track={false}
+                            step={15}
+                            min={0}
+                            max={24 * 60}
+                            value={[parseTimeMinutes(from), parseTimeMinutes(until)]}
+                            onChange={(e) => {
+                                setFrom(makeTimeMinutes(e.target.value[0]));
+                                setUntil(makeTimeMinutes(e.target.value[1]));
+                            }}
+                            valueLabelDisplay="on"
+                            getAriaVal  ueText={makeTimeMinutes}
+                            valueLabelFormat={makeTimeMinutes}
+                            marks={timeMarks}
+                        />
+                    </Box>
+                    <Button color="secondary" variant="contained" onClick={HandleSubmit}
+                            sx={{width: "100pt"}}>Reserve</Button>
+                </Stack>
+            </Typography>
         </ContentWrapper>
     )
 }
 
-function Reservation ({reservation, is_current_reservation=false}) {
+function Reservation({reservation, is_current_reservation = false}) {
 
     let {triggerFetch, result} = useSomeAPI('/api/v0/users/' + reservation.user_id)
 
@@ -233,7 +234,7 @@ function Reservation ({reservation, is_current_reservation=false}) {
                             {reservedUsername}
                         </label>
                     </div>
-               </div>
+                </div>
             </div>
         </div>
     )
@@ -255,14 +256,14 @@ function ReservationsList({reservations}) {
 
     const reservationsList = []
     reservations.forEach((reservation) => {
-            reservationsList.push (
-                // <li>
-                    <Reservation reservation={reservation}/>
-                // </li>
-            )
-        })
+        reservationsList.push(
+            // <li>
+            <Reservation reservation={reservation}/>
+            // </li>
+        )
+    })
 
-    if (isAuthorized) {
+    if (isAuthorized && currentUser != null) {
         const current_reservation = {
             from: toAPITime(date, from),
             until: toAPITime(date, until),
@@ -320,14 +321,16 @@ function RoomDate({date, setDate}) {
                     </label>
                 </div>
                 <div className="room-date-value">
-                    <input className="form-input" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+                    <input className="form-input" type="date" value={date} onChange={(e) => setDate(e.target.value)}/>
                 </div>
                 <div className="room-date-buttons">
                     <div className="room-date-button-wrapper">
-                        <input className="room-date-button" type="button" value="◄" onClick={() => setDate(updateDate(date, -1))}/>
+                        <input className="room-date-button" type="button" value="◄"
+                               onClick={() => setDate(updateDate(date, -1))}/>
                     </div>
                     <div className="room-date-button-wrapper">
-                        <input className="room-date-button" type="button" value="►" onClick={() => setDate(updateDate(date, +1))}/>
+                        <input className="room-date-button" type="button" value="►"
+                               onClick={() => setDate(updateDate(date, +1))}/>
                     </div>
                 </div>
             </div>
@@ -348,27 +351,25 @@ function Room() {
     const page_name = "Classroom: " + room_info.name
 
     return (
-        <ContentWrapper page_name={page_name}>
         <CurrentReservationContext.Provider value={{date, setDate, from, setFrom, until, setUntil}}>
-            <div className="room-wrapper">
-                <div className='room-info'>
-                    <div className='room-description'>{room_info.description}</div>
-                     <div className='room-date'>
-                        <RoomDate date={date} setDate={setDate}/>
-                    </div>
-                    <div className='reservations-info'>
-                        <div>
-                            <div className='reservations-label'>Reservations on {date}:</div>
+            <ContentWrapper page_name={page_name}>
+                <div className="room-wrapper">
+                    <div className='room-info'>
+                        <div className='room-description'>{room_info.description}</div>
+                        <div className='room-date'>
+                            <RoomDate date={date} setDate={setDate}/>
                         </div>
-                        <ReservationsList reservations={reservations}></ReservationsList>
+                        <div className='reservations-info'>
+                            <div>
+                                <div className='reservations-label'>Reservations on {date}:</div>
+                            </div>
+                            <ReservationsList reservations={reservations}></ReservationsList>
+                        </div>
                     </div>
                 </div>
-                <div className='room-booking-form'>
-                    <BookingForm room_id={room_info.id} date={date} triggerGetReservations={triggerGetReservations}/>
-                </div>
-            </div>
+            </ContentWrapper>
+            <BookingForm room_id={room_info.id} date={date} triggerGetReservations={triggerGetReservations}/>
         </CurrentReservationContext.Provider>
-    </ContentWrapper>
     );
 }
 

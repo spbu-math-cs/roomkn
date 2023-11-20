@@ -69,7 +69,11 @@ export function useAuthorizeByCookie() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [finishedValidate, resultValidate, fetchFlagValidate])
 
-    let {triggerFetch: triggerFetchUser, result: resultUser, finished: finishedUser} = useSomeAPI('/api/v0/users/' + currentUser?.user_id)
+    let {
+        triggerFetch: triggerFetchUser,
+        result: resultUser,
+        finished: finishedUser
+    } = useSomeAPI('/api/v0/users/' + currentUser?.user_id)
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
@@ -145,7 +149,7 @@ export function useRegister(username, password, email) {
     const user = {
         username: username,
         password: password,
-        email:    email
+        email: email
     }
 
     const {result, statusCode, headers, triggerFetch, finished} = useSomeAPI("/api/v0/register", user, "POST")

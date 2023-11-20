@@ -2,8 +2,9 @@ import './Navbar.css';
 import React, {useContext, useEffect} from "react";
 
 
-import { NavLink } from "react-router-dom";
+import {NavLink} from "react-router-dom";
 import {CurrentUserContext, IsAuthorizedContext, useLogout} from "./Auth";
+import {Paper} from "@mui/material";
 
 const NavSignIn = () => {
     const {isAuthorized} = useContext(IsAuthorizedContext)
@@ -59,13 +60,13 @@ const NavSignIn = () => {
         )
     }
 }
- 
+
 const Navbar = () => {
     return (
-        <>
+        <Paper elevation={15}>
             <nav className='nav'>
                 <div className='nav-logo-wrapper'>
-                    <img src="/logo512.png" alt="MKN logo dark" className="nav-logo" />
+                    <img src="/logo512.png" alt="MKN logo dark" className="nav-logo"/>
                 </div>
 
                 <div className='nav-link-wrapper'>
@@ -80,17 +81,19 @@ const Navbar = () => {
                             <NavLink to="/my-reservations" className="navlink">
                                 My reservations
                             </NavLink>
-
+                            <NavLink to="/admin/panel" className="navlink">
+                                Admin panel
+                            </NavLink>
                         </div>
                         <div className="navbar-right">
-                            <NavSignIn />
+                            <NavSignIn/>
                         </div>
                     </div>
                 </div>
-                
+
             </nav>
-        </>
+        </Paper>
     );
 };
- 
+
 export default Navbar;
