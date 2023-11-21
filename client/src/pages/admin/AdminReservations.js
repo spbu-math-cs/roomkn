@@ -102,7 +102,8 @@ function changeFiltersVisibility() {
     else elem.className = "filters-none"
 }
 
-function changeOnFromUntilChange() {
+function changeOnFromUntilChange(e) {
+    e.preventDefault();
     alert("Победа!")
 }
 
