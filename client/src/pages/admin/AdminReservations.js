@@ -1,14 +1,16 @@
 import ContentWrapper from "../../components/Content";
-import React, {useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import AdminWrapper from "../../components/AdminWrapper";
 import {NavLink} from "react-router-dom";
 import useSomeAPI from "../../api/FakeAPI";
 import {fromAPITime} from "../../api/API";
+import "./AdminReservations.css"
 
 // function useGetUsers() {
 // }
 
 function useGetUsersShortInfo() {
+
     let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/users')
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -22,7 +24,7 @@ function useGetUserReservations(userId) {
 
     useEffect(() => triggerFetch(), [userId]);
 
-    if (finished && statusCode === 200 && result != null)  return result
+    if (finished && statusCode === 200 && result != null) return result
     return []
 }
 
@@ -30,7 +32,7 @@ function Users() {
     const usersShortInfoList = useGetUsersShortInfo()
     let userList = []
     usersShortInfoList.forEach((shortUserInfo) => {
-        userList.push (<li><label> Пользователь {shortUserInfo.username}</label></li>)
+        userList.push(<li><label> Пользователь {shortUserInfo.username} номер {shortUserInfo.id}</label></li>)
     })
 
     // const allReservationsList = useGetAllReservations()
@@ -63,7 +65,8 @@ function Reservation({reservation}) {
     if (statusCode === 200 && result != null && finished) {
         const room_name = result.name
         return <label className='reservation-info-label'>
-            Комната {room_name} заразервирована человком {reservation.user_id} на {from_obj.date} с {from_obj.time} по {until_obj.time}
+            Комната {room_name} заразервирована
+            человком {reservation.user_id} на {from_obj.date} с {from_obj.time} по {until_obj.time}
         </label>
     }
     return <div></div>
@@ -72,14 +75,47 @@ function Reservation({reservation}) {
 function useGetAllReservations() {
     const usersShortInfoList = useGetUsersShortInfo()
     const allReservations = []
-    usersShortInfoList.forEach((userShortInfo) => {
+    for (let i = 0; i < usersShortInfoList.length; i++) {
+        const userShortInfo = usersShortInfoList[i]
         // const reservations = useGetUserReservations(userShortInfo.id)
         const reservations = []
         reservations.forEach((reservation) => {
             allReservations.push(reservation)
         })
-    })
+    }
+
     return allReservations
+}
+
+function changeOrderBy(newOrderBy) {
+    //TODO
+}
+
+function Filters() {
+    return (
+        <table>
+            <tbody>
+            <tr>
+                <td>
+                    Фильтры:
+                    <div className="filters-none">
+                        sdfsdfgffdfasdf
+                    </div>
+                </td>
+                <td>
+                    Отсортировать по:
+                    <select onChange={(e) => {
+                        changeOrderBy(e.target.value)
+                    }}>
+                        <option value="users">Именам пользователей</option>
+                        <option value="rooms">Комнатам</option>
+                        <option value="time">Времени резервации</option>
+                    </select>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    )
 }
 
 function AdminReservations() {
@@ -92,11 +128,12 @@ function AdminReservations() {
         </div>
     )
     return (
-    <AdminWrapper>
-        <ContentWrapper page_name = {page_name}>
-            <Users/>
-        </ContentWrapper>
-    </AdminWrapper>)
+        <AdminWrapper>
+            <ContentWrapper page_name={page_name}>
+                <Filters/>
+                <Users/>
+            </ContentWrapper>
+        </AdminWrapper>)
 }
 
 export default AdminReservations
