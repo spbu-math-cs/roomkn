@@ -91,16 +91,19 @@ function changeOrderBy(newOrderBy) {
     //TODO
 }
 
+function changeFiltersVisibility() {
+    const elem = document.getElementById("filters")
+    if (elem.className === "filters-none") elem.className = "filters-ok"
+    else elem.className = "filters-none"
+}
+
 function Filters() {
     return (
         <table>
             <tbody>
             <tr>
                 <td>
-                    Фильтры:
-                    <div className="filters-none">
-                        sdfsdfgffdfasdf
-                    </div>
+                    <button onClick={changeFiltersVisibility}> Фильтры </button>
                 </td>
                 <td>
                     Отсортировать по:
@@ -112,6 +115,11 @@ function Filters() {
                         <option value="time">Времени резервации</option>
                     </select>
                 </td>
+            </tr>
+            <tr>
+                <td><div className="filters-none" id = "filters">
+                    sdfsdfgffdfasdf
+                </div></td>
             </tr>
             </tbody>
         </table>
