@@ -1,13 +1,11 @@
 import ContentWrapper from "../../components/Content";
-import React, {useEffect, useState} from "react";
+import React, {useEffect} from "react";
 import AdminWrapper from "../../components/AdminWrapper";
 import {NavLink} from "react-router-dom";
 import useSomeAPI from "../../api/FakeAPI";
 import {fromAPITime} from "../../api/API";
 import "./AdminReservations.css"
 
-// function useGetUsers() {
-// }
 
 function useGetUsersShortInfo() {
 
@@ -75,14 +73,13 @@ function Reservation({reservation}) {
 function useGetAllReservations() {
     const usersShortInfoList = useGetUsersShortInfo()
     const allReservations = []
-    for (let i = 0; i < usersShortInfoList.length; i++) {
-        const userShortInfo = usersShortInfoList[i]
+    usersShortInfoList.forEach((userShortInfo) => {
         // const reservations = useGetUserReservations(userShortInfo.id)
         const reservations = []
         reservations.forEach((reservation) => {
             allReservations.push(reservation)
         })
-    }
+    })
 
     return allReservations
 }
@@ -97,7 +94,36 @@ function changeFiltersVisibility() {
     else elem.className = "filters-none"
 }
 
+function changeOnFromUntilChange() {
+
+}
+
+function dateFormat(date, format = "yyyy-mm-dd") {
+    let mlz = ""
+    if (date.getMonth() + 1 < 10) mlz = "0"
+    let dlz = ""
+    if (date.getDate() < 10) dlz = "0"
+    const map = {
+        mm: mlz + (date.getMonth() + 1),
+        dd: dlz + date.getDate(),
+        yyyy: date.getFullYear(),
+        // yy: date.getFullYear().toString().slice(-2)
+    }
+
+    return format.replace(/mm|dd|yyyy/gi, matched => map[matched])
+}
+
+function getTodayDate(format = "yyyy-mm-dd") {
+    const date = new Date()
+
+    return dateFormat(date, format)
+}
+
 function Filters() {
+    const today = getTodayDate()
+    console.log(today + "T09:30")
+    const [from, setFrom] = React.useState(today + "T09:30")
+    const [until, setUntil] = React.useState(today + "T23:59")
     return (
         <table>
             <tbody>
@@ -118,7 +144,28 @@ function Filters() {
             </tr>
             <tr>
                 <td><div className="filters-none" id = "filters">
-                    sdfsdfgffdfasdf
+                    <form className="form-admin-reservation" onSubmit={changeOnFromUntilChange}>
+                        <div>
+                            <label>
+                                От
+                            </label>
+                            <input type="datetime-local" value={from}/>
+                        </div>
+                        <div>
+                            <label>
+                                До
+                            </label>
+                            <input type="datetime-local" value={until}/>
+                        </div>
+                        <div>
+                            Пользователи:
+                        </div>
+                        <div>
+                            Комнаты:
+                        </div>
+                        <input type="submit" value="Обновить"></input>
+                    </form>
+
                 </div></td>
             </tr>
             </tbody>
