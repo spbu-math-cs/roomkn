@@ -5,7 +5,6 @@ import {NavLink} from "react-router-dom";
 import useSomeAPI from "../../api/FakeAPI";
 import {fromAPITime} from "../../api/API";
 import "./AdminReservations.css"
-import room from "../Room";
 
 
 function useGetUsersShortInfo() {
@@ -128,7 +127,7 @@ function getTodayDate(format = "yyyy-mm-dd") {
     return dateFormat(date, format)
 }
 
-function UsersInSelect({userInfo, form}) {
+function UserInSelect({userInfo, form}) {
     let [checked, setChecked] = useState(true)
     const inputId = "take-user-" + userInfo.id
     return (
@@ -139,12 +138,23 @@ function UsersInSelect({userInfo, form}) {
     )
 }
 
+function RoomInSelect({roomInfo, form}) {
+    let [checked, setChecked] = useState(false)
+    const inputId = "take-user-" + roomInfo.name
+    return (
+        <div>
+            <input type="checkbox" id={inputId} form={form} checked={checked} onChange={() => {setChecked(!checked)}}/>
+            <label>{roomInfo.name}</label>
+        </div>
+    )
+}
+
 function UserSelect({form}) {
     const users = useGetUsersShortInfo()
     const usersWithCheckbox = []
     users.forEach((userInfo) => {
         usersWithCheckbox.push(
-            <UsersInSelect userInfo={userInfo} form={form}/>
+            <UserInSelect userInfo={userInfo} form={form}/>
         )
     })
     return (
@@ -159,12 +169,8 @@ function RoomsSelect({form}) {
     console.log("rooms:" + rooms)
     const roomsWithCheckbox = []
     rooms.forEach((roomInfo) => {
-        const inputId = "take-room-" + roomInfo.name
         roomsWithCheckbox.push(
-            <div>
-                <input type="checkbox" id={inputId} form={form}/>
-                <label>{roomInfo.name}</label>
-            </div>
+            <RoomInSelect roomInfo={roomInfo} form={form}/>
         )
     })
     return (
@@ -178,7 +184,7 @@ function Filters() {
     const today = getTodayDate()
     console.log(today + "T09:30")
     const [from, setFrom] = React.useState(today + "T09:30")
-    const [until, setUntil] = React.useState(today + "T23:59")
+    const [until, setUntil] = React.useState(today + "T23:00")
     return (
         <table>
             <tbody>
@@ -204,13 +210,13 @@ function Filters() {
                             <label>
                                 От
                             </label>
-                            <input type="datetime-local" value={from}/>
+                            <input type="datetime-local" value={from} onChange={(e) => {setFrom(e.target.value)}}/>
                         </div>
                         <div>
                             <label>
                                 До
                             </label>
-                            <input type="datetime-local" value={until}/>
+                            <input type="datetime-local" value={until} onChange={(e) => {setUntil(e.target.value)}}/>
                         </div>
                         <div>
                             Пользователи:
