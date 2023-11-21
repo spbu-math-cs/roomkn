@@ -20,6 +20,8 @@ val logbackVersion = extra["logback.version"] as String
 val postgresVersion = extra["postgres.version"] as String
 val embeddedPostgresVersion = extra["embedded_postgres.version"] as String
 val junitVersion = extra["junit.version"] as String
+val koinVersion = extra["koin.version"] as String
+val koinTestVersion = extra["koin.test.version"] as String
 
 dependencies {
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
@@ -35,17 +37,19 @@ dependencies {
     implementation("io.ktor:ktor-server-cors:$ktorVersion")
     implementation("io.ktor:ktor-server-auth:$ktorVersion")
     implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")
-    implementation("io.ktor:ktor-server-sessions:$ktorVersion   ")
+    implementation("io.ktor:ktor-server-sessions:$ktorVersion")
 
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
 
-    testImplementation(platform("org.junit:junit-bom:$junitVersion"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    implementation("io.insert-koin:koin-ktor:$koinVersion")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+
+    testImplementation("io.insert-koin:koin-test:$koinTestVersion") {
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-test-junit")
+    }
 }
 
 dependencies {

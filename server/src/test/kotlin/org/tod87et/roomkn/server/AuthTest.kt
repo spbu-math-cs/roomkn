@@ -10,11 +10,9 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.tod87et.roomkn.server.KtorTestEnv.testJsonApplication
 import org.tod87et.roomkn.server.auth.userId
-import org.tod87et.roomkn.server.database.DatabaseFactory
 import org.tod87et.roomkn.server.models.users.LoginUserInfo
 import org.tod87et.roomkn.server.models.users.UnregisteredUserInfo
 import kotlin.test.assertContains
@@ -27,7 +25,7 @@ class AuthTest {
     private val logoutPath = "$apiPath/logout"
     private val validatePath = "$apiPath/auth/validate-token"
 
-    private val accountManager = KtorTestEnv.accountManager
+    private val accountManager = KtorTestEnv.accountController
 
     @Test
     fun register() = testJsonApplication { client ->
@@ -46,7 +44,7 @@ class AuthTest {
     }
 
     @Test
-    fun registerFailure() = testJsonApplication {  client ->
+    fun registerFailure() = testJsonApplication { client ->
         accountManager.registerUser(
             UnregisteredUserInfo(
                 "Root",
@@ -70,7 +68,7 @@ class AuthTest {
     }
 
     @Test
-    fun login() = testJsonApplication {  client ->
+    fun login() = testJsonApplication { client ->
         accountManager.registerUser(
             UnregisteredUserInfo(
                 "Root",
@@ -93,7 +91,7 @@ class AuthTest {
     }
 
     @Test
-    fun validateToken() = testJsonApplication {  client ->
+    fun validateToken() = testJsonApplication { client ->
         val session = accountManager.registerUser(
             UnregisteredUserInfo(
                 "Root",
@@ -118,7 +116,7 @@ class AuthTest {
     }
 
     @Test
-    fun logout() = testJsonApplication {  client ->
+    fun logout() = testJsonApplication { client ->
         accountManager.registerUser(
             UnregisteredUserInfo(
                 "Root",
@@ -146,14 +144,6 @@ class AuthTest {
 
     @AfterEach
     fun clearTestDatabase() {
-        DatabaseFactory.database.clear()
-    }
-
-    companion object {
-        @JvmStatic
-        @BeforeAll
-        fun connectToTestDatabase() {
-            KtorTestEnv.resetDatabase()
-        }
+        KtorTestEnv.resetDatabase()
     }
 }

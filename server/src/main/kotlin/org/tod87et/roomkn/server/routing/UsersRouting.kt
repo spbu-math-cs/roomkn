@@ -17,83 +17,85 @@ import org.tod87et.roomkn.server.auth.AuthenticationProvider
 import org.tod87et.roomkn.server.auth.NoSuchUserException
 import org.tod87et.roomkn.server.auth.permissions
 import org.tod87et.roomkn.server.auth.userId
-import org.tod87et.roomkn.server.database.DatabaseFactory
+import org.tod87et.roomkn.server.database.Database
+import org.tod87et.roomkn.server.di.injectDatabase
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
 import org.tod87et.roomkn.server.util.defaultExceptionHandler
 
 fun Route.usersRouting() {
+    val database: Database by injectDatabase()
     authenticate(AuthenticationProvider.SESSION) {
         route("/users") {
-            listUsers()
-            updateUser()
-            deleteUser()
-            getUser()
-            listUserPermissions()
-            setUserPermissions()
+            listUsers(database)
+            updateUser(database)
+            deleteUser(database)
+            getUser(database)
+            listUserPermissions(database)
+            setUserPermissions(database)
         }
     }
 }
 
-private fun Route.listUsers() {
+private fun Route.listUsers(database: Database) {
     get {
         call.requirePermission { return@get call.onMissingPermission() }
 
-        DatabaseFactory.database.getUsers()
+        database.getUsers()
             .onSuccess { call.respond(it) }
             .onFailure { call.handleException(it) }
     }
 }
 
-private fun Route.deleteUser() {
+private fun Route.deleteUser(database: Database) {
     delete("/{id}") {
         val id = call.parameters["id"]?.toInt() ?: return@delete call.onMissingId()
         call.requirePermission { return@delete call.onMissingPermission() }
 
-        DatabaseFactory.database.deleteUser(id)
+        database.deleteUser(id)
             .onSuccess { call.respond("Ok") }
             .onFailure { call.handleException(it) }
     }
 }
 
-private fun Route.updateUser() {
+private fun Route.updateUser(database: Database) {
     put("/{id}") { body: UpdateUserInfo ->
         val id = call.parameters["id"]?.toInt() ?: return@put call.onMissingId()
         call.requirePermissionOrSelf(id) { return@put call.onMissingPermission() }
 
-        DatabaseFactory.database.updateUserInfo(id, body)
+        database.updateUserInfo(id, body)
             .onSuccess { call.respond("Ok") }
             .onFailure { call.handleException(it) }
     }
 }
 
-private fun Route.listUserPermissions() {
+private fun Route.listUserPermissions(database: Database) {
     get("/{id}/permissions") {
         val id = call.parameters["id"]?.toInt() ?: return@get call.onMissingId()
         call.requirePermissionOrSelf(id) { return@get call.onMissingPermission() }
 
-        DatabaseFactory.database.getUserPermissions(id)
+        database.getUserPermissions(id)
             .onSuccess { call.respond(it) }
             .onFailure { call.handleException(it) }
     }
 }
 
-private fun Route.getUser() {
+private fun Route.getUser(database: Database) {
     get("/{id}") {
         val id = call.parameters["id"]?.toInt() ?: return@get call.onMissingId()
 
-        DatabaseFactory.database.getUser(id)
+        database.getUser(id)
             .onSuccess { call.respond(it) }
             .onFailure { call.handleException(it) }
     }
 }
 
-private fun Route.setUserPermissions() {
+private fun Route.setUserPermissions(database: Database) {
     put("/{id}/permissions") { body: List<UserPermission> ->
         val id = call.parameters["id"]?.toInt() ?: return@put call.onMissingId()
         call.requirePermission { return@put call.onMissingPermission() }
 
-        DatabaseFactory.database.updateUserPermissions(id, body)
+        database.updateUserPermissions(id, body)
             .onSuccess { call.respondText("Ok") }
             .onFailure { call.handleException(it) }
     }

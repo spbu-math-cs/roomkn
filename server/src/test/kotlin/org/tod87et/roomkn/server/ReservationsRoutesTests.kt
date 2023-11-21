@@ -9,10 +9,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.datetime.Instant
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import org.tod87et.roomkn.server.database.DatabaseFactory
 import org.tod87et.roomkn.server.models.reservations.Reservation
 import org.tod87et.roomkn.server.models.reservations.ReservationRequest
 import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
@@ -96,7 +93,7 @@ class ReservationsRoutesTests {
         val expectedReservation = reqReservation.toRegistered(userId = myId, reservationId = resp.id)
 
         assertEquals(expectedReservation, resp)
-        assertEquals(expectedReservation, DatabaseFactory.database.getReservation(resp.id).getOrThrow())
+        assertEquals(expectedReservation, KtorTestEnv.database.getReservation(resp.id).getOrThrow())
     }
 
     @Test
@@ -119,7 +116,7 @@ class ReservationsRoutesTests {
         val expectedReservation = reqReservation.toRegistered(userId = myId, reservationId = resp.id)
 
         assertEquals(expectedReservation, resp)
-        assertEquals(expectedReservation, DatabaseFactory.database.getReservation(resp.id).getOrThrow())
+        assertEquals(expectedReservation, KtorTestEnv.database.getReservation(resp.id).getOrThrow())
     }
 
     @Test
@@ -135,12 +132,12 @@ class ReservationsRoutesTests {
             Instant.fromEpochMilliseconds(6.hours.inWholeMilliseconds),
             Instant.fromEpochMilliseconds(7.hours.inWholeMilliseconds)
         )
-        val reservation = DatabaseFactory.database.createReservation(reqReservation).getOrThrow()
+        val reservation = KtorTestEnv.database.createReservation(reqReservation).getOrThrow()
 
         val resp = client.delete(reservationPath(reservation.id))
 
         assertEquals(HttpStatusCode.OK, resp.status)
-        assertTrue(DatabaseFactory.database.getReservation(reservation.id).isFailure)
+        assertTrue(KtorTestEnv.database.getReservation(reservation.id).isFailure)
     }
 
     @Test
@@ -157,12 +154,12 @@ class ReservationsRoutesTests {
             Instant.fromEpochMilliseconds(6.hours.inWholeMilliseconds),
             Instant.fromEpochMilliseconds(7.hours.inWholeMilliseconds)
         )
-        val reservation = DatabaseFactory.database.createReservation(reqReservation).getOrThrow()
+        val reservation = KtorTestEnv.database.createReservation(reqReservation).getOrThrow()
 
         val resp = client.delete(reservationPath(reservation.id))
 
         assertEquals(HttpStatusCode.OK, resp.status)
-        assertTrue(DatabaseFactory.database.getReservation(reservation.id).isFailure)
+        assertTrue(KtorTestEnv.database.getReservation(reservation.id).isFailure)
     }
 
     @Test
@@ -179,12 +176,12 @@ class ReservationsRoutesTests {
             Instant.fromEpochMilliseconds(6.hours.inWholeMilliseconds),
             Instant.fromEpochMilliseconds(7.hours.inWholeMilliseconds)
         )
-        val reservation = DatabaseFactory.database.createReservation(reqReservation).getOrThrow()
+        val reservation = KtorTestEnv.database.createReservation(reqReservation).getOrThrow()
 
         val resp = client.delete(reservationPath(reservation.id))
 
         assertEquals(HttpStatusCode.Forbidden, resp.status)
-        assertEquals(reservation, DatabaseFactory.database.getReservation(reservation.id).getOrThrow())
+        assertEquals(reservation, KtorTestEnv.database.getReservation(reservation.id).getOrThrow())
     }
 
     private fun prepareAndRegisterReservations(userId: Int, roomId: Int, startHour: Int = 0): List<Reservation> {
@@ -196,7 +193,7 @@ class ReservationsRoutesTests {
         )
 
         return dates.zipWithNext { from, to ->
-            DatabaseFactory.database.createReservation(
+            KtorTestEnv.database.createReservation(
                 UnregisteredReservation(
                     userId,
                     roomId,
@@ -204,19 +201,6 @@ class ReservationsRoutesTests {
                     to
                 )
             ).getOrThrow()
-        }
-    }
-
-    @AfterEach
-    fun clearTestDatabase() {
-        DatabaseFactory.database.clear()
-    }
-
-    companion object {
-        @JvmStatic
-        @BeforeAll
-        fun connectToTestDatabase() {
-            KtorTestEnv.resetDatabase()
         }
     }
 }

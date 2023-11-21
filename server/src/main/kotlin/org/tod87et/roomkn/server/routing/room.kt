@@ -17,38 +17,39 @@ import io.ktor.server.routing.route
 import org.tod87et.roomkn.server.auth.AuthSession
 import org.tod87et.roomkn.server.auth.AuthenticationProvider
 import org.tod87et.roomkn.server.auth.permissions
-import org.tod87et.roomkn.server.database.DatabaseFactory
-import org.tod87et.roomkn.server.database.DatabaseFactory.database
+import org.tod87et.roomkn.server.database.Database
 import org.tod87et.roomkn.server.database.MissingElementException
+import org.tod87et.roomkn.server.di.injectDatabase
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 import org.tod87et.roomkn.server.util.defaultExceptionHandler
 import kotlin.math.min
 
 fun Route.roomsRouting() {
+    val database by injectDatabase()
     route("/rooms") {
-        rooms()
-        roomById()
-        roomReservationsRouting()
+        rooms(database)
+        roomById(database)
+        roomReservationsRouting(database)
         authenticate(AuthenticationProvider.SESSION) {
-            createRoom()
-            updateRoom()
-            deleteRoom()
+            createRoom(database)
+            updateRoom(database)
+            deleteRoom(database)
         }
     }
 }
 
-private fun Route.roomReservationsRouting() {
+private fun Route.roomReservationsRouting(database: Database) {
     get("{id}/reservations") {
-        roomReservationsRouteHandler()
+        roomReservationsRouteHandler(database)
     }
 }
 
-private fun Route.createRoom() {
+private fun Route.createRoom(database: Database) {
     post { body: NewRoomInfo ->
         call.requirePermission { return@post call.onMissingPermission() }
 
-        DatabaseFactory.database.createRoom(body)
+        database.createRoom(body)
             .onSuccess {
                 call.respond("Ok")
             }
@@ -58,12 +59,12 @@ private fun Route.createRoom() {
     }
 }
 
-private fun Route.deleteRoom() {
+private fun Route.deleteRoom(database: Database) {
     delete("/{id}") {
         val id = call.parameters["id"]?.toInt() ?: return@delete call.onMissingId()
         call.requirePermission { return@delete call.onMissingPermission() }
 
-        DatabaseFactory.database.deleteRoom(id)
+        database.deleteRoom(id)
             .onSuccess {
                 call.respond("Ok")
             }
@@ -73,12 +74,12 @@ private fun Route.deleteRoom() {
     }
 }
 
-private fun Route.updateRoom() {
+private fun Route.updateRoom(database: Database) {
     put("/{id}") { body: NewRoomInfo ->
         val id = call.parameters["id"]?.toInt() ?: return@put call.onMissingId()
         call.requirePermission { return@put call.onMissingPermission() }
 
-        DatabaseFactory.database.updateRoom(id, body)
+        database.updateRoom(id, body)
             .onSuccess {
                 call.respond("Ok")
             }
@@ -88,7 +89,7 @@ private fun Route.updateRoom() {
     }
 }
 
-private fun Route.rooms() {
+private fun Route.rooms(database: Database) {
     get {
         val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: Int.MAX_VALUE
         val offset = call.request.queryParameters["offset"]?.toIntOrNull() ?: 0
@@ -123,7 +124,7 @@ private fun Route.rooms() {
     }
 }
 
-private fun Route.roomById() {
+private fun Route.roomById(database: Database) {
     get("/{id}") {
         val id = call.parameters["id"]?.toIntOrNull() ?: return@get call.respondText(
             "Id should be int",

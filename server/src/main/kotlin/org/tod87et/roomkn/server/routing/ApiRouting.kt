@@ -2,14 +2,13 @@ package org.tod87et.roomkn.server.routing
 
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
-import org.tod87et.roomkn.server.auth.AccountController
 
-fun Route.apiRouting(accountController: AccountController) {
+fun Route.apiRouting() {
     route("/api/v0") {
         pingRouting()
         reservationsRouting()
         roomsRouting()
-        accountRouting(accountController)
+        accountRouting()
         usersRouting()
     }
 }

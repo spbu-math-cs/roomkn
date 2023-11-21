@@ -9,20 +9,30 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
+import io.ktor.server.application.*
+import io.ktor.server.application.Application
 import io.ktor.server.config.ApplicationConfig
-import io.ktor.server.config.tryGetString
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
+import io.ktor.util.logging.KtorSimpleLogger
+import io.ktor.util.logging.Logger
+import io.zonky.test.db.postgres.embedded.EmbeddedPostgres
 import org.jetbrains.exposed.sql.exposedLogger
+import org.koin.dsl.module
+import org.koin.ktor.plugin.Koin
+import org.tod87et.roomkn.server.auth.AccountController
 import org.tod87et.roomkn.server.auth.AccountControllerImpl
 import org.tod87et.roomkn.server.auth.AuthConfig
 import org.tod87et.roomkn.server.auth.userId
-import org.tod87et.roomkn.server.database.DatabaseFactory
+import org.tod87et.roomkn.server.database.CredentialsDatabase
+import org.tod87et.roomkn.server.database.Database
+import org.tod87et.roomkn.server.database.DatabaseSession
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 import org.tod87et.roomkn.server.models.rooms.RoomInfo
 import org.tod87et.roomkn.server.models.users.LoginUserInfo
 import org.tod87et.roomkn.server.models.users.UnregisteredUserInfo
+import kotlin.concurrent.thread
 import kotlin.test.assertEquals
 
 
@@ -30,28 +40,38 @@ object KtorTestEnv {
     const val API_PATH = "/api/v0"
     const val LOGIN_PATH = "$API_PATH/login"
 
+    private val postgres = EmbeddedPostgres.start()
+    private val kTorConfig = ApplicationConfig("test.conf")
+
+    private val databaseSession = DatabaseSession(postgres.postgresDatabase)
+
+    private val authConfig = AuthConfig.Builder()
+        .database(databaseSession)
+        .credentialsDatabase(databaseSession)
+        .loadFromApplicationConfig(kTorConfig)
+        .build()
+
     init {
-        DatabaseFactory.initEmbedded()
+        Runtime.getRuntime().addShutdownHook(
+            thread(start = false) {
+                postgres.close()
+            }
+        )
     }
 
-    private val kTorConfig = ApplicationConfig("dev.conf")
-    val accountManager = AccountControllerImpl(
+    val database: Database get() = databaseSession
+
+    val credentialsDatabase: CredentialsDatabase get() = databaseSession
+
+    val accountController = AccountControllerImpl(
         exposedLogger,
-        AuthConfig.Builder()
-            .database(DatabaseFactory.database)
-            .credentialsDatabase(DatabaseFactory.credentialsDatabase)
-            .pepper(kTorConfig.tryGetString("auth.pepper")!!)
-            .secret(kTorConfig.tryGetString("jwt.secret")!!)
-            .issuer(kTorConfig.tryGetString("jwt.issuer")!!)
-            .audience(kTorConfig.tryGetString("jwt.audience")!!)
-            .build()
+        authConfig
     )
 
-    fun testJsonApplication(body: suspend ApplicationTestBuilder.(HttpClient) -> Unit) =
+    fun testJsonApplication(body: suspend ApplicationTestBuilder.(HttpClient) -> Unit) = try {
         testApplication {
             environment {
                 config = kTorConfig
-
             }
             val client = createClient {
                 install(ContentNegotiation) {
@@ -62,7 +82,9 @@ object KtorTestEnv {
 
             body(client)
         }
-
+    } finally {
+        resetDatabase()
+    }
 
     suspend fun HttpClient.createAndAuthAdmin(
         name: String = "Root",
@@ -82,9 +104,10 @@ object KtorTestEnv {
     }
 
     fun createUser(name: String, password: String = "qwerty", email: String = "$name@example.org"): Int {
-        val initialSession = accountManager.registerUser(UnregisteredUserInfo(name, email, password))
+        val initialSession = accountController.registerUser(UnregisteredUserInfo(name, email, password))
             .getOrThrow()
-        DatabaseFactory.database.updateUserPermissions(
+
+        database.updateUserPermissions(
             initialSession.userId,
             listOf(UserPermission.ReservationsCreate)
         ).getOrThrow()
@@ -98,9 +121,9 @@ object KtorTestEnv {
         email: String = "$name@example.org",
         permissions: List<UserPermission> = listOf(UserPermission.ReservationsCreate)
     ): Int {
-        val initialSession = accountManager.registerUser(UnregisteredUserInfo(name, email, password))
+        val initialSession = accountController.registerUser(UnregisteredUserInfo(name, email, password))
             .getOrThrow()
-        DatabaseFactory.database.updateUserPermissions(
+        database.updateUserPermissions(
             initialSession.userId,
             permissions
         ).getOrThrow()
@@ -115,10 +138,35 @@ object KtorTestEnv {
     }
 
     fun createRoom(name: String, desc: String = "Description of $name"): RoomInfo {
-        return DatabaseFactory.database.createRoom(NewRoomInfo(name, desc)).getOrThrow()
+        return database.createRoom(NewRoomInfo(name, desc)).getOrThrow()
     }
 
     fun resetDatabase() {
-        DatabaseFactory.database.clear()
+        databaseSession.clear()
+    }
+
+    @Suppress("unused") // Used in test.conf
+    fun Application.koinPlugin() {
+        install(Koin) {
+            modules(testKoinModule)
+        }
+    }
+
+    private val testKoinModule = module {
+        single<Logger> {
+            KtorSimpleLogger("TestLogger")
+        }
+        single<Database> {
+            database
+        }
+        single<CredentialsDatabase> {
+            credentialsDatabase
+        }
+        single<AuthConfig> {
+            authConfig
+        }
+        single<AccountController> {
+            accountController
+        }
     }
 }

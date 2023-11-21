@@ -1,6 +1,6 @@
 package org.tod87et.roomkn.server.auth
 
-import io.ktor.server.application.ApplicationEnvironment
+import io.ktor.server.config.ApplicationConfig
 import org.tod87et.roomkn.server.database.CredentialsDatabase
 import org.tod87et.roomkn.server.database.Database
 import org.tod87et.roomkn.server.util.checkField
@@ -41,13 +41,13 @@ class AuthConfig(
             private val DEFAULT_CLEANUP_INTERVAL = 1.hours
         }
 
-        fun loadEnvironment(env: ApplicationEnvironment) = apply {
+        fun loadFromApplicationConfig(config: ApplicationConfig) = apply {
             val decoder = Base64.getDecoder()
 
-            issuer = env.config.property("jwt.issuer").getString()
-            audience = env.config.property("jwt.audience").getString()
-            pepper = decoder.decode(env.config.property("auth.pepper").getString())
-            secret = decoder.decode(env.config.property("jwt.secret").getString())
+            issuer(config.property("jwt.issuer").getString())
+            audience(config.property("jwt.audience").getString())
+            pepper(decoder.decode(config.property("auth.pepper").getString()))
+            secret(decoder.decode(config.property("jwt.secret").getString()))
         }
 
         fun issuer(issuer: String) = apply { this.issuer = issuer }

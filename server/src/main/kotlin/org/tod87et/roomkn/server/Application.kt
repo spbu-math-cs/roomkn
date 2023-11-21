@@ -1,8 +1,7 @@
 package org.tod87et.roomkn.server
 
 import io.ktor.server.application.Application
-import org.tod87et.roomkn.server.auth.AccountControllerImpl
-import org.tod87et.roomkn.server.auth.AuthConfigFactory
+import io.ktor.util.logging.KtorSimpleLogger
 import org.tod87et.roomkn.server.plugins.configureAuthentication
 import org.tod87et.roomkn.server.plugins.configureCORS
 import org.tod87et.roomkn.server.plugins.configureCleanup
@@ -11,13 +10,13 @@ import org.tod87et.roomkn.server.plugins.configureSerialization
 
 @Suppress("UNUSED") // Used through kTor modules in application.conf
 fun Application.module() {
-    val authConfig = AuthConfigFactory.createConfig(environment)
-    val accountController = AccountControllerImpl(environment.log, authConfig)
-    accountController.createZeroAdminIfRequested()
+    val logger = KtorSimpleLogger("RooMKN")
 
-    configureAuthentication(authConfig, accountController)
+    logger.info("Initializing RooMKN main module...")
+    configureAuthentication()
     configureCORS()
-    configureRouting(accountController)
+    configureRouting()
     configureSerialization()
-    configureCleanup(accountController)
+    configureCleanup()
+    logger.info("RooMKN main module has been initialized")
 }
