@@ -1,10 +1,11 @@
 import ContentWrapper from "../../components/Content";
-import React, {useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import AdminWrapper from "../../components/AdminWrapper";
 import {NavLink} from "react-router-dom";
 import useSomeAPI from "../../api/FakeAPI";
 import {fromAPITime} from "../../api/API";
 import "./AdminReservations.css"
+import room from "../Room";
 
 
 function useGetUsersShortInfo() {
@@ -12,6 +13,14 @@ function useGetUsersShortInfo() {
     let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/users')
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => triggerFetch(), []);
+    if (statusCode === 200 && finished && result != null) return result
+    return []
+}
+
+function useGetRooms() {
+    let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/rooms')
+
     useEffect(() => triggerFetch(), []);
     if (statusCode === 200 && finished && result != null) return result
     return []
@@ -95,7 +104,7 @@ function changeFiltersVisibility() {
 }
 
 function changeOnFromUntilChange() {
-
+    alert("Победа!")
 }
 
 function dateFormat(date, format = "yyyy-mm-dd") {
@@ -117,6 +126,52 @@ function getTodayDate(format = "yyyy-mm-dd") {
     const date = new Date()
 
     return dateFormat(date, format)
+}
+
+function UsersInSelect({userInfo, form}) {
+    let [checked, setChecked] = useState(true)
+    const inputId = "take-user-" + userInfo.id
+    return (
+        <div>
+            <input type="checkbox" id={inputId} form={form} checked={checked} onChange={() => {setChecked(!checked)}}/>
+            <label>{userInfo.username}</label>
+        </div>
+    )
+}
+
+function UserSelect({form}) {
+    const users = useGetUsersShortInfo()
+    const usersWithCheckbox = []
+    users.forEach((userInfo) => {
+        usersWithCheckbox.push(
+            <UsersInSelect userInfo={userInfo} form={form}/>
+        )
+    })
+    return (
+        <fieldset>
+            {usersWithCheckbox}
+        </fieldset>
+    )
+}
+
+function RoomsSelect({form}) {
+    const rooms = useGetRooms()
+    console.log("rooms:" + rooms)
+    const roomsWithCheckbox = []
+    rooms.forEach((roomInfo) => {
+        const inputId = "take-room-" + roomInfo.name
+        roomsWithCheckbox.push(
+            <div>
+                <input type="checkbox" id={inputId} form={form}/>
+                <label>{roomInfo.name}</label>
+            </div>
+        )
+    })
+    return (
+        <fieldset>
+            {roomsWithCheckbox}
+        </fieldset>
+    )
 }
 
 function Filters() {
@@ -159,9 +214,11 @@ function Filters() {
                         </div>
                         <div>
                             Пользователи:
+                            <UserSelect formId="form-admin-reservations"/>
                         </div>
                         <div>
                             Комнаты:
+                            <RoomsSelect form="form-admin-reservations"/>
                         </div>
                         <input type="submit" value="Обновить"></input>
                     </form>
