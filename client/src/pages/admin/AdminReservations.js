@@ -104,7 +104,7 @@ function changeFiltersVisibility() {
 
 function changeOnFromUntilChange(e) {
     e.preventDefault();
-    alert("Победа!")
+    alert("Ждем API...")
 }
 
 function dateFormat(date, format = "yyyy-mm-dd") {
