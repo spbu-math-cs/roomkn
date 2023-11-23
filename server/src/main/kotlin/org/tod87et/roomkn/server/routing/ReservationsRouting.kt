@@ -114,6 +114,7 @@ private fun Route.reserveRouting(database: Database) {
         val usersIds = call.request.queryParameters["users"] ?: ""
         val roomsIds = call.request.queryParameters["rooms"] ?: ""
         //TODO parse usersIds & roomsIds to arrays
+        //TODO add to documentation
     }
     post { body: ReservationRequest ->
         val userId = call.principal<AuthSession>()!!.userId
