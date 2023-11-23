@@ -13,6 +13,9 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.util.pipeline.PipelineContext
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import kotlinx.datetime.toInstant
 import org.tod87et.roomkn.server.auth.AuthSession
 import org.tod87et.roomkn.server.auth.AuthenticationProvider
 import org.tod87et.roomkn.server.auth.permissions
@@ -105,6 +108,13 @@ private fun Route.reservationDeleteRouting(database: Database) {
 }
 
 private fun Route.reserveRouting(database: Database) {
+    get {
+        val from = call.request.queryParameters["from"]?.toInstant() ?: Instant.fromEpochMilliseconds(0)
+        val until: Instant = call.request.queryParameters["until"]?.toInstant() ?: Clock.System.now()
+        val usersIds = call.request.queryParameters["users"] ?: ""
+        val roomsIds = call.request.queryParameters["rooms"] ?: ""
+        //TODO parse usersIds & roomsIds to arrays
+    }
     post { body: ReservationRequest ->
         val userId = call.principal<AuthSession>()!!.userId
 
