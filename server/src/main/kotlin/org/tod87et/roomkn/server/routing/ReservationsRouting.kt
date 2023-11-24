@@ -28,6 +28,7 @@ import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.reservations.ReservationRequest
 import org.tod87et.roomkn.server.models.reservations.toUnregisteredReservation
 import org.tod87et.roomkn.server.util.defaultExceptionHandler
+import kotlin.time.Duration.Companion.days
 
 fun Route.reservationsRouting() {
     val database by injectDatabase()
@@ -107,14 +108,44 @@ private fun Route.reservationDeleteRouting(database: Database) {
     }
 }
 
+/**
+ * If object is null, return Success(default)
+ * If object is not null and toInstant is successful, return Success with result
+ * Otherwise return Failure(error)
+ */
+private fun String?.toResultInstant(default: Instant): Result<Instant> {
+    return runCatching {
+        if (this == null) {
+            return@runCatching default
+        }
+        this.toInstant()
+    }
+}
+
 private fun Route.reserveRouting(database: Database) {
     get {
-        val from = call.request.queryParameters["from"]?.toInstant() ?: Instant.fromEpochMilliseconds(0)
-        val until: Instant = call.request.queryParameters["until"]?.toInstant() ?: Clock.System.now()
-        val usersIds = call.request.queryParameters["users"] ?: ""
-        val roomsIds = call.request.queryParameters["rooms"] ?: ""
-        //TODO parse usersIds & roomsIds to arrays
+        val fromResult = call.request.queryParameters["from"].toResultInstant(Instant.fromEpochMilliseconds(0))
+        val untilResult = call.request.queryParameters["until"].toResultInstant(Clock.System.now() + 1.days)
+        val usersIdsString = call.request.queryParameters["users"] ?: ""
+        val roomsIdsString = call.request.queryParameters["rooms"] ?: ""
+        val usersIds = usersIdsString.split(",").map { it.toIntOrNull() ?: return@get call.onMissingId() }
+        val roomsIds = roomsIdsString.split(",").map { it.toIntOrNull() ?: return@get call.onMissingId() }
         //TODO add to documentation
+        fromResult.onSuccess { from ->
+            untilResult.onSuccess { until ->
+                val result = database.getReservations(usersIds, roomsIds, from, until)
+                    .onSuccess {
+                        call.respond(HttpStatusCode.Created, it)
+                    }
+                    .onFailure {
+                        call.handleReservationException(it)
+                    }
+            }.onFailure {
+                call.onMissingTimestamp()
+            }
+        }.onFailure {
+            call.onMissingTimestamp()
+        }
     }
     post { body: ReservationRequest ->
         val userId = call.principal<AuthSession>()!!.userId
