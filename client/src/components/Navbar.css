@@ -2,7 +2,6 @@
     background: #ffffff;
     height: 85px;
     display: flex;
-    /*justify-content: space-between;*/
     padding: 0 100px;
     z-index: 12;
 }
@@ -20,10 +19,8 @@
 }
 
 .navdiv {
-    /*display: flex;*/
     height: 100%;
     width: 100%;
-    /* margin-left: 50%; */
 }
 
 .nav-link-wrapper {
@@ -40,15 +37,10 @@
     padding: 0 1rem;
     height: 100%;
     cursor: pointer;
-    /* &.active {
-      color: #4d4dff;
-    } */
     font-size: 20px;
 }
 
 .nav-logo-wrapper {
-    /*width: 20%;*/
-    /*height: 100%;*/
     align-items: center;
     display: flex;
     margin-right: 60px;
@@ -65,5 +57,4 @@
     margin-left: 1rem;
     border-radius: 10px;
     border: 1px solid #000;
-    /*background: url(<path-to-image>), lightgray 50% / cover no-repeat;*/
 }

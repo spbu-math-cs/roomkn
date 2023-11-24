@@ -5,7 +5,7 @@ import {NavLink} from "react-router-dom";
 
 import "./AdminRoomList.css"
 import AdminWrapper from "../../components/AdminWrapper";
-import {Box, Button, Stack, TextField} from "@mui/material";
+import {Box, Button, Stack, TextField, useTheme} from "@mui/material";
 import SnackbarAlert from "../../components/SnackbarAlert";
 
 function EditRoomRow({room, refresh}) {
@@ -68,12 +68,17 @@ function EditRoomRow({room, refresh}) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [deleteFinished])
 
+    const theme = useTheme()
 
     return (
-        <Stack direction="row" alignItems="baseline" spacing={2}>
+        <Stack direction="row" alignItems="baseline" spacing={theme.spacing()}>
             <Box sx={{minWidth: "30pt"}}>{room.id}</Box>
             <TextField label="Name" variant="outlined" value={name} onChange={(e) => setName(e.target.value)}/>
-            <TextField InputLabelProps={{shrink: true}} label="Description" variant="outlined" value={desc}
+            <TextField InputLabelProps={{shrink: true}}
+                       multiline
+                       maxRows={4}
+                       label="Description"
+                       variant="outlined" value={desc}
                        onChange={(e) => setDesc(e.target.value)}/>
             <Button variant="outlined" color="secondary" onClick={reset}>reset</Button>
             <Button variant="contained" color="success" onClick={put_req}>update</Button>
@@ -110,8 +115,10 @@ function AddRoom({refresh}) {
         //eslint-disable-next-line react-hooks/exhaustive-deps
     }, [addFinished])
 
+    const theme = useTheme()
+
     return (
-        <Stack direction="row" spacing={2}>
+        <Stack direction="row" spacing={theme.spacing()}>
             <TextField label="Name" variant="outlined" value={name} onChange={(e) => setName(e.target.value)}/>
             <TextField label="Description" variant="outlined" value={desc} onChange={(e) => setDesc(e.target.value)}/>
             <Button variant="contained" color="success" onClick={add_req}>add</Button>
@@ -149,10 +156,12 @@ export function AdminRoomList() {
         </div>
     )
 
+    const theme = useTheme()
+
     return (
         <AdminWrapper>
             <ContentWrapper page_name={page_name}>
-                <Stack spacing={2}>
+                <Stack spacing={theme.spacing()}>
                     {draw_list}
                 </Stack>
             </ContentWrapper>

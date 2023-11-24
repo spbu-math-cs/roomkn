@@ -9,7 +9,7 @@ function RoomRow({room}) {
     const link = "/room/" + String(room.id)
 
     return (
-        <ListItemButton href={link}>
+        <ListItemButton href={link} data-test-id={"link-" + room.id}>
             <ListItemText primary={room.name} secondary={room.description}/>
             <Divider/>
         </ListItemButton>

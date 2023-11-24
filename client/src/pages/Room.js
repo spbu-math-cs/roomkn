@@ -7,7 +7,6 @@ import {fromAPITime, toAPITime} from '../api/API';
 import useSomeAPI from '../api/FakeAPI';
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
 import {Box, Button, Slider, Stack, Typography} from "@mui/material";
-// import Form from '../components/Form'
 
 const CurrentReservationContext = createContext()
 const Start_day_time = "09:00"
@@ -92,7 +91,7 @@ const timeMarks = [...Array(25).keys()].map((_, idx, __) => {
 
 function BookingForm({room_id, triggerGetReservations}) {
 
-    const {date, setDate, from, setFrom, until, setUntil} = useContext(CurrentReservationContext)
+    const {date, from, setFrom, until, setUntil} = useContext(CurrentReservationContext)
 
     const {currentUser} = useContext(CurrentUserContext)
     const {triggerFetch, result, statusCode, finished} = useBookRoom(room_id, currentUser?.user_id, date, from, until);

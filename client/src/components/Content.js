@@ -1,5 +1,6 @@
 import './Content.css'
 import {Box, CardContent, CardHeader, Paper, Stack} from "@mui/material";
+import React from "react";
 
 function ContentWrapper({children, page_name, orientation}) {
     return (

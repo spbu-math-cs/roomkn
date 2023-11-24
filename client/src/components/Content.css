@@ -18,7 +18,6 @@
     border-left: 3px solid var(--idea-border-black, #1E1F22);
 
     text-align: center;
-    /* display: flex; */
 }
 
 .content-name {

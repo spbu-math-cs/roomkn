@@ -5,7 +5,7 @@ import {NavLink} from "react-router-dom";
 
 import "./AdminUserList.css"
 import AdminWrapper from "../../components/AdminWrapper";
-import {Button, Checkbox, FormControlLabel, Stack, TextField, Typography} from "@mui/material";
+import {Button, Checkbox, FormControlLabel, Stack, TextField, Typography, useTheme} from "@mui/material";
 
 function EditUserRow({user, refresh}) {
 
@@ -106,6 +106,7 @@ function EditUserRow({user, refresh}) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [deleteFinished])
 
+    const theme = useTheme();
 
     return (
         <ContentWrapper page_name={user.id}>
@@ -116,7 +117,7 @@ function EditUserRow({user, refresh}) {
                 <Stack sx={{paddingLeft: "10pt"}}>
                     {permissions_draw}
                 </Stack>
-                <Stack direction="row" spacing={2}>
+                <Stack direction="row" spacing={theme.spacing()}>
                     <Button variant="outlined" color="secondary" onClick={reset}>reset</Button>
                     <Button variant="contained" color="success" onClick={put_req}>update</Button>
                     <Button variant="outlined" color="error" onClick={delete_req}>delete</Button>

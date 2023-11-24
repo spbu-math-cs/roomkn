@@ -7,25 +7,10 @@
     width: 10%;
 }
 
-/*.edit-room-row-name {*/
-/*    color: #f2f3f5;*/
-/*    background: #1E1F22;*/
-/*}*/
-
-/*.edit-room-row-desc {*/
-/*    color: #f2f3f5;*/
-/*    background: #1E1F22;*/
-/*}*/
-
 .edit-room-row-update {
     color: #f2f3f5;
     background: darkgreen;
 }
-
-/*.edit-room-row-reset {*/
-/*    color: #f2f3f5;*/
-/*    background: #1E1F22;*/
-/*}*/
 
 .edit-room-row-delete {
     color: #f2f3f5;
@@ -38,16 +23,6 @@
     width: 100%;
     margin-top: 40px;
 }
-
-/*.add-room-row-name {*/
-/*    color: #f2f3f5;*/
-/*    background: #1E1F22;*/
-/*}*/
-
-/*.add-room-row-desc {*/
-/*    color: #f2f3f5;*/
-/*    background: #1E1F22;*/
-/*}*/
 
 .add-room-row-add {
     color: #f2f3f5;

@@ -1,6 +1,7 @@
 import ContentWrapper from "../../components/Content";
 import {NavLink} from "react-router-dom";
 import AdminWrapper from "../../components/AdminWrapper";
+import React from "react";
 
 export function AdminPanel() {
     return (

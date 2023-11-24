@@ -39,10 +39,6 @@
     display: flex;
 }
 
-.room-date-button-wrapper {
-    /*height: 50%;*/
-}
-
 .room-date-button {
     background: transparent;
     font-size: 30px;
@@ -84,9 +80,6 @@
 }
 
 .reservation-list-wrapper {
-    /*display: flex;*/
-    /*flex-direction: column;*/
-    /*background: white;*/
     height: 150px;
     width: 90%;
     position: relative;
@@ -94,10 +87,7 @@
 }
 
 .reservation-list-background {
-    /*display: flex;*/
-    /*flex-direction: column;*/
     position: relative;
-    /*background: #1E1F22;*/
     height: 146px;
     width: 100%;
 
