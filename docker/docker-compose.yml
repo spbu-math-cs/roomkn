@@ -28,5 +28,5 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
       - PEPPER=${PEPPER}
-      - CALC_HOST=0.0.0.0
-      - CALC_PORT=${SERVER_PORT}
+      - SERV_HOST=0.0.0.0
+      - SERV_PORT=${SERVER_PORT}
