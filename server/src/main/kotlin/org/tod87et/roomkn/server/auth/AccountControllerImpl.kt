@@ -52,18 +52,6 @@ class AccountControllerImpl(
                     }
                 }
             }
-        val permissions = config.database.getUserPermissions(credentials.id)
-            .getOrElse { ex ->
-                return when (ex) {
-                    is MissingElementException -> {
-                        Result.failure(NoSuchUserException(loginUserInfo.username, ex))
-                    }
-
-                    else -> {
-                        Result.failure(ex)
-                    }
-                }
-            }
 
         digest.update(config.pepper)
         digest.update(credentials.salt)
@@ -72,7 +60,7 @@ class AccountControllerImpl(
         val passwordHash = digest.digest()
         return if (passwordHash.contentEquals(credentials.passwordHash)) {
             log.debug("Authentication successful for `${loginUserInfo.username}`")
-            Result.success(AuthSession(createToken(credentials.id, permissions)))
+            Result.success(AuthSession(createToken(credentials.id)))
         } else {
             log.debug("Authentication failed for `${loginUserInfo.username}`")
             Result.failure(AuthFailedException("Wrong username or password"))
@@ -173,7 +161,7 @@ class AccountControllerImpl(
         }
 
         log.debug("User `${info.username}` has been registered")
-        return Result.success(AuthSession(createToken(info.id, defaultPermissions)))
+        return Result.success(AuthSession(createToken(info.id)))
     }
 
     override suspend fun cleanerLoop() {
@@ -190,12 +178,11 @@ class AccountControllerImpl(
         }
     }
 
-    private fun createToken(userId: Int, permissions: List<UserPermission>): String {
+    private fun createToken(userId: Int): String {
         return JWT.create()
             .withAudience(config.audience)
             .withIssuer(config.issuer)
             .withClaim(AuthSession.USER_ID_CLAIM_NAME, userId)
-            .withClaim(AuthSession.USER_PERMISSIONS_CLAIM_NAME, permissions.map { it.toString() })
             .withExpiresAt(Date(System.currentTimeMillis() + config.tokenValidityPeriod.inWholeMilliseconds))
             .sign(signAlgorithm)
     }
