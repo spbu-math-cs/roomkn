@@ -125,7 +125,7 @@ class ReservationsRoutesTests {
             "Expect only reservations with 301 room"
         )
         bodyResponse = client.getRequestForAllReservationsWithQueryParams(
-            userIds = listOf(room302Id)
+            roomIds = listOf(room302Id)
         ).body<List<Reservation>>()
         assertEquals(
             setOf(reserveOtherIdRoom302FirstHalf, reserveMyIdRoom302SecondHalf),
