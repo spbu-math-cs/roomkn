@@ -15,7 +15,6 @@ import io.ktor.server.routing.route
 import io.ktor.util.pipeline.PipelineContext
 import org.tod87et.roomkn.server.auth.AuthSession
 import org.tod87et.roomkn.server.auth.AuthenticationProvider
-import org.tod87et.roomkn.server.auth.permissions
 import org.tod87et.roomkn.server.auth.userId
 import org.tod87et.roomkn.server.database.ConstraintViolationException
 import org.tod87et.roomkn.server.database.Database
@@ -91,7 +90,7 @@ private fun Route.reservationDeleteRouting(database: Database) {
             .getOrElse {
                 return@delete call.handleReservationException(it)
             }
-        call.requirePermissionOrSelf(reservation.userId) { return@delete call.onMissingPermission() }
+        call.requirePermissionOrSelf(reservation.userId, database) { return@delete call.onMissingPermission() }
 
         val result = database.deleteReservation(id)
         result
@@ -121,11 +120,20 @@ private fun Route.reserveRouting(database: Database) {
 
 private inline fun ApplicationCall.requirePermissionOrSelf(
     self: Int,
+    database: Database,
     onPermissionMissing: () -> Nothing
 ) {
     val session = principal<AuthSession>()
-    if (session == null || session.userId != self && !session.permissions.contains(UserPermission.ReservationsAdmin)) {
+    if (session == null || session.userId != self) {
         onPermissionMissing()
+    } else {
+        database.getUserPermissions(session.userId)
+            .onFailure { onPermissionMissing() }
+            .onSuccess { permissions ->
+                if (!permissions.contains(UserPermission.ReservationsAdmin)) {
+                    onPermissionMissing()
+                }
+            }
     }
 }
 
