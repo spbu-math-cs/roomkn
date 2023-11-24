@@ -12,3 +12,7 @@ suspend fun ApplicationCall.onMissingPermission() {
 suspend fun ApplicationCall.onMissingId() {
     respondText("id should be int", status = HttpStatusCode.BadRequest)
 }
+
+suspend fun ApplicationCall.onMissingTimestamp() {
+    respondText("timestamp should be correct Instant", status = HttpStatusCode.BadRequest)
+}
