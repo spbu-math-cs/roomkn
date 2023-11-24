@@ -48,7 +48,7 @@ class ReservationsRoutesTests {
     }
 
     @Test
-    fun getAllReservations() = KtorTestEnv.testJsonApplication {client ->
+    fun getAllReservations() = KtorTestEnv.testJsonApplication { client ->
         val myId = with(KtorTestEnv) {
             client.createAndAuthUser("Alice")
         }
@@ -90,7 +90,12 @@ class ReservationsRoutesTests {
         ).getOrThrow()
         var bodyResponse = client.getRequestForAllReservationsWithQueryParams().body<List<Reservation>>()
         assertEquals(
-            setOf(reserveMyIdRoom301FirstHalf, reserveMyIdRoom302SecondHalf, reserveOtherIdRoom302FirstHalf, reserveOtherIdRoom301SecondHalf),
+            setOf(
+                reserveMyIdRoom301FirstHalf,
+                reserveMyIdRoom302SecondHalf,
+                reserveOtherIdRoom302FirstHalf,
+                reserveOtherIdRoom301SecondHalf
+            ),
             bodyResponse.toSet(),
             "Expect every reservations with empty queries"
         )
