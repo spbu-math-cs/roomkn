@@ -126,10 +126,10 @@ private fun Route.reserveRouting(database: Database) {
     get {
         val fromResult = call.request.queryParameters["from"].toResultInstant(Instant.fromEpochMilliseconds(0))
         val untilResult = call.request.queryParameters["until"].toResultInstant(Clock.System.now() + 1.days)
-        val userIdsString = call.request.queryParameters["userIds"] ?: ""
-        val roomIdsString = call.request.queryParameters["roomIds"] ?: ""
-        val usersIds = userIdsString.split(",").map { it.toIntOrNull() ?: return@get call.onMissingId() }
-        val roomsIds = roomIdsString.split(",").map { it.toIntOrNull() ?: return@get call.onMissingId() }
+        val userIdsString = call.request.queryParameters["userIds"]
+        val roomIdsString = call.request.queryParameters["roomIds"]
+        val usersIds = userIdsString?.split(",")?.map { it.toIntOrNull() ?: return@get call.onMissingId() } ?: listOf()
+        val roomsIds = roomIdsString?.split(",")?.map { it.toIntOrNull() ?: return@get call.onMissingId() } ?: listOf()
         //TODO(makselivanov) add to documentation
         fromResult.onSuccess { from ->
             untilResult.onSuccess { until ->
