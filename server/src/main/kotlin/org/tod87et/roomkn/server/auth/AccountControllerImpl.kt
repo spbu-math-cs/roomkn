@@ -152,6 +152,9 @@ class AccountControllerImpl(
         }
 
         log.debug("User `${info.username}` has been registered")
+
+        config.database.updateUserPermissions(info.id, permissions)
+        log.debug("Set user `{}` permissions to {}", info.username, permissions)
         return Result.success(AuthSession(createToken(info.id)))
     }
 
