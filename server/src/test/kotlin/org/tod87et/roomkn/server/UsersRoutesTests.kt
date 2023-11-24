@@ -5,17 +5,17 @@ import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import org.junit.jupiter.api.Test
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.users.ShortUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
 import org.tod87et.roomkn.server.models.users.UserInfo
-import kotlin.test.assertContains
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class UsersRoutesTests {
     private val apiPath = "/api/v0"
@@ -26,16 +26,21 @@ class UsersRoutesTests {
 
     @Test
     fun getUsers() = KtorTestEnv.testJsonApplication { client ->
+        var idRoot: Int?
         with(KtorTestEnv) {
-            client.createAndAuthAdmin()
+            idRoot = client.createAndAuthAdmin("Root")
         }
         val id1 = KtorTestEnv.createUser("Bob")
         val id2 = KtorTestEnv.createUser("Alice")
 
-        val users = client.get(usersPath).body<List<ShortUserInfo>>()
-
-        assertContains(users, ShortUserInfo(id1, "Bob"))
-        assertContains(users, ShortUserInfo(id2, "Alice"))
+        val response = client.get(usersPath)
+        assertEquals(HttpStatusCode.OK, response.status, response.bodyAsText())
+        val users = response.body<List<ShortUserInfo>>()
+        assertEquals(
+            setOf(ShortUserInfo(idRoot!!, "Root"), ShortUserInfo(id1, "Bob"), ShortUserInfo(id2, "Alice")),
+            users.toSet(),
+            "Expect all 3 users: Root, Bob, Alice"
+        )
     }
 
     @Test
