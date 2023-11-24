@@ -39,16 +39,16 @@ class AccountControllerImpl(
     override fun authenticateUser(loginUserInfo: LoginUserInfo): Result<AuthSession> {
         val credentials =
             config.credentialsDatabase.getCredentialsInfoByUsername(loginUserInfo.username).getOrElse { ex ->
-                    return when (ex) {
-                        is MissingElementException -> {
-                            Result.failure(NoSuchUserException(loginUserInfo.username, ex))
-                        }
+                return when (ex) {
+                    is MissingElementException -> {
+                        Result.failure(NoSuchUserException(loginUserInfo.username, ex))
+                    }
 
-                        else -> {
-                            Result.failure(ex)
-                        }
+                    else -> {
+                        Result.failure(ex)
                     }
                 }
+            }
 
         digest.update(config.pepper)
         digest.update(credentials.salt)
@@ -69,9 +69,9 @@ class AccountControllerImpl(
 
     override fun validateSession(session: AuthSession): Result<Boolean> {
         runCatching { jwtVerifier.verify(session.token) }.getOrElse {
-                log.debug("Token verification failed", it)
-                return Result.success(false)
-            }
+            log.debug("Token verification failed", it)
+            return Result.success(false)
+        }
         digest.update(session.token.encodeToByteArray())
         return config.credentialsDatabase.checkTokenWasInvalidated(digest.digest()).map { !it }
     }
