@@ -1,9 +1,12 @@
 package org.tod87et.roomkn.server.database
 
+import java.sql.Connection
+import javax.sql.DataSource
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -31,8 +34,6 @@ import org.tod87et.roomkn.server.models.users.ShortUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
 import org.tod87et.roomkn.server.models.users.UserCredentialsInfo
 import org.tod87et.roomkn.server.models.users.UserInfo
-import java.sql.Connection
-import javax.sql.DataSource
 import org.tod87et.roomkn.server.database.Database as RooMknDatabase
 
 class DatabaseSession private constructor(private val database: Database) :
@@ -133,6 +134,32 @@ class DatabaseSession private constructor(private val database: Database) :
                 .select { Reservations.userId eq userId }
                 .orderBy(Reservations.from to SortOrder.ASC, Reservations.until to SortOrder.ASC)
                 .limit(limit, offset)
+                .map {
+                    Reservation(
+                        id = it[Reservations.id],
+                        userId = it[Reservations.userId],
+                        roomId = it[Reservations.roomId],
+                        from = it[Reservations.from],
+                        until = it[Reservations.until]
+                    )
+                }
+        }
+    }
+
+    override fun getReservations(
+        usersIds: List<Int>,
+        roomsIds: List<Int>,
+        from: Instant,
+        until: Instant
+    ): Result<List<Reservation>> = queryWrapper {
+        transaction(database) {
+            Reservations
+                .select {
+                    (if (usersIds.isEmpty()) Op.TRUE else Reservations.userId inList usersIds) and
+                            (if (roomsIds.isEmpty()) Op.TRUE else Reservations.roomId inList roomsIds) and
+                            (Reservations.from less until) and
+                            (Reservations.until greater from)}
+                .orderBy(Reservations.from to SortOrder.ASC, Reservations.until to SortOrder.ASC)
                 .map {
                     Reservation(
                         id = it[Reservations.id],
