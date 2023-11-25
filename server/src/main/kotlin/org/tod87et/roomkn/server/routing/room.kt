@@ -15,6 +15,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import kotlin.math.min
+import org.jetbrains.exposed.sql.exposedLogger
 import org.tod87et.roomkn.server.auth.AuthSession
 import org.tod87et.roomkn.server.auth.AuthenticationProvider
 import org.tod87et.roomkn.server.auth.userId
@@ -171,6 +172,12 @@ private inline fun ApplicationCall.requirePermission(
             .onFailure { onPermissionMissing() }
             .onSuccess { permissions ->
                 if (!permissions.contains(UserPermission.RoomsAdmin)) {
+                    exposedLogger.debug(
+                        "User Id {} don't have {} - List of user permissions: {}",
+                        session.userId,
+                        UserPermission.RoomsAdmin,
+                        permissions
+                    )
                     onPermissionMissing()
                 }
             }

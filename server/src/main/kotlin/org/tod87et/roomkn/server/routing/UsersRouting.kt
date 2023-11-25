@@ -12,6 +12,7 @@ import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
+import org.jetbrains.exposed.sql.exposedLogger
 import org.tod87et.roomkn.server.auth.AuthSession
 import org.tod87et.roomkn.server.auth.AuthenticationProvider
 import org.tod87et.roomkn.server.auth.NoSuchUserException
@@ -117,13 +118,23 @@ private inline fun ApplicationCall.requirePermissionOrSelfImpl(
     self: Int?, database: Database, onPermissionMissing: () -> Nothing
 ) {
     val session = principal<AuthSession>()
-    if (session == null || session.userId != self) {
+    if (session == null) {
         onPermissionMissing()
     } else {
-        database.getUserPermissions(session.userId).onFailure { onPermissionMissing() }.onSuccess { permissions ->
-            if (!permissions.contains(UserPermission.UsersAdmin)) {
-                onPermissionMissing()
-            }
+        if (session.userId != self) {
+            database.getUserPermissions(session.userId)
+                .onFailure { onPermissionMissing() }
+                .onSuccess { permissions ->
+                    if (!permissions.contains(UserPermission.UsersAdmin)) {
+                        exposedLogger.debug(
+                            "User Id {} don't have {} - List of user permissions: {}",
+                            session.userId,
+                            UserPermission.UsersAdmin,
+                            permissions
+                        )
+                        onPermissionMissing()
+                    }
+                }
         }
     }
 }

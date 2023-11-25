@@ -13,6 +13,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.util.pipeline.PipelineContext
+import org.jetbrains.exposed.sql.exposedLogger
 import org.tod87et.roomkn.server.auth.AuthSession
 import org.tod87et.roomkn.server.auth.AuthenticationProvider
 import org.tod87et.roomkn.server.auth.userId
@@ -124,16 +125,24 @@ private inline fun ApplicationCall.requirePermissionOrSelf(
     onPermissionMissing: () -> Nothing
 ) {
     val session = principal<AuthSession>()
-    if (session == null || session.userId != self) {
+    if (session == null) {
         onPermissionMissing()
     } else {
-        database.getUserPermissions(session.userId)
-            .onFailure { onPermissionMissing() }
-            .onSuccess { permissions ->
-                if (!permissions.contains(UserPermission.ReservationsAdmin)) {
-                    onPermissionMissing()
+        if (session.userId != self) {
+            database.getUserPermissions(session.userId)
+                .onFailure { onPermissionMissing() }
+                .onSuccess { permissions ->
+                    if (!permissions.contains(UserPermission.ReservationsAdmin)) {
+                        exposedLogger.debug(
+                            "User Id {} don't have {} - List of user permissions: {}",
+                            session.userId,
+                            UserPermission.ReservationsAdmin,
+                            permissions
+                        )
+                        onPermissionMissing()
+                    }
                 }
-            }
+        }
     }
 }
 

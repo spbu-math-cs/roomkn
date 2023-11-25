@@ -9,8 +9,10 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import java.security.Permission
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import org.jetbrains.exposed.sql.exposedLogger
 import org.junit.jupiter.api.Test
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.users.ShortUserInfo
@@ -26,7 +28,7 @@ class UsersRoutesTests {
 
     @Test
     fun getUsers() = KtorTestEnv.testJsonApplication { client ->
-        var idRoot: Int?
+        var idRoot: Int
         with(KtorTestEnv) {
             idRoot = client.createAndAuthAdmin("Root")
         }
@@ -34,10 +36,10 @@ class UsersRoutesTests {
         val id2 = KtorTestEnv.createUser("Alice")
 
         val response = client.get(usersPath)
-        assertEquals(HttpStatusCode.OK, response.status, response.bodyAsText())
+        assertEquals(HttpStatusCode.OK, response.status, "Message: ${response.bodyAsText()}\n")
         val users = response.body<List<ShortUserInfo>>()
         assertEquals(
-            setOf(ShortUserInfo(idRoot!!, "Root"), ShortUserInfo(id1, "Bob"), ShortUserInfo(id2, "Alice")),
+            setOf(ShortUserInfo(idRoot, "Root"), ShortUserInfo(id1, "Bob"), ShortUserInfo(id2, "Alice")),
             users.toSet(),
             "Expect all 3 users: Root, Bob, Alice"
         )
@@ -141,7 +143,9 @@ class UsersRoutesTests {
 
         val permissions1 = listOf(UserPermission.UsersAdmin, UserPermission.GroupsAdmin)
         KtorTestEnv.database.updateUserPermissions(id, permissions1)
-        val permissions2 = client.get(userPermissionsPath(id)).body<List<UserPermission>>()
+        val response = client.get(userPermissionsPath(id))
+        assertEquals(HttpStatusCode.OK, response.status, "Message: ${response.bodyAsText()}")
+        val permissions2 = response.body<List<UserPermission>>()
         assertEquals(permissions1, permissions2)
     }
 
@@ -157,7 +161,7 @@ class UsersRoutesTests {
             contentType(ContentType.Application.Json)
             setBody(permissions)
         }
-        assertEquals(HttpStatusCode.OK, resp.status)
+        assertEquals(HttpStatusCode.OK, resp.status, "Message: ${resp.bodyAsText()}")
         assertEquals(permissions, KtorTestEnv.database.getUserPermissions(id).getOrThrow())
     }
 }
