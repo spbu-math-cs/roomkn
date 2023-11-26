@@ -46,7 +46,6 @@ class ReservationStressTest {
 
     @Test
     fun stressTest() {
-        fail()
         val reservationsPerCoroutine = reservationNum / coroutineNum
         val userInfo = RegistrationUserInfo("user", "email", byteArrayOf(), byteArrayOf())
         val userId = database.registerUser(userInfo).getOrThrow().id
