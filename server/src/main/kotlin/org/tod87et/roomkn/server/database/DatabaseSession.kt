@@ -102,63 +102,53 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
-    override fun getRoomReservations(roomId: Int, limit: Int, offset: Long): Result<List<Reservation>> = queryWrapper {
-        transaction(database) {
-            if (Rooms.select { Rooms.id eq roomId }.empty()) {
-                throw MissingElementException()
-            }
+    override fun getRoomReservations(
+        roomId: Int,
+        from: Instant,
+        until: Instant,
+        limit: Int,
+        offset: Long
+    ): Result<List<Reservation>> = getReservations(
+        usersIds = emptyList(),
+        roomsIds = listOf(roomId),
+        from = from,
+        until = until,
+        limit = limit,
+        offset = offset
+    )
 
-            Reservations
-                .select { Reservations.roomId eq roomId }
-                .orderBy(Reservations.from to SortOrder.ASC, Reservations.until to SortOrder.ASC)
-                .limit(limit, offset)
-                .map {
-                    Reservation(
-                        id = it[Reservations.id],
-                        userId = it[Reservations.userId],
-                        roomId = it[Reservations.roomId],
-                        from = it[Reservations.from],
-                        until = it[Reservations.until]
-                    )
-                }
-        }
-    }
-
-    override fun getUserReservations(userId: Int, limit: Int, offset: Long): Result<List<Reservation>> = queryWrapper {
-        transaction(database) {
-            if (Users.select { Users.id eq userId }.empty()) {
-                throw MissingElementException()
-            }
-
-            Reservations
-                .select { Reservations.userId eq userId }
-                .orderBy(Reservations.from to SortOrder.ASC, Reservations.until to SortOrder.ASC)
-                .limit(limit, offset)
-                .map {
-                    Reservation(
-                        id = it[Reservations.id],
-                        userId = it[Reservations.userId],
-                        roomId = it[Reservations.roomId],
-                        from = it[Reservations.from],
-                        until = it[Reservations.until]
-                    )
-                }
-        }
-    }
+    override fun getUserReservations(
+        userId: Int,
+        from: Instant,
+        until: Instant,
+        limit: Int,
+        offset: Long
+    ): Result<List<Reservation>> = getReservations(
+        usersIds = listOf(userId),
+        roomsIds = emptyList(),
+        from = from,
+        until = until,
+        limit = limit,
+        offset = offset
+    )
 
     override fun getReservations(
         usersIds: List<Int>,
         roomsIds: List<Int>,
         from: Instant,
-        until: Instant
+        until: Instant,
+        limit: Int,
+        offset: Long
     ): Result<List<Reservation>> = queryWrapper {
         transaction(database) {
             Reservations
                 .select {
-                    (if (usersIds.isEmpty()) Op.TRUE else Reservations.userId inList usersIds) and
-                            (if (roomsIds.isEmpty()) Op.TRUE else Reservations.roomId inList roomsIds) and
-                            (Reservations.from less until) and
-                            (Reservations.until greater from)}
+                    val userCondition = if (usersIds.isEmpty()) Op.TRUE else Reservations.userId inList usersIds
+                    val roomCondition = if (roomsIds.isEmpty()) Op.TRUE else Reservations.roomId inList roomsIds
+                    val dateCondition = (Reservations.from less until) and (Reservations.until greater from)
+
+                    userCondition and roomCondition and dateCondition
+                }
                 .orderBy(Reservations.from to SortOrder.ASC, Reservations.until to SortOrder.ASC)
                 .map {
                     Reservation(

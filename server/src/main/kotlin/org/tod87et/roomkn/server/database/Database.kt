@@ -17,9 +17,31 @@ interface Database {
     fun createRoom(roomInfo: NewRoomInfo): Result<RoomInfo>
     fun updateRoom(roomId: Int, roomInfo: NewRoomInfo): Result<Unit>
     fun deleteRoom(roomId: Int): Result<Unit>
-    fun getRoomReservations(roomId: Int, limit: Int = Int.MAX_VALUE, offset: Long = 0L): Result<List<Reservation>>
-    fun getUserReservations(userId: Int, limit: Int = Int.MAX_VALUE, offset: Long = 0L): Result<List<Reservation>>
-    fun getReservations(usersIds: List<Int>, roomsIds: List<Int>, from: Instant, until: Instant): Result<List<Reservation>>
+    fun getRoomReservations(
+        roomId: Int,
+        from: Instant = Instant.fromEpochMilliseconds(0L),
+        until: Instant = Instant.parse("3000-01-01T00:00:00+00:00"),
+        limit: Int = Int.MAX_VALUE,
+        offset: Long = 0L
+    ): Result<List<Reservation>>
+
+    fun getUserReservations(
+        userId: Int,
+        from: Instant = Instant.fromEpochMilliseconds(0L),
+        until: Instant = Instant.parse("3000-01-01T00:00:00+00:00"),
+        limit: Int = Int.MAX_VALUE,
+        offset: Long = 0L
+    ): Result<List<Reservation>>
+
+    fun getReservations(
+        usersIds: List<Int>,
+        roomsIds: List<Int>,
+        from: Instant,
+        until: Instant,
+        limit: Int = Int.MAX_VALUE,
+        offset: Long = 0L
+    ): Result<List<Reservation>>
+
     fun getReservation(reservationId: Int): Result<Reservation>
     fun updateReservation(reservationId: Int, from: Instant, until: Instant): Result<Unit>
     fun deleteReservation(reservationId: Int): Result<Unit>
