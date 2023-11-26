@@ -23,6 +23,14 @@ val junitVersion = extra["junit.version"] as String
 val koinVersion = extra["koin.version"] as String
 val koinTestVersion = extra["koin.test.version"] as String
 
+val runStressTests = project.properties["runStressTests"]?.toString()?.toBoolean() ?: false
+
+tasks.withType<Test> {
+    if (!runStressTests) {
+        exclude("org/tod87et/roomkn/server/stresstests/**")
+    }
+}
+
 dependencies {
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
