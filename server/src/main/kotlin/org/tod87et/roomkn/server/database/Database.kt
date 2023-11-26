@@ -33,6 +33,7 @@ interface Database {
         offset: Long = 0L
     ): Result<List<Reservation>>
 
+    @Suppress("LongParameterList")
     fun getReservations(
         usersIds: List<Int>,
         roomsIds: List<Int>,
