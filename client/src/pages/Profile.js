@@ -1,14 +1,20 @@
 import './Profile.css';
 
-import React, { useEffect, useContext, useState } from "react";
+import React, {useContext, useEffect, useState} from "react";
 import ContentWrapper from "../components/Content";
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
 import useSomeAPI from "../api/FakeAPI";
+import {Box, Button, Stack, TextField, Typography} from "@mui/material";
 
 
 function ProfilePermissions({currentUser}) {
 
-    let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/users/' + currentUser?.user_id + '/permissions')
+    let {
+        triggerFetch,
+        result,
+        finished,
+        statusCode
+    } = useSomeAPI('/api/v0/users/' + currentUser?.user_id + '/permissions')
 
     //eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [currentUser])
@@ -17,7 +23,7 @@ function ProfilePermissions({currentUser}) {
     if (statusCode === 200 && finished && result != null) {
         console.log("success in getting perms")
         const perm_draw = []
-        for (let perm in result) {  
+        for (let perm in result) {
             let s;
             console.log(perm)
             switch (result[perm]) {
@@ -34,7 +40,7 @@ function ProfilePermissions({currentUser}) {
                     s = "You are allowed to manage all users in the network and change their permissions."
                     break
                 case "GroupsAdmin":
-                    s = "You are allowed to manage all groups." 
+                    s = "You are allowed to manage all groups."
                     break
                 default:
                     s = "You are allowed to eat draniki."
@@ -67,9 +73,8 @@ function ProfileChangeForm({id, actUsername, actEmail, triggerRefetch}) {
             else if (statusCode === 500) alert("Internal server error.")
             else if (statusCode === 200) {
                 triggerRefetch()
-                alert("Credentials updated successfully!") 
-            }
-            else alert("Status Code: " + statusCode)
+                alert("Credentials updated successfully!")
+            } else alert("Status Code: " + statusCode)
         }
         //eslint-disable-next-line react-hooks/exhaustive-deps
     }, [finished]);
@@ -81,31 +86,19 @@ function ProfileChangeForm({id, actUsername, actEmail, triggerRefetch}) {
     }
 
     return (
-        <ContentWrapper page_name="Change credentials">
-            <form className="credentials-form" onSubmit={handleSubmit}>
-                <div className="form-field">
-                    <label className="form-label">
-                        New username:
-                    </label>
-                    <input className="form-input" value={username} onChange={(e) => setUsername(e.target.value)}>
-                  
-                    </input>
-                </div>
-                <div className="form-field">
-                    <label className="form-label">
-                        New email:
-                    </label>
-                    <input className="form-input" value={email} onChange={(e) => setEmail(e.target.value)}>
-                  
-                    </input>
-                </div>
-                <input className="form-submit" type="submit" value="Change"></input>
-            </form>
+        <ContentWrapper page_name="Change user info">
+            <Stack spacing={1}>
+                <TextField variant="outlined" label="New username" value={username}
+                           onChange={(e) => setUsername(e.target.value)}/>
+                <TextField variant="outlined" label="New email" value={email}
+                           onChange={(e) => setEmail(e.target.value)}/>
+                <Button color="secondary" variant="outlined" onClick={handleSubmit}
+                        sx={{width: "100pt"}}>Change</Button>
+            </Stack>
         </ContentWrapper>
-    )
-
+    );
 }
- 
+
 const Profile = () => {
 
     const {currentUser} = useContext(CurrentUserContext)
@@ -113,11 +106,10 @@ const Profile = () => {
 
     let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/users/' + currentUser?.user_id)
 
-    
 
     //eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [currentUser])
-    
+
 
     console.log(currentUser)
 
@@ -132,15 +124,24 @@ const Profile = () => {
     if (statusCode === 200 && finished && result != null) {
 
 
-
         return (
-            <ContentWrapper page_name="My Profile">
-                <div className='profile-field'> My username: {result.username}</div>
-                <div className='profile-field'> My email: {result.email}</div>
-                <div className='profile-field'>My permissions:</div>
-                <ProfilePermissions currentUser={currentUser}></ProfilePermissions>
-                <ProfileChangeForm id={currentUser?.user_id} actUsername={result.username} actEmail={result.email} triggerRefetch={triggerFetch}></ProfileChangeForm>
-            </ContentWrapper>
+            <Stack>
+                <ContentWrapper page_name="Profile info">
+                    <Typography sx={{fontSize: 24}}>
+                        <Box>Username: {result.username}</Box>
+                        <Box>Email: {result.email}</Box>
+                    </Typography>
+                </ContentWrapper>
+                <ContentWrapper page_name="Permissions">
+                    <Typography sx={{fontSize: 24}}>
+                        <ProfilePermissions currentUser={currentUser}></ProfilePermissions>
+                    </Typography>
+                </ContentWrapper>
+                <Typography sx={{fontSize: 24}}>
+                    <ProfileChangeForm id={currentUser?.user_id} actUsername={result.username} actEmail={result.email}
+                                       triggerRefetch={triggerFetch}></ProfileChangeForm>
+                </Typography>
+            </Stack>
         )
     }
 
@@ -150,5 +151,5 @@ const Profile = () => {
         </ContentWrapper>
     )
 };
- 
+
 export default Profile;
