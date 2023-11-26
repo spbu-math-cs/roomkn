@@ -83,9 +83,12 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
-    override fun getRooms(): Result<List<ShortRoomInfo>> = queryWrapper {
+    override fun getRooms(limit: Int, offset: Long): Result<List<ShortRoomInfo>> = queryWrapper {
         transaction(database) {
-            Rooms.selectAll().map { ShortRoomInfo(it[Rooms.id], it[Rooms.name]) }
+            Rooms.selectAll()
+                .orderBy(Rooms.name to SortOrder.ASC, Rooms.id to SortOrder.ASC)
+                .limit(limit, offset)
+                .map { ShortRoomInfo(it[Rooms.id], it[Rooms.name]) }
         }
     }
 
@@ -222,9 +225,12 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
-    override fun getUsers(): Result<List<ShortUserInfo>> = queryWrapper {
+    override fun getUsers(limit: Int, offset: Long): Result<List<ShortUserInfo>> = queryWrapper {
         transaction(database) {
-            Users.selectAll().map { ShortUserInfo(it[Users.id], it[Users.username]) }
+            Users.selectAll()
+                .orderBy(Users.username to SortOrder.ASC, Users.id to SortOrder.ASC)
+                .limit(limit, offset)
+                .map { ShortUserInfo(it[Users.id], it[Users.username]) }
         }
     }
 
