@@ -5,6 +5,7 @@ import {NavLink} from "react-router-dom";
 
 import "./AdminUserList.css"
 import AdminWrapper from "../../components/AdminWrapper";
+import {Button, Checkbox, FormControlLabel, Stack, TextField, Typography, useTheme} from "@mui/material";
 
 function EditUserRow({user, refresh}) {
 
@@ -15,11 +16,11 @@ function EditUserRow({user, refresh}) {
     }
 
     const permissionsDefault = {
-            "ReservationsCreate"        : false,
-            "ReservationsAdmin"         : false,
-            "RoomsAdmin"                        : false,
-            "UsersAdmin"                        : false,
-            "GroupsAdmin"                     : false
+        "ReservationsCreate": false,
+        "ReservationsAdmin": false,
+        "RoomsAdmin": false,
+        "UsersAdmin": false,
+        "GroupsAdmin": false
     }
     const [permissions, setPermissions] = useState(permissionsDefault)
 
@@ -29,7 +30,11 @@ function EditUserRow({user, refresh}) {
         if (permissions[perm]) checked_perms.push(perm)
     }
 
-    const {triggerFetch: permGetTriggerFetch, finished: permGetFinished, result: permGetResult} = useSomeAPI("/api/v0/users/" + user.id + "/permissions")
+    const {
+        triggerFetch: permGetTriggerFetch,
+        finished: permGetFinished,
+        result: permGetResult
+    } = useSomeAPI("/api/v0/users/" + user.id + "/permissions")
 
     useEffect(() => {
         permGetTriggerFetch()
@@ -48,7 +53,6 @@ function EditUserRow({user, refresh}) {
     }, [permGetFinished, permGetResult])
 
 
-
     const permissions_draw = []
     if (permissions != null) {
         for (let perm in permissions) {
@@ -61,12 +65,9 @@ function EditUserRow({user, refresh}) {
                 setPermissions(tmp_perms2)
             }
             permissions_draw.push(
-                <div key={perm}>
-                    <label>
-                        {perm}
-                    </label>
-                    <input type="checkbox" checked={permissions[perm]} onChange={onchange} key={Math.random()} name={perm}/>
-                </div>
+                <FormControlLabel
+                    control={<Checkbox checked={permissions[perm]} onChange={onchange}/>}
+                    label={perm}/>
             )
         }
     }
@@ -105,20 +106,24 @@ function EditUserRow({user, refresh}) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [deleteFinished])
 
+    const theme = useTheme();
 
     return (
-        <div className="edit-user-row">
-            <div className="edit-user-row-id">
-                {user.id}
-            </div>
-            <input className="edit-user-row-reset" type="button" value="reset" onClick={reset}/>
-            <input className="edit-user-row-name" type="text" value={name} onChange={(e) => setName(e.target.value)}/>
-
-            {permissions_draw}
-
-            <input className="edit-user-row-update" type="button" value="UPDATE" onClick={put_req}/>
-            <input className="edit-user-row-delete" type="button" value="delete" onClick={delete_req}/>
-        </div>
+        <ContentWrapper page_name={user.id}>
+            <Stack>
+                <TextField sx={{maxWidth: "400px"}} label="Username" value={name}
+                           onChange={(e) => setName(e.target.value)}/>
+                <Typography fontSize="18pt">Permissions</Typography>
+                <Stack sx={{paddingLeft: "10pt"}}>
+                    {permissions_draw}
+                </Stack>
+                <Stack direction="row" spacing={theme.spacing()}>
+                    <Button variant="outlined" color="secondary" onClick={reset}>reset</Button>
+                    <Button variant="contained" color="success" onClick={put_req}>update</Button>
+                    <Button variant="outlined" color="error" onClick={delete_req}>delete</Button>
+                </Stack>
+            </Stack>
+        </ContentWrapper>
     )
 }
 
@@ -146,10 +151,12 @@ function AddUser({refresh}) {
     }, [addFinished])
 
     return (
-        <div className="add-user-row">
-            <input className="add-user-row-name" type="text" value={name} onChange={(e) => setName(e.target.value)}/>
-            <input className="add-user-row-add" type="button" value="ADD" onClick={add_req}/>
-        </div>
+        <ContentWrapper page_name="Add user">
+            <Stack direction="row">
+                <TextField variant="outlined" value={name} onChange={(e) => setName(e.target.value)}/>
+                <Button variant="contained" color="success" onClick={add_req}>add</Button>
+            </Stack>
+        </ContentWrapper>
     )
 }
 
@@ -170,7 +177,7 @@ export function AdminUserList() {
         result.forEach((user) => {
             draw_list.push(
                 <EditUserRow user={user} key={user.id} refresh={triggerFetch}/>
-        )
+            )
         })
     }
 
@@ -185,10 +192,10 @@ export function AdminUserList() {
 
     return (
         <AdminWrapper>
-            <ContentWrapper page_name={page_name}>
-                {draw_list}
-                <AddUser refresh={triggerFetch}/>
-            </ContentWrapper>
+
+            <ContentWrapper page_name={page_name}/>
+            {draw_list}
+            <AddUser refresh={triggerFetch}/>
         </AdminWrapper>
     )
 }

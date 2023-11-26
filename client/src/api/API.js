@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 import {getCSRFToken} from "../components/Auth";
 
 const API_HOST = process.env.REACT_APP_REST_SERVER_ADDRESS
 
-export function useAPI(url, data=null, method='GET') {
+export function useAPI(url, data = null, method = 'GET') {
     const [result, setResult] = useState();
     const [loading, setLoading] = useState(true);
     const [finished, setFinished] = useState(false);
@@ -43,7 +43,6 @@ export function useAPI(url, data=null, method='GET') {
             .then(r => {
                 r.json().then(rjson => {
                     setResult(rjson)
-
                     setLoading(false)
                     setFinished(true)
                 }).catch(error => {
@@ -77,8 +76,8 @@ export function toAPITime(date, time) {
 
 export function fromAPITime(ins) {
     // return {
-    //         date: "2022-10-12",
-    //         time: "8:30"
+    //     date: "2022-10-12",
+    //     time: "8:30"
     // }
 
     // console.log("fromAPITime: " + ins)
