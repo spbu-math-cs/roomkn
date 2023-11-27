@@ -1,16 +1,16 @@
 package org.tod87et.roomkn.server.auth
 
 import io.ktor.server.config.ApplicationConfig
-import org.tod87et.roomkn.server.database.CredentialsDatabase
-import org.tod87et.roomkn.server.database.Database
-import org.tod87et.roomkn.server.util.checkField
 import java.util.Base64
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
+import org.tod87et.roomkn.server.database.CredentialsDatabase
+import org.tod87et.roomkn.server.database.Database
+import org.tod87et.roomkn.server.util.checkField
 
 class AuthConfig(
-      val issuer: String,
+    val issuer: String,
     val audience: String,
     val secret: ByteArray,
     val pepper: ByteArray,
@@ -33,7 +33,7 @@ class AuthConfig(
         var saltSize: Int = DEFAULT_SALT_SIZE,
         var hashingAlgorithmId: String = DEFAULT_HASHING_ALGORITHM_ID,
         val cleanupInterval: Duration = DEFAULT_CLEANUP_INTERVAL,
-        ) {
+    ) {
         companion object {
             private val DEFAULT_TOKEN_VALIDITY_PERIOD: Duration = 30.days
             private const val DEFAULT_SALT_SIZE: Int = 32
@@ -56,7 +56,8 @@ class AuthConfig(
 
         fun secret(secret: ByteArray) = apply { this.secret = secret }
 
-        fun secret(base64EncodedSecret: String) = apply { this.secret = Base64.getDecoder().decode(base64EncodedSecret) }
+        fun secret(base64EncodedSecret: String) =
+            apply { this.secret = Base64.getDecoder().decode(base64EncodedSecret) }
 
         fun database(database: Database) = apply { this.database = database }
 
@@ -65,7 +66,8 @@ class AuthConfig(
 
         fun pepper(pepper: ByteArray) = apply { this.pepper = pepper }
 
-        fun pepper(base64EncodedPepper: String) = apply { this.pepper = Base64.getDecoder().decode(base64EncodedPepper) }
+        fun pepper(base64EncodedPepper: String) =
+            apply { this.pepper = Base64.getDecoder().decode(base64EncodedPepper) }
 
         fun tokenValidityPeriod(tokenValidityPeriod: Duration) =
             apply { this.tokenValidityPeriod = tokenValidityPeriod }

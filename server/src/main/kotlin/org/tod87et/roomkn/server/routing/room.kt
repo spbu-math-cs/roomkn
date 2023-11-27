@@ -5,7 +5,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.auth.authenticate
-import io.ktor.server.auth.principal
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
@@ -14,16 +13,14 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
-import org.tod87et.roomkn.server.auth.AuthSession
+import kotlin.math.min
 import org.tod87et.roomkn.server.auth.AuthenticationProvider
-import org.tod87et.roomkn.server.auth.permissions
 import org.tod87et.roomkn.server.database.Database
 import org.tod87et.roomkn.server.database.MissingElementException
 import org.tod87et.roomkn.server.di.injectDatabase
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 import org.tod87et.roomkn.server.util.defaultExceptionHandler
-import kotlin.math.min
 
 fun Route.roomsRouting() {
     val database by injectDatabase()
@@ -47,7 +44,7 @@ private fun Route.roomReservationsRouting(database: Database) {
 
 private fun Route.createRoom(database: Database) {
     post { body: NewRoomInfo ->
-        call.requirePermission { return@post call.onMissingPermission() }
+        call.requirePermission(database) { return@post call.onMissingPermission() }
 
         database.createRoom(body)
             .onSuccess {
@@ -62,7 +59,7 @@ private fun Route.createRoom(database: Database) {
 private fun Route.deleteRoom(database: Database) {
     delete("/{id}") {
         val id = call.parameters["id"]?.toInt() ?: return@delete call.onMissingId()
-        call.requirePermission { return@delete call.onMissingPermission() }
+        call.requirePermission(database) { return@delete call.onMissingPermission() }
 
         database.deleteRoom(id)
             .onSuccess {
@@ -77,7 +74,7 @@ private fun Route.deleteRoom(database: Database) {
 private fun Route.updateRoom(database: Database) {
     put("/{id}") { body: NewRoomInfo ->
         val id = call.parameters["id"]?.toInt() ?: return@put call.onMissingId()
-        call.requirePermission { return@put call.onMissingPermission() }
+        call.requirePermission(database) { return@put call.onMissingPermission() }
 
         database.updateRoom(id, body)
             .onSuccess {
@@ -101,13 +98,14 @@ private fun Route.rooms(database: Database) {
         val right = offset + limit
 
         if (limit < 0 || offset < 0 || offset > right)
-            return@get call.respondText (
+            return@get call.respondText(
                 "Incorrect limit or offset",
                 status = HttpStatusCode.BadRequest
             )
 
         result.onSuccess {
-            call.respond(HttpStatusCode.OK,
+            call.respond(
+                HttpStatusCode.OK,
                 it.subList(
                     min(offset, it.size),
                     min(right, it.size)
@@ -159,10 +157,8 @@ private suspend fun ApplicationCall.handleException(ex: Throwable) {
 }
 
 private inline fun ApplicationCall.requirePermission(
+    database: Database,
     onPermissionMissing: () -> Nothing
 ) {
-    val session = principal<AuthSession>()
-    if (session == null || !session.permissions.contains(UserPermission.RoomsAdmin)) {
-        onPermissionMissing()
-    }
+    requirePermissionOrSelfImpl(null, database, UserPermission.RoomsAdmin, onPermissionMissing)
 }
