@@ -5,6 +5,9 @@ import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
 import io.ktor.util.logging.Logger
 import io.ktor.utils.io.CancellationException
+import java.security.MessageDigest
+import java.security.SecureRandom
+import java.util.Date
 import kotlinx.coroutines.delay
 import kotlinx.datetime.toKotlinInstant
 import org.tod87et.roomkn.server.database.ConstraintViolationException
@@ -13,9 +16,6 @@ import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.users.LoginUserInfo
 import org.tod87et.roomkn.server.models.users.RegistrationUserInfo
 import org.tod87et.roomkn.server.models.users.UnregisteredUserInfo
-import java.security.MessageDigest
-import java.security.SecureRandom
-import java.util.Date
 
 class AccountControllerImpl(
     private val log: Logger,
@@ -33,27 +33,12 @@ class AccountControllerImpl(
 
     private val signAlgorithm = Algorithm.HMAC256(config.secret)
 
-    override val jwtVerifier: JWTVerifier = JWT
-        .require(Algorithm.HMAC256(config.secret))
-        .withAudience(config.audience)
-        .withIssuer(config.issuer)
-        .build()
+    override val jwtVerifier: JWTVerifier =
+        JWT.require(Algorithm.HMAC256(config.secret)).withAudience(config.audience).withIssuer(config.issuer).build()
 
     override fun authenticateUser(loginUserInfo: LoginUserInfo): Result<AuthSession> {
-        val credentials = config.credentialsDatabase.getCredentialsInfoByUsername(loginUserInfo.username)
-            .getOrElse { ex ->
-                return when (ex) {
-                    is MissingElementException -> {
-                        Result.failure(NoSuchUserException(loginUserInfo.username, ex))
-                    }
-
-                    else -> {
-                        Result.failure(ex)
-                    }
-                }
-            }
-        val permissions = config.database.getUserPermissions(credentials.id)
-            .getOrElse { ex ->
+        val credentials =
+            config.credentialsDatabase.getCredentialsInfoByUsername(loginUserInfo.username).getOrElse { ex ->
                 return when (ex) {
                     is MissingElementException -> {
                         Result.failure(NoSuchUserException(loginUserInfo.username, ex))
@@ -72,7 +57,7 @@ class AccountControllerImpl(
         val passwordHash = digest.digest()
         return if (passwordHash.contentEquals(credentials.passwordHash)) {
             log.debug("Authentication successful for `${loginUserInfo.username}`")
-            Result.success(AuthSession(createToken(credentials.id, permissions)))
+            Result.success(AuthSession(createToken(credentials.id)))
         } else {
             log.debug("Authentication failed for `${loginUserInfo.username}`")
             Result.failure(AuthFailedException("Wrong username or password"))
@@ -83,11 +68,10 @@ class AccountControllerImpl(
         registerUser(userInfo, defaultPermissions)
 
     override fun validateSession(session: AuthSession): Result<Boolean> {
-        runCatching { jwtVerifier.verify(session.token) }
-            .getOrElse {
-                log.debug("Token verification failed", it)
-                return Result.success(false)
-            }
+        runCatching { jwtVerifier.verify(session.token) }.getOrElse {
+            log.debug("Token verification failed", it)
+            return Result.success(false)
+        }
         digest.update(session.token.encodeToByteArray())
         return config.credentialsDatabase.checkTokenWasInvalidated(digest.digest()).map { !it }
     }
@@ -95,8 +79,7 @@ class AccountControllerImpl(
     override fun invalidateSession(session: AuthSession): Result<Unit> {
         digest.update(session.token.encodeToByteArray())
         return config.credentialsDatabase.invalidateToken(
-            digest.digest(),
-            JWT.decode(session.token).expiresAtAsInstant.toKotlinInstant()
+            digest.digest(), JWT.decode(session.token).expiresAtAsInstant.toKotlinInstant()
         )
     }
 
@@ -113,8 +96,8 @@ class AccountControllerImpl(
             return
         }
 
-        val email = System.getenv(ENV_ROOMKN_SUPERUSER_EMAIL)?.takeUnless(String::isBlank)
-            ?: System.getenv(ENV_HOST)?.takeUnless(String::isEmpty)?.let { "admin@$it" }
+        val email = System.getenv(ENV_ROOMKN_SUPERUSER_EMAIL)?.takeUnless(String::isBlank) ?: System.getenv(ENV_HOST)
+            ?.takeUnless(String::isEmpty)?.let { "admin@$it" }
 
         if (email == null || config.credentialsDatabase.getCredentialsInfoByEmail(email).isSuccess) {
             log.warn(
@@ -124,8 +107,7 @@ class AccountControllerImpl(
         }
 
         val res = registerUser(
-            UnregisteredUserInfo(username, email, password),
-            defaultAdminPermissions
+            UnregisteredUserInfo(username, email, password), defaultAdminPermissions
         )
 
         if (res.isFailure) {
@@ -156,10 +138,7 @@ class AccountControllerImpl(
 
             return when (ex) {
                 is ConstraintViolationException -> {
-                    if (
-                        ex.constraint == ConstraintViolationException.Constraint.USERNAME ||
-                        ex.constraint == ConstraintViolationException.Constraint.EMAIL
-                    ) {
+                    if (ex.constraint == ConstraintViolationException.Constraint.USERNAME || ex.constraint == ConstraintViolationException.Constraint.EMAIL) {
                         Result.failure(RegistrationFailedException("User with such username already exists"))
                     } else {
                         Result.failure(ex)
@@ -173,7 +152,10 @@ class AccountControllerImpl(
         }
 
         log.debug("User `${info.username}` has been registered")
-        return Result.success(AuthSession(createToken(info.id, defaultPermissions)))
+
+        config.database.updateUserPermissions(info.id, permissions)
+        log.debug("Set user `{}` permissions to {}", info.username, permissions)
+        return Result.success(AuthSession(createToken(info.id)))
     }
 
     override suspend fun cleanerLoop() {
@@ -190,12 +172,9 @@ class AccountControllerImpl(
         }
     }
 
-    private fun createToken(userId: Int, permissions: List<UserPermission>): String {
-        return JWT.create()
-            .withAudience(config.audience)
-            .withIssuer(config.issuer)
+    private fun createToken(userId: Int): String {
+        return JWT.create().withAudience(config.audience).withIssuer(config.issuer)
             .withClaim(AuthSession.USER_ID_CLAIM_NAME, userId)
-            .withClaim(AuthSession.USER_PERMISSIONS_CLAIM_NAME, permissions.map { it.toString() })
             .withExpiresAt(Date(System.currentTimeMillis() + config.tokenValidityPeriod.inWholeMilliseconds))
             .sign(signAlgorithm)
     }
