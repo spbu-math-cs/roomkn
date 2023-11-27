@@ -4,7 +4,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.auth.authenticate
-import io.ktor.server.auth.principal
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
@@ -12,11 +11,8 @@ import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
-import org.jetbrains.exposed.sql.exposedLogger
-import org.tod87et.roomkn.server.auth.AuthSession
 import org.tod87et.roomkn.server.auth.AuthenticationProvider
 import org.tod87et.roomkn.server.auth.NoSuchUserException
-import org.tod87et.roomkn.server.auth.userId
 import org.tod87et.roomkn.server.database.Database
 import org.tod87et.roomkn.server.di.injectDatabase
 import org.tod87et.roomkn.server.models.permissions.UserPermission
@@ -105,36 +101,11 @@ private suspend fun ApplicationCall.handleException(ex: Throwable) {
 private inline fun ApplicationCall.requirePermission(
     database: Database, onPermissionMissing: () -> Nothing
 ) {
-    requirePermissionOrSelfImpl(self = null, database, onPermissionMissing)
+    requirePermissionOrSelfImpl(self = null, database, UserPermission.UsersAdmin, onPermissionMissing)
 }
 
 private inline fun ApplicationCall.requirePermissionOrSelf(
     self: Int, database: Database, onPermissionMissing: () -> Nothing
 ) {
-    requirePermissionOrSelfImpl(self, database, onPermissionMissing)
-}
-
-private inline fun ApplicationCall.requirePermissionOrSelfImpl(
-    self: Int?, database: Database, onPermissionMissing: () -> Nothing
-) {
-    val session = principal<AuthSession>()
-    if (session == null) {
-        onPermissionMissing()
-    } else {
-        if (session.userId != self) {
-            database.getUserPermissions(session.userId)
-                .onFailure { onPermissionMissing() }
-                .onSuccess { permissions ->
-                    if (!permissions.contains(UserPermission.UsersAdmin)) {
-                        exposedLogger.debug(
-                            "User Id {} don't have {} - List of user permissions: {}",
-                            session.userId,
-                            UserPermission.UsersAdmin,
-                            permissions
-                        )
-                        onPermissionMissing()
-                    }
-                }
-        }
-    }
+    requirePermissionOrSelfImpl(self, database, UserPermission.UsersAdmin, onPermissionMissing)
 }

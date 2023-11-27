@@ -5,7 +5,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.auth.authenticate
-import io.ktor.server.auth.principal
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
@@ -15,10 +14,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import kotlin.math.min
-import org.jetbrains.exposed.sql.exposedLogger
-import org.tod87et.roomkn.server.auth.AuthSession
 import org.tod87et.roomkn.server.auth.AuthenticationProvider
-import org.tod87et.roomkn.server.auth.userId
 import org.tod87et.roomkn.server.database.Database
 import org.tod87et.roomkn.server.database.MissingElementException
 import org.tod87et.roomkn.server.di.injectDatabase
@@ -164,22 +160,5 @@ private inline fun ApplicationCall.requirePermission(
     database: Database,
     onPermissionMissing: () -> Nothing
 ) {
-    val session = principal<AuthSession>()
-    if (session == null) {
-        onPermissionMissing()
-    } else {
-        database.getUserPermissions(session.userId)
-            .onFailure { onPermissionMissing() }
-            .onSuccess { permissions ->
-                if (!permissions.contains(UserPermission.RoomsAdmin)) {
-                    exposedLogger.debug(
-                        "User Id {} don't have {} - List of user permissions: {}",
-                        session.userId,
-                        UserPermission.RoomsAdmin,
-                        permissions
-                    )
-                    onPermissionMissing()
-                }
-            }
-    }
+    requirePermissionOrSelfImpl(null, database, UserPermission.RoomsAdmin, onPermissionMissing)
 }
