@@ -5,6 +5,7 @@ import {BrowserRouter as Router, Route, Routes} from 'react-router-dom';
 import Navbar from './components/Navbar';
 
 import RoomList from './pages/List';
+import Map from './pages/Map';
 import Room from './pages/Room';
 import About from './pages/About';
 import SignUp from './pages/SignUp';
@@ -58,6 +59,7 @@ function App() {
                     <Navbar/>
                     <Routes>
                         <Route exact path='/' element={<RoomList/>}/>
+                        <Route path='/map' element={<Map/>}/>
                         <Route path='/about' element={<About/>}/>
                         <Route path='/room/*' element={<Room/>}/>
                         <Route path='/sign-up' element={<SignUp/>}/>
