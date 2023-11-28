@@ -173,12 +173,21 @@ function BookingForm({room_id, triggerGetReservations}) {
 
 function Reservation({reservation, is_current_reservation = false}) {
 
+    const {currentUser} = useContext(CurrentUserContext)
+
     let {triggerFetch, result} = useSomeAPI('/api/v0/users/' + reservation.user_id)
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => triggerFetch(), [reservation])
+    useEffect(() => {
+        if (!is_current_reservation)
+            triggerFetch()
+    }, [reservation])
 
-    var reservedUsername = result?.username
+    let reservedUsername = result?.username
+
+    if (is_current_reservation) {
+        reservedUsername = currentUser.username
+    }
 
     if (reservedUsername == null) {
         reservedUsername = reservation.user_id
