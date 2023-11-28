@@ -181,6 +181,7 @@ function Reservation({reservation, is_current_reservation = false}) {
     useEffect(() => {
         if (!is_current_reservation)
             triggerFetch()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reservation])
 
     let reservedUsername = result?.username
