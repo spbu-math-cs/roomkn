@@ -193,7 +193,7 @@ class AccountControllerImpl(
         private const val ENV_ROOMKN_SUPERUSER_NAME = "SUPERUSER_NAME"
         private const val ENV_ROOMKN_SUPERUSER_PASSWORD = "SUPERUSER_PASSWORD"
         private const val ENV_ROOMKN_SUPERUSER_EMAIL = "SUPERUSER_EMAIL"
-        private const val ENV_HOST = "CALC_HOST"
+        private const val ENV_HOST = "SERV_HOST"
 
     }
 }
