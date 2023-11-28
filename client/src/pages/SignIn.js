@@ -7,7 +7,7 @@ function SignInForm() {
     const [username, setUsername] = React.useState(null)
     const [password, setPassword] = React.useState(null)
 
-    const {statusCode, authorize, finished} = useAuthorize(username, password)
+    const {statusCode, authorize, finished, fetchFlag} = useAuthorize(username, password)
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -22,7 +22,7 @@ function SignInForm() {
             else alert("statusCode: " + statusCode)
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [finished])
+    }, [finished, fetchFlag])
 
     return (
         <div>

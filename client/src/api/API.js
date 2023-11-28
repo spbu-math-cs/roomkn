@@ -15,8 +15,6 @@ export function useAPI(url, data = null, method = 'GET') {
     useEffect(() => {
         if (fetchFlag === 0) return
 
-        setLoading(true);
-
         const options = {
             method: method,
             credentials: 'include',
@@ -49,20 +47,27 @@ export function useAPI(url, data = null, method = 'GET') {
                     setResult(error)
 
                     setLoading(false)
-                    setFinished(true)
                     setFailed(true)
+                    setFinished(true)
                 })
             })
             .catch(error => {
                 setResult(error)
                 setStatus(0)
-                setFinished(true)
                 setFailed(true)
+                setFinished(true)
             });
         //eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fetchFlag]);
 
     function triggerFetch() {
+        setFinished(false);
+        setResult(false);
+        setLoading(true);
+        setFailed(false);
+        setStatus(0);
+        setHeaders({});
+
         setFetchFlag(fetchFlag + 1)
     }
 

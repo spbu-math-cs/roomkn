@@ -10,7 +10,7 @@ const NavSignIn = () => {
     const {isAuthorized} = useContext(IsAuthorizedContext)
     const {currentUser} = useContext(CurrentUserContext)
 
-    const {triggerLogout, finished, statusCode} = useLogout()
+    const {triggerLogout, finished, statusCode, fetchFlag} = useLogout()
 
     const logOut = () => {
         triggerLogout()
@@ -28,7 +28,7 @@ const NavSignIn = () => {
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [finished]);
+    }, [finished, fetchFlag]);
 
     let user_nickname = currentUser?.username
     if (user_nickname == null) {

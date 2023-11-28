@@ -116,7 +116,7 @@ export function useAuthorize(username, password) {
     const {setIsAuthorized} = useContext(IsAuthorizedContext)
     const {setCurrentUser} = useContext(CurrentUserContext)
 
-    const {result, statusCode, headers, triggerFetch, finished} = useSomeAPI("/api/v0/login", user, "POST")
+    const {result, statusCode, headers, triggerFetch, finished, fetchFlag} = useSomeAPI("/api/v0/login", user, "POST")
 
     const authorize = createAuthorizeFunction(result, statusCode, headers, triggerFetch, user, setCurrentUser, setIsAuthorized)
 
@@ -140,9 +140,9 @@ export function useAuthorize(username, password) {
 
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [finished, result]);
+    }, [finished, result, fetchFlag]);
 
-    return {result, statusCode, headers, authorize, finished}
+    return {result, statusCode, headers, authorize, finished, fetchFlag}
 }
 
 export function useRegister(username, password, email) {
@@ -152,27 +152,27 @@ export function useRegister(username, password, email) {
         email: email
     }
 
-    const {result, statusCode, headers, triggerFetch, finished} = useSomeAPI("/api/v0/register", user, "POST")
+    const {result, statusCode, headers, triggerFetch, finished, fetchFlag} = useSomeAPI("/api/v0/register", user, "POST")
 
     console.log(finished, statusCode, result)
 
-    return {result, statusCode, headers, register: triggerFetch, finished}
+    return {result, statusCode, headers, register: triggerFetch, finished, fetchFlag}
 }
 
 export function useLogout() {
     const {setIsAuthorized} = useContext(IsAuthorizedContext)
     const {setCurrentUser} = useContext(CurrentUserContext)
-    const {result, statusCode, headers, triggerFetch, finished} = useSomeAPI("/api/v0/logout", null, "DELETE")
+    const {result, statusCode, headers, triggerFetch, finished, fetchFlag} = useSomeAPI("/api/v0/logout", null, "DELETE")
 
     useEffect(() => {
         setIsAuthorized(false)
         setCurrentUser({})
         saveUserData({})
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [finished])
+    }, [finished, fetchFlag])
 
 
-    return {result, statusCode, headers, triggerLogout: triggerFetch, finished}
+    return {result, statusCode, headers, triggerLogout: triggerFetch, finished, fetchFlag}
 }
 
 export function getUserData() {
