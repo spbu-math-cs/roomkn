@@ -28,8 +28,8 @@ function Room({room_id, navigate, mesh}) {
         room_name_element = <Text text={mesh.room_name} anchor={{x: 0.5, y: 0.5}} scale={0.8}/>
 
         if (hover) {
-            scale *= 1.05;
-            height = 1
+            scale *= 1.10;
+            height = 100
         }
     }
 
@@ -43,12 +43,12 @@ function Room({room_id, navigate, mesh}) {
         if (mesh?.polyline != null) {
             g.moveTo(mesh.polyline[0].x, mesh.polyline[0].y);
             mesh.polyline.forEach((p) => {
-                //
-                g.lineTo(p.x * scale, p.y * scale);
+                g.lineTo(p.x, p.y);
             })
         }
 
         g.endFill();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     if (dummy_bunny) {
@@ -76,7 +76,7 @@ function Room({room_id, navigate, mesh}) {
                 draw={draw}
                 x={mesh.x}
                 y={mesh.y}
-                height={height}
+                zIndex={height}
                 scale={scale}
                 interactive={true}
                 click={click}
@@ -104,6 +104,7 @@ function Layer({layer, navigate}) {
         <Container
             x={layer.x}
             y={layer.y}
+            sortableChildren={true}
         >
             {rooms}
         </Container>
