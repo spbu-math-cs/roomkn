@@ -1,9 +1,9 @@
 import "./SignIn.css";
 //import React, {useContext, useEffect} from "react";
 import ContentWrapper from '../components/Content';
-import {IsAuthorizedContext, CurrentUserContext, useAuthorize, saveUserData, createAuthorizeFunction} from "../components/Auth";
+import {IsAuthorizedContext, CurrentUserContext, saveUserData} from "../components/Auth";
 
-import React, {createContext, useContext, useEffect, useState} from "react";
+import React, {useContext, useState} from "react";
 import useSomeAPI from "../api/FakeAPI";
 
 const IS_ADMIN_DEFAULT = true;

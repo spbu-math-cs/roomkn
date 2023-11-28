@@ -174,12 +174,12 @@ function Reservation({reservation, is_current_reservation = false}) {
 
     let [reservedUsername, setReservedUsername] = useState('')
 
-    let {triggerFetch, result} = useSomeAPI('/api/v0/users/' + reservation.user_id, null, 'GET', userCallback)
+    let {triggerFetch} = useSomeAPI('/api/v0/users/' + reservation.user_id, null, 'GET', userCallback)
 
     
 
     function userCallback(result, statusCode) {
-        if (statusCode == 200 && result != null) {
+        if (statusCode === 200 && result != null) {
             setReservedUsername(result?.username)
         }
     }

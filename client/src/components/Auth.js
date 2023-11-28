@@ -65,8 +65,7 @@ export function useAuthorizeByCookie() {
     }
 
     let {
-        triggerFetch: triggerFetchUser,
-        finished: finishedUser
+        triggerFetch: triggerFetchUser
     } = useSomeAPI('/api/v0/users/' + currentUser?.user_id, null, 'GET', userCallback)
 
     function userCallback(resultUser, statusCodeUser) {

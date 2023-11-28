@@ -36,6 +36,7 @@ export function useAPI(url, data=null, method='GET', callback = () => {}) {
         fetch(API_HOST + url, options)
             .then(r => {
                 setStatus(r.status)
+                // eslint-disable-next-line react-hooks/exhaustive-deps
                 myStatusCode = r.status
                 // console.log(r.cookie ("userId"))
                 return r
@@ -48,6 +49,7 @@ export function useAPI(url, data=null, method='GET', callback = () => {}) {
                 r.json().then(rjson => {
                     setResult(rjson)
 
+                    // eslint-disable-next-line react-hooks/exhaustive-deps
                     myResult = rjson
 
                     setLoading(false)

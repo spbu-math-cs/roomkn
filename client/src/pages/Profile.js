@@ -11,10 +11,7 @@ function ProfilePermissions({currentUser}) {
 
     let [permDraw, setPermDraw] = useState([])
 
-    let {
-        triggerFetch,
-        finished,
-    } = useSomeAPI('/api/v0/users/' + currentUser?.user_id + '/permissions', null, 'GET', permissionsCallback)
+    let {triggerFetch} = useSomeAPI('/api/v0/users/' + currentUser?.user_id + '/permissions', null, 'GET', permissionsCallback)
 
 
     function permissionsCallback(result, statusCode) {

@@ -1,5 +1,5 @@
 import "./SignUp.css";
-import React, {useEffect, useContext} from "react";
+import React, {useContext} from "react";
 import useSomeAPI from '../api/FakeAPI'
 import ContentWrapper from '../components/Content';
 import {IsAuthorizedContext, CurrentUserContext, saveUserData} from "../components/Auth";
@@ -21,11 +21,8 @@ function SignUpForm() {
                 email: email
         }
         
-        const {result, 
-                statusCode, 
-                headers, 
-                triggerFetch, 
-                finished
+        const { headers, 
+                triggerFetch
         } = useSomeAPI("/api/v0/register", user, "POST", registerCallback)
         
 

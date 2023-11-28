@@ -19,7 +19,7 @@ function RoomRow({room}) {
 function RoomList() {
 
     let [draw_list, setDrawList] = useState([])
-    
+
     function my_callback(result, statusCode) {
         console.log("result: " + result)
         console.log("statusCode:"  + statusCode)
@@ -39,9 +39,9 @@ function RoomList() {
 
     return (
         <ContentWrapper page_name="Classrooms">
-            <div className="room-list">
+            <List>
                 {draw_list}
-            </div>
+            </List>
         </ContentWrapper>
     );
 }
