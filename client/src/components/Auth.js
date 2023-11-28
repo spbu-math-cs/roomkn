@@ -19,9 +19,17 @@ export function AuthorizeWrapper({children}) {
 }
 
 
+const emptyUser = {
+    user_id: null,
+    csrf_token: null,
+    is_admin: null,
+    username: null
+}
+
+
 export function AuthorizationProvider({children}) {
     const [isAuthorized, setIsAuthorized] = useState(null)
-    const [currentUser, setCurrentUser] = useState(null)
+    const [currentUser, setCurrentUser] = useState(emptyUser)
 
     return (
         <IsAuthorizedContext.Provider value={{isAuthorized, setIsAuthorized}}>
@@ -50,14 +58,15 @@ export function useAuthorizeByCookie() {
 
     useEffect(() => {
         if (finishedValidate) {
-            console.log('validate: ', resultValidate, statusCodeCalidate, finishedValidate)
+            // console.log('validate: ', resultValidate, statusCodeCalidate, finishedValidate)
             if (statusCodeCalidate === 200) {
                 const userData = {
                     user_id: resultValidate?.id,
                     csrf_token: headersValidate['X-CSRF-Token'],
-                    is_admin: IS_ADMIN_DEFAULT
+                    is_admin: IS_ADMIN_DEFAULT,
+                    username: null
                 }
-                console.log(userData)
+                // console.log(userData)
                 setCurrentUser(userData)
                 saveUserData(userData)
                 setIsAuthorized(true)
@@ -89,13 +98,18 @@ export function useAuthorizeByCookie() {
         if (currentUser?.user_id == null) return
 
         if (finishedUser && resultUser?.username != null) {
-            const tmp_user_data = currentUser
-            tmp_user_data.username = resultUser?.username
+            const tmp_user_data = {
+                user_id: currentUser.user_id,
+                csrf_token: currentUser.csrf_token,
+                is_admin: currentUser.is_admin,
+                username: resultUser.usernames
+            }
+            tmp_user_data.username = resultUser.username
             setCurrentUser(tmp_user_data)
-            console.log(tmp_user_data)
+            // console.log(tmp_user_data)
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentUser, finishedUser, resultUser])
+    }, [finishedUser, resultUser])
 
     return {triggerValidate: triggerFetchValidate}
 
@@ -154,7 +168,7 @@ export function useRegister(username, password, email) {
 
     const {result, statusCode, headers, triggerFetch, finished} = useSomeAPI("/api/v0/register", user, "POST")
 
-    console.log(finished, statusCode, result)
+    // console.log(finished, statusCode, result)
 
     return {result, statusCode, headers, register: triggerFetch, finished}
 }
@@ -185,7 +199,7 @@ export function getCSRFToken() {
 }
 
 export function saveUserData(userData) {
-    console.log(userData, JSON.stringify(userData))
+    // console.log(userData, JSON.stringify(userData))
     sessionStorage.setItem('roomkn', JSON.stringify(userData));
 }
 
