@@ -10,9 +10,11 @@ import {Button, Checkbox, FormControlLabel, Stack, TextField, Typography, useThe
 function EditUserRow({user, refresh}) {
 
     const [name, setName] = useState(user.username)
+    const [email, setEmail] = useState('')
 
     const put_data = {
-            name: name
+        name: name,
+        email: email
     }
 
     const permissionsDefault = {
@@ -31,26 +33,37 @@ function EditUserRow({user, refresh}) {
     }
 
     const {
-        triggerFetch: permGetTriggerFetch,
-        finished: permGetFinished,
-        result: permGetResult
-    } = useSomeAPI("/api/v0/users/" + user.id + "/permissions")
+        triggerFetch: infoTriggerFetch
+    } = useSomeAPI("/api/v0/users/" + user.id, null, 'GET', infoGetCallback)
+
+    const {
+        triggerFetch: permGetTriggerFetch
+    } = useSomeAPI("/api/v0/users/" + user.id + "/permissions", null, 'GET', permGetCallback)
 
     useEffect(() => {
+        infoTriggerFetch()
         permGetTriggerFetch()
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
-    useEffect(() => {
-        if (permGetFinished) {
-            const tmp_perms = permissionsDefault
-            for (let perm in permGetResult) {
-                tmp_perms[permGetResult[perm]] = true;
-            }
-            setPermissions(tmp_perms)
+    function infoGetCallback(result, statusCode) {
+        if (statusCode === 200) {
+            setName(result.username)
+            setEmail(result.email)
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [permGetFinished, permGetResult])
+    }
+
+    function permGetCallback(result, statusCode) {
+        console.log('callback entered')
+        if (statusCode === 200) {
+            const tmp_perms = permissionsDefault
+            for (let perm in result) {
+                tmp_perms[result[perm]] = true;
+            }
+            console.log('setting perms')
+            setPermissions(tmp_perms)
+        } 
+    }
 
 
     const permissions_draw = []
@@ -72,11 +85,8 @@ function EditUserRow({user, refresh}) {
         }
     }
 
-    const putObj = useSomeAPI("/api/v0/users/" + user.id, put_data, "PUT")
-    const deleteObj = useSomeAPI("/api/v0/users/" + user.id, null, "DELETE")
-
-    const [putStatusCode, triggerPut, putFinished] = [putObj.statusCode, putObj.triggerFetch, putObj.finished]
-    const [deleteStatusCode, triggerDelete, deleteFinished] = [deleteObj.statusCode, deleteObj.triggerFetch, deleteObj.finished]
+    const {triggerFetch: triggerPut} = useSomeAPI("/api/v0/users/" + user.id, put_data, "PUT", putDeleteCallback)
+    const {triggerFetch: triggerDelete} = useSomeAPI("/api/v0/users/" + user.id, null, "DELETE", putDeleteCallback)
 
     const reset = () => {
         setName(user.username)
@@ -90,21 +100,11 @@ function EditUserRow({user, refresh}) {
         triggerDelete()
     }
 
-    useEffect(() => {
-        if (putFinished) {
-            alert("Put statusCode: " + putStatusCode)
+    function putDeleteCallback(result, statusCode) {
+        if (statusCode === 200) {
             refresh()
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [putFinished])
-
-    useEffect(() => {
-        if (deleteFinished) {
-            alert("Delete statusCode: " + deleteStatusCode)
-            refresh()
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [deleteFinished])
+    }
 
     const theme = useTheme();
 
@@ -113,6 +113,8 @@ function EditUserRow({user, refresh}) {
             <Stack>
                 <TextField sx={{maxWidth: "400px"}} label="Username" value={name}
                            onChange={(e) => setName(e.target.value)}/>
+                <TextField sx={{maxWidth: "400px"}} label="Email" value={email}
+                           onChange={(e) => setEmail(e.target.value)}/>
                 <Typography fontSize="18pt">Permissions</Typography>
                 <Stack sx={{paddingLeft: "10pt"}}>
                     {permissions_draw}
@@ -134,21 +136,17 @@ function AddUser({refresh}) {
         name: name,
     }
 
-    const addObj = useSomeAPI("/api/v0/users", put_data, "POST")
-
-    const [addStatusCode, triggerAdd, addFinished] = [addObj.statusCode, addObj.triggerFetch, addObj.finished]
+    const {triggerFetch: triggerAdd} = useSomeAPI("/api/v0/users", put_data, "POST", postCallback)
 
     const add_req = () => {
         triggerAdd()
     }
 
-    useEffect(() => {
-        if (addFinished) {
-            alert("Put statusCode: " + addStatusCode)
+    function postCallback(result, statusCode) {
+        if (statusCode === 200) {
             refresh()
         }
-        //eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [addFinished])
+    }
 
     return (
         <ContentWrapper page_name="Add user">
@@ -161,24 +159,24 @@ function AddUser({refresh}) {
 }
 
 export function AdminUserList() {
-    // const [refreshCount, setRefresh] = useState(0)
-    // const refresh = () => {
-    //     setRefresh(refreshCount+1)
-    // }
 
-    let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/users')
+    let [drawList, setDrawList] = useState([])
+
+    let {triggerFetch} = useSomeAPI('/api/v0/users', null, 'GET', listCallback)
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [])
 
-    const draw_list = []
-
-    if (statusCode === 200 && finished && result != null) {
-        result.forEach((user) => {
-            draw_list.push(
-                <EditUserRow user={user} key={user.id} refresh={triggerFetch}/>
-            )
-        })
+    function listCallback(result, statusCode) {
+        if (statusCode === 200) {
+            const newList = []
+            result.forEach((user) => {
+                newList.push(
+                    <EditUserRow user={user} key={user.id} refresh={triggerFetch}/>
+                )
+            })
+            setDrawList(newList)
+        }
     }
 
     const page_name = (
@@ -194,7 +192,7 @@ export function AdminUserList() {
         <AdminWrapper>
 
             <ContentWrapper page_name={page_name}/>
-            {draw_list}
+            {drawList}
             <AddUser refresh={triggerFetch}/>
         </AdminWrapper>
     )
