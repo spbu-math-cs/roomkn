@@ -1,0 +1,31 @@
+version: '3.7'
+
+services:
+  client:
+    build:
+      context: client/
+      args:
+        CLIENT_PORT: ${CLIENT_PORT}
+        SERVER_HOST: ${SERVER_HOST}
+        SERVER_PORT: ${SERVER_PORT}
+    ports:
+      - ${CLIENT_PORT}:${CLIENT_PORT}
+    depends_on:
+      - server
+
+  server:
+    build:
+      context: server/
+    ports:
+      - ${SERVER_PORT}:${SERVER_PORT}
+    environment:
+      - DB_URL=${DB_URL}
+      - DB_DRIVER=${DB_DRIVER}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - PEPPER=${PEPPER}
+      - SERV_HOST=0.0.0.0
+      - SERV_PORT=${SERVER_PORT}
+      - SUPERUSER_NAME=${SUPERUSER_NAME}
+      - SUPERUSER_PASSWORD=${SUPERUSER_PASSWORD}
