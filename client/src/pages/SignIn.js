@@ -1,28 +1,65 @@
 import "./SignIn.css";
-import React, {useContext, useEffect} from "react";
+//import React, {useContext, useEffect} from "react";
 import ContentWrapper from '../components/Content';
-import {IsAuthorizedContext, useAuthorize} from "../components/Auth";
+import {IsAuthorizedContext, CurrentUserContext, useAuthorize, saveUserData, createAuthorizeFunction} from "../components/Auth";
+
+import React, {createContext, useContext, useEffect, useState} from "react";
+import useSomeAPI from "../api/FakeAPI";
+
+const IS_ADMIN_DEFAULT = true;
+export const IS_ADMIN_GUEST = true;
 
 function SignInForm() {
-    const [username, setUsername] = React.useState(null)
-    const [password, setPassword] = React.useState(null)
+    const [username, setUsername] = useState(null)
+    const [password, setPassword] = useState(null)
 
-    const {statusCode, authorize, finished} = useAuthorize(username, password)
+    const user = {
+        username: username,
+        password: password
+    }
+
+    const {setIsAuthorized} = useContext(IsAuthorizedContext)
+    const {setCurrentUser} = useContext(CurrentUserContext)
+
+    const {headers, triggerFetch} = useSomeAPI("/api/v0/login", user, "POST", authCallback)
+
+    function authCallback(result, statusCode) {
+        console.log('invoked auth callback')
+        if (result != null) {
+            if (statusCode === 200) {
+                const userData = {
+                    user_id: result?.id,
+                    username: username,
+                    csrf_token: headers['X-CSRF-Token'],
+                    is_admin: IS_ADMIN_DEFAULT
+                }
+
+                console.log('user set to ' + userData)
+                setCurrentUser(userData)
+                saveUserData(userData)
+                setIsAuthorized(true)
+            } else {
+                setIsAuthorized(false)
+                setCurrentUser(null)
+            }
+
+        }
+    }
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        authorize()
+        triggerFetch()
         console.log(username, password)
     };
 
-    useEffect(() => {
-        if (finished) {
-            if (statusCode === 400) alert("Error: incorrect username or password.")
-            else if (statusCode === 200) alert("Authorization succeeded!");
-            else alert("statusCode: " + statusCode)
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [finished])
+    // useEffect(() => {
+    //     if (finished) {
+    //         if (statusCode === 400) alert("Error: incorrect username or password.")
+    //         else if (statusCode === 200) alert("Authorization succeeded!");
+    //         else alert("statusCode: " + statusCode)
+    //     }
+    //     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, [finished])
 
     return (
         <div>

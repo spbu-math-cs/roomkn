@@ -9,48 +9,51 @@ import {Box, Button, Stack, TextField, Typography} from "@mui/material";
 
 function ProfilePermissions({currentUser}) {
 
+    let [permDraw, setPermDraw] = useState([])
+
     let {
         triggerFetch,
-        result,
         finished,
-        statusCode
-    } = useSomeAPI('/api/v0/users/' + currentUser?.user_id + '/permissions')
+    } = useSomeAPI('/api/v0/users/' + currentUser?.user_id + '/permissions', null, 'GET', permissionsCallback)
+
+
+    function permissionsCallback(result, statusCode) {
+        if (statusCode === 200 && result != null) {
+            console.log("success in getting perms")
+            const newPermDraw = []
+            for (let perm in result) {
+                let s;
+                switch (result[perm]) {
+                    case "ReservationsCreate":
+                        s = "You are allowed to make reservations."
+                        break
+                    case "ReservationsAdmin":
+                        s = "You are allowed to view other users' reservations and edit them."
+                        break
+                    case "RoomsAdmin":
+                        s = "You are allowed to change room names and descriptions as well as introduce new rooms."
+                        break
+                    case "UsersAdmin":
+                        s = "You are allowed to manage all users in the network and change their permissions."
+                        break
+                    case "GroupsAdmin":
+                        s = "You are allowed to manage all groups."
+                        break
+                    default:
+                        s = "You are allowed to eat draniki."
+                }
+                newPermDraw.push(<li key={perm}>
+                    <label className='profile-user-perm'>{s}</label>
+                </li>)
+            }
+            setPermDraw(newPermDraw)
+        }
+    }
 
     //eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [currentUser])
-    console.log("used effect")
 
-    if (statusCode === 200 && finished && result != null) {
-        console.log("success in getting perms")
-        const perm_draw = []
-        for (let perm in result) {
-            let s;
-            console.log(perm)
-            switch (result[perm]) {
-                case "ReservationsCreate":
-                    s = "You are allowed to make reservations."
-                    break
-                case "ReservationsAdmin":
-                    s = "You are allowed to view other users' reservations and edit them."
-                    break
-                case "RoomsAdmin":
-                    s = "You are allowed to change room names and descriptions as well as introduce new rooms."
-                    break
-                case "UsersAdmin":
-                    s = "You are allowed to manage all users in the network and change their permissions."
-                    break
-                case "GroupsAdmin":
-                    s = "You are allowed to manage all groups."
-                    break
-                default:
-                    s = "You are allowed to eat draniki."
-            }
-            perm_draw.push(<li key={perm}>
-                <label className='profile-user-perm'>{s}</label>
-            </li>)
-        }
-        return <ul>{perm_draw}</ul>
-    }
+    return <ul>{permDraw}</ul>
 }
 
 function ProfileChangeForm({id, actUsername, actEmail, triggerRefetch}) {
@@ -63,11 +66,10 @@ function ProfileChangeForm({id, actUsername, actEmail, triggerRefetch}) {
         email: email
     }
 
-    let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/users/' + id, put_data, 'PUT')
+    let {triggerFetch} = useSomeAPI('/api/v0/users/' + id, put_data, 'PUT', profileChangeCallback)
 
-    useEffect(() => {
-        if (finished) {
-            if (statusCode === 400) alert("Error: " + result)
+    function profileChangeCallback(result, statusCode) {
+        if (statusCode === 400) alert("Error: " + result)
             else if (statusCode === 401) alert("Error: you are unauthorized.")
             else if (statusCode === 403) alert("You are not allowed to change your credentials.")
             else if (statusCode === 500) alert("Internal server error.")
@@ -75,9 +77,7 @@ function ProfileChangeForm({id, actUsername, actEmail, triggerRefetch}) {
                 triggerRefetch()
                 alert("Credentials updated successfully!")
             } else alert("Status Code: " + statusCode)
-        }
-        //eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [finished]);
+    }
 
     const handleSubmit = (e) => {
         e.preventDefault()
@@ -101,17 +101,19 @@ function ProfileChangeForm({id, actUsername, actEmail, triggerRefetch}) {
 
 const Profile = () => {
 
+    let [presult, setPresult] = useState(null)
+    let [pstatusCode, setPstatusCode] = useState(0)
+
     const {currentUser} = useContext(CurrentUserContext)
     const {isAuthorized} = useContext(IsAuthorizedContext)
 
-    let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/users/' + currentUser?.user_id)
+    let {triggerFetch} = useSomeAPI('/api/v0/users/' + currentUser?.user_id, null, 'GET', profileCallback)
 
 
     //eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [currentUser])
 
 
-    console.log(currentUser)
 
     if (!isAuthorized) {
         return (
@@ -121,15 +123,25 @@ const Profile = () => {
         )
     }
 
-    if (statusCode === 200 && finished && result != null) {
+    function profileCallback(result, statusCode) {
+        if (statusCode === 200 && result != null) {
+            setPresult(result)
+            setPstatusCode(statusCode)
+        }
+        else {
+            setPresult(null)
+            setPstatusCode(0)
+        }
+        
+    }
 
-
+    if (pstatusCode === 200) {
         return (
             <Stack>
                 <ContentWrapper page_name="Profile info">
                     <Typography sx={{fontSize: 24}}>
-                        <Box>Username: {result.username}</Box>
-                        <Box>Email: {result.email}</Box>
+                        <Box>Username: {presult.username}</Box>
+                        <Box>Email: {presult.email}</Box>
                     </Typography>
                 </ContentWrapper>
                 <ContentWrapper page_name="Permissions">
@@ -138,18 +150,19 @@ const Profile = () => {
                     </Typography>
                 </ContentWrapper>
                 <Typography sx={{fontSize: 24}}>
-                    <ProfileChangeForm id={currentUser?.user_id} actUsername={result.username} actEmail={result.email}
+                    <ProfileChangeForm id={currentUser?.user_id} actUsername={presult.username} actEmail={presult.email}
                                        triggerRefetch={triggerFetch}></ProfileChangeForm>
                 </Typography>
             </Stack>
         )
     }
-
+    
     return (
         <ContentWrapper page_name="My profile">
             Unable to fetch current user information.
         </ContentWrapper>
     )
+    
 };
 
 export default Profile;
