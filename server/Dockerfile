@@ -2,9 +2,9 @@ FROM eclipse-temurin:11
 
 WORKDIR /app
 COPY . server
-WORKDIR ./server
+WORKDIR /app/server
 
 RUN ./gradlew installDist
-WORKDIR ./build/install/server/bin
+WORKDIR /app/server/build/install/server/bin
 
 CMD ./server

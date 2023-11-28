@@ -6,7 +6,7 @@ ARG SERVER_PORT
 
 WORKDIR /app
 COPY . client
-WORKDIR ./client
+WORKDIR /app/client
 
 ENV REACT_APP_REST_SERVER_ADDRESS "http://${SERVER_HOST}:${SERVER_PORT}"
 
