@@ -19,7 +19,6 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import org.jetbrains.exposed.sql.upsert
 import org.postgresql.util.PSQLException
-import org.tod87et.roomkn.server.database.InvalidatedTokens.tokenHash
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.reservations.Reservation
 import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
@@ -50,7 +49,7 @@ class DatabaseSession private constructor(private val database: Database) :
     constructor(dataSource: DataSource) : this(Database.connect(dataSource))
 
     init {
-        transaction(database) { SchemaUtils.create(Users, Rooms, Reservations, InvalidatedTokens) }
+        transaction(database) { SchemaUtils.create(Users, Rooms, Reservations, ActiveTokens) }
     }
 
     override fun createRoom(roomInfo: NewRoomInfo): Result<RoomInfo> = queryWrapper {
@@ -291,26 +290,34 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
-    override fun invalidateToken(hash: ByteArray, expirationDate: Instant): Result<Unit> = queryWrapper {
-        transaction(database) {
-            InvalidatedTokens.upsert {
-                it[InvalidatedTokens.tokenHash] = hash
-                it[InvalidatedTokens.expirationDate] = expirationDate
+    override fun registerToken(hash: ByteArray, expirationDate: Instant): Result<Unit> = queryWrapper {
+        transaction {
+            ActiveTokens.upsert {
+                it[ActiveTokens.tokenHash] = hash
+                it[ActiveTokens.expirationDate] = expirationDate
             }
         }
     }
 
-    override fun checkTokenWasInvalidated(hash: ByteArray): Result<Boolean> = queryWrapper {
+    override fun invalidateToken(hash: ByteArray): Result<Unit> = queryWrapper {
         transaction(database) {
-            !InvalidatedTokens.select { tokenHash eq hash }.empty()
+            ActiveTokens.deleteWhere {
+                ActiveTokens.tokenHash eq hash
+            }
         }
     }
 
-    override fun cleanupExpiredInvalidatedTokens(): Result<Unit> = queryWrapper {
+    override fun checkTokenValid(hash: ByteArray): Result<Boolean> = queryWrapper {
+        transaction(database) {
+            !ActiveTokens.select { ActiveTokens.tokenHash eq hash }.empty()
+        }
+    }
+
+    override fun cleanupExpiredTokens(): Result<Unit> = queryWrapper {
         transaction(database) {
             val now = Clock.System.now()
 
-            InvalidatedTokens.deleteWhere { expirationDate lessEq now }
+            ActiveTokens.deleteWhere { expirationDate lessEq now }
         }
     }
 
@@ -368,6 +375,7 @@ class DatabaseSession private constructor(private val database: Database) :
             Reservations.deleteAll()
             Users.deleteAll()
             Rooms.deleteAll()
+            ActiveTokens.deleteAll()
         }
     }
 
