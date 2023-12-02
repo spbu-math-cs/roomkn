@@ -38,9 +38,9 @@ object Reservations : Table() {
     override val primaryKey = PrimaryKey(id)
 }
 
-object InvalidatedTokens : Table() {
+object ActiveTokens : Table() {
     val tokenHash: Column<ByteArray> = binary("tokenHash", 32)
     val expirationDate: Column<Instant> = timestamp("expirationDate")
 
-    override val primaryKey = PrimaryKey(tokenHash, name = "pk_invalidatedtokens_tokenhash")
+    override val primaryKey = PrimaryKey(tokenHash, name = "pk_tokens_tokenhash")
 }

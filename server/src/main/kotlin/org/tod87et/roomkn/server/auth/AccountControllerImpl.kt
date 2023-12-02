@@ -5,9 +5,6 @@ import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
 import io.ktor.util.logging.Logger
 import io.ktor.utils.io.CancellationException
-import java.security.MessageDigest
-import java.security.SecureRandom
-import java.util.Date
 import kotlinx.coroutines.delay
 import kotlinx.datetime.toKotlinInstant
 import org.tod87et.roomkn.server.database.ConstraintViolationException
@@ -16,6 +13,9 @@ import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.users.LoginUserInfo
 import org.tod87et.roomkn.server.models.users.RegistrationUserInfo
 import org.tod87et.roomkn.server.models.users.UnregisteredUserInfo
+import java.security.MessageDigest
+import java.security.SecureRandom
+import java.util.Date
 
 class AccountControllerImpl(
     private val log: Logger,
@@ -73,13 +73,13 @@ class AccountControllerImpl(
             return Result.success(false)
         }
         digest.update(session.token.encodeToByteArray())
-        return config.credentialsDatabase.checkTokenWasInvalidated(digest.digest()).map { !it }
+        return config.credentialsDatabase.checkTokenValid(digest.digest())
     }
 
     override fun invalidateSession(session: AuthSession): Result<Unit> {
         digest.update(session.token.encodeToByteArray())
         return config.credentialsDatabase.invalidateToken(
-            digest.digest(), JWT.decode(session.token).expiresAtAsInstant.toKotlinInstant()
+            digest.digest()
         )
     }
 
@@ -162,7 +162,7 @@ class AccountControllerImpl(
         while (true) {
             try {
                 delay(config.cleanupInterval)
-                config.credentialsDatabase.cleanupExpiredInvalidatedTokens().getOrThrow()
+                config.credentialsDatabase.cleanupExpiredTokens().getOrThrow()
                 log.debug("Invalid tokens cleanup succeed")
             } catch (_: CancellationException) {
                 break
@@ -173,10 +173,16 @@ class AccountControllerImpl(
     }
 
     private fun createToken(userId: Int): String {
+        val expiresAt = Date(System.currentTimeMillis() + config.tokenValidityPeriod.inWholeMilliseconds)
         return JWT.create().withAudience(config.audience).withIssuer(config.issuer)
             .withClaim(AuthSession.USER_ID_CLAIM_NAME, userId)
-            .withExpiresAt(Date(System.currentTimeMillis() + config.tokenValidityPeriod.inWholeMilliseconds))
+            .withExpiresAt(expiresAt)
             .sign(signAlgorithm)
+            .also { token ->
+                digest.update(token.encodeToByteArray())
+                config.credentialsDatabase.registerToken(digest.digest(), expiresAt.toInstant().toKotlinInstant())
+                    .getOrThrow()
+            }
     }
 
     companion object {
