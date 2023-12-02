@@ -291,7 +291,7 @@ class DatabaseSession private constructor(private val database: Database) :
     }
 
     override fun registerToken(hash: ByteArray, expirationDate: Instant): Result<Unit> = queryWrapper {
-        transaction {
+        transaction(database) {
             ActiveTokens.upsert {
                 it[ActiveTokens.tokenHash] = hash
                 it[ActiveTokens.expirationDate] = expirationDate
