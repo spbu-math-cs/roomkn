@@ -18,10 +18,16 @@ export function AuthorizeWrapper({children}) {
     return children
 }
 
+const emptyUser = {
+    user_id: null,
+    csrf_token: null,
+    is_admin: null,
+    username: null
+}
 
 export function AuthorizationProvider({children}) {
     const [isAuthorized, setIsAuthorized] = useState(null)
-    const [currentUser, setCurrentUser] = useState(null)
+    const [currentUser, setCurrentUser] = useState(emptyUser)
 
     return (
         <IsAuthorizedContext.Provider value={{isAuthorized, setIsAuthorized}}>
@@ -52,7 +58,8 @@ export function useAuthorizeByCookie() {
                 const userData = {
                     user_id: resultValidate?.id,
                     csrf_token: headersValidate['X-CSRF-Token'],
-                    is_admin: IS_ADMIN_DEFAULT
+                    is_admin: IS_ADMIN_DEFAULT,
+                    username: null
                 }
                 console.log(userData)
                 setCurrentUser(userData)
@@ -72,10 +79,13 @@ export function useAuthorizeByCookie() {
         if (currentUser?.user_id == null) return
 
         if (resultUser?.username != null && statusCodeUser === 200) {
-            const tmp_user_data = currentUser
-            tmp_user_data.username = resultUser?.username
+            const tmp_user_data = {
+                user_id: currentUser.user_id,
+                csrf_token: currentUser.csrf_token,
+                is_admin: currentUser.is_admin,
+                username: resultUser.username
+            }
             setCurrentUser(tmp_user_data)
-            console.log(tmp_user_data)
         }
     }
 

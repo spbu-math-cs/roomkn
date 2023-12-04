@@ -174,11 +174,13 @@ function BookingForm({room_id, triggerGetReservations}) {
 
 function Reservation({reservation, is_current_reservation = false}) {
 
+    const {currentUser} = useContext(CurrentUserContext)
+
     let [reservedUsername, setReservedUsername] = useState('')
 
     let {triggerFetch} = useSomeAPI('/api/v0/users/' + reservation.user_id, null, 'GET', userCallback)
 
-    
+
 
     function userCallback(result, statusCode) {
         if (statusCode === 200 && result != null) {
@@ -186,8 +188,20 @@ function Reservation({reservation, is_current_reservation = false}) {
         }
     }
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => triggerFetch(), [reservation])
+    useEffect(() => {
+        if (!is_current_reservation)
+            triggerFetch()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [reservation])
+
+
+    useEffect(() => {
+        if (is_current_reservation) {
+            setReservedUsername(currentUser.username)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentUser])
+
 
     const from_obj = fromAPITime(reservation.from)
     const until_obj = fromAPITime(reservation.until)
