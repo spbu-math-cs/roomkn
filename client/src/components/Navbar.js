@@ -38,6 +38,9 @@ const NavSignIn = () => {
     if (isAuthorized) {
         return (
             <>
+                <NavLink to="/my-reservations" className="navlink">
+                    My reservations
+                </NavLink>
                 <NavLink to="/profile" className="navlink">
                     {user_nickname}
                     <img className="navbar-profile-avatar" src="/azat.png" alt="avatar"/>
@@ -77,9 +80,6 @@ const Navbar = () => {
                             </NavLink>
                             <NavLink to="/about" className="navlink">
                                 About
-                            </NavLink>
-                            <NavLink to="/my-reservations" className="navlink">
-                                My reservations
                             </NavLink>
                             <NavLink to="/admin/panel" className="navlink">
                                 Admin panel
