@@ -5,7 +5,7 @@ import {NavLink} from "react-router-dom";
 
 import "./AdminUserList.css"
 import AdminWrapper from "../../components/AdminWrapper";
-import {Button, Checkbox, Divider, FormControlLabel, Stack, TextField, Typography, useTheme} from "@mui/material";
+import {Button, Checkbox, FormControlLabel, Stack, TextField, Typography, useTheme} from "@mui/material";
 
 function EditUserRow({user, refresh}) {
 
