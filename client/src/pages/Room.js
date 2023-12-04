@@ -53,8 +53,9 @@ function GetReservations(room_id, date) {
 
     console.log("GetReservations invoked with date = " + date)
     console.log("used some api with /api/v0/rooms/" + room_id + "/reservations")
+
     //eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => triggerFetch(), [])
+    useEffect(() => triggerFetch(), [date])
 
     function reservationsCallback(result, statusCode) {
         if (statusCode === 200 && result != null) {

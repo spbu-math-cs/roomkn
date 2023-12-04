@@ -5,7 +5,7 @@ import {NavLink} from "react-router-dom";
 
 import "./AdminUserList.css"
 import AdminWrapper from "../../components/AdminWrapper";
-import {Button, Checkbox, FormControlLabel, Stack, TextField, Typography, useTheme} from "@mui/material";
+import {Button, Checkbox, Divider, FormControlLabel, Stack, TextField, Typography, useTheme} from "@mui/material";
 
 function EditUserRow({user, refresh}) {
 
@@ -13,7 +13,7 @@ function EditUserRow({user, refresh}) {
     const [email, setEmail] = useState('')
 
     const put_data = {
-        name: name,
+        username: name,
         email: email
     }
 
@@ -40,11 +40,21 @@ function EditUserRow({user, refresh}) {
         triggerFetch: permGetTriggerFetch
     } = useSomeAPI("/api/v0/users/" + user.id + "/permissions", null, 'GET', permGetCallback)
 
+    const {
+        triggerFetch: permPutTriggerFetch
+    } = useSomeAPI('/api/v0/users/' + user.id + '/permissions', checked_perms, 'PUT', permPutCallback)
+
     useEffect(() => {
         infoTriggerFetch()
         permGetTriggerFetch()
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
+
+    function permPutCallback(result, statusCode) {
+        if (statusCode === 200) {
+            permGetTriggerFetch()
+        }
+    }
 
     function infoGetCallback(result, statusCode) {
         if (statusCode === 200) {
@@ -89,11 +99,14 @@ function EditUserRow({user, refresh}) {
     const {triggerFetch: triggerDelete} = useSomeAPI("/api/v0/users/" + user.id, null, "DELETE", putDeleteCallback)
 
     const reset = () => {
-        setName(user.username)
+        // setName(user.username)
+        // setEmail(user.email)
+        infoTriggerFetch()
     }
 
     const put_req = () => {
         triggerPut()
+        permPutTriggerFetch()
     }
 
     const delete_req = () => {
@@ -111,7 +124,7 @@ function EditUserRow({user, refresh}) {
     return (
         <ContentWrapper page_name={user.id}>
             <Stack>
-                <TextField sx={{maxWidth: "400px"}} label="Username" value={name}
+                <TextField sx={{maxWidth: "400px", paddingBottom: "20px"}} label="Username" value={name}
                            onChange={(e) => setName(e.target.value)}/>
                 <TextField sx={{maxWidth: "400px"}} label="Email" value={email}
                            onChange={(e) => setEmail(e.target.value)}/>
