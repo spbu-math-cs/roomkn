@@ -10,7 +10,10 @@ import SnackbarAlert from "../../components/SnackbarAlert";
 
 function EditRoomRow({room, refresh}) {
 
-    let {triggerFetch, result, statusCode, finished} = useSomeAPI('/api/v0/rooms/' + room.id)
+    let [snackbarVis, setSnackbarVis] = useState(false)
+    let [putStatusCode, setPutStatusCode] = useState(0)
+
+    let {triggerFetch} = useSomeAPI('/api/v0/rooms/' + room.id, null, 'GET', roomGetCallback)
     //eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [])
 
@@ -20,24 +23,23 @@ function EditRoomRow({room, refresh}) {
     const [name, setName] = useState(room.name)
     const [desc, setDesc] = useState(room.description)
 
-    useEffect(() => {
-        if (finished && statusCode === 200 && result != null) {
+    function roomGetCallback(result, statusCode) {
+        if (statusCode === 200) {
+            console.log('setting room description to' + result.description)
             setDescDefault(result.description)
             setDesc(result.description)
         }
-        //eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [result, finished, statusCode]);
+    }
 
     const put_data = {
         name: name,
         description: desc
     }
 
-    const putObj = useSomeAPI("/api/v0/rooms/" + room.id, put_data, "PUT")
-    const deleteObj = useSomeAPI("/api/v0/rooms/" + room.id, null, "DELETE")
+    const {triggerFetch: triggerPut} = useSomeAPI("/api/v0/rooms/" + room.id, put_data, "PUT", putDeleteCallback)
+    const {triggerFetch: triggerDelete} = useSomeAPI("/api/v0/rooms/" + room.id, null, "DELETE", putDeleteCallback)
 
-    const [putStatusCode, triggerPut, putFinished, setPutFinished] = [putObj.statusCode, putObj.triggerFetch, putObj.finished, putObj.setFinished]
-    const [deleteStatusCode, triggerDelete, deleteFinished] = [deleteObj.statusCode, deleteObj.triggerFetch, deleteObj.finished]
+
 
     const reset = () => {
         setName(nameDefault)
@@ -52,21 +54,11 @@ function EditRoomRow({room, refresh}) {
         triggerDelete()
     }
 
-    useEffect(() => {
-        if (putFinished) {
-            // alert("Put statusCode: " + putStatusCode)
-            refresh()
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [putFinished])
-
-    useEffect(() => {
-        if (deleteFinished) {
-            alert("Delete statusCode: " + deleteStatusCode)
-            refresh()
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [deleteFinished])
+    function putDeleteCallback(result, statusCode) {
+        setSnackbarVis(true)
+        setPutStatusCode(statusCode)
+        refresh()
+    }
 
     const theme = useTheme()
 
@@ -83,8 +75,8 @@ function EditRoomRow({room, refresh}) {
             <Button variant="outlined" color="secondary" onClick={reset}>reset</Button>
             <Button variant="contained" color="success" onClick={put_req}>update</Button>
             <Button variant="outlined" color="error" onClick={delete_req}>delete</Button>
-            <SnackbarAlert label={"Status code: " + putStatusCode} shouldShow={putFinished} closeSelf={() => {
-                setPutFinished(false)
+            <SnackbarAlert label={"Status code: " + putStatusCode} shouldShow={snackbarVis} closeSelf={() => {
+                setSnackbarVis(false)
             }}/>
         </Stack>
     )
@@ -99,21 +91,17 @@ function AddRoom({refresh}) {
         description: desc
     }
 
-    const addObj = useSomeAPI("/api/v0/rooms", put_data, "POST")
-
-    const [addStatusCode, triggerAdd, addFinished] = [addObj.statusCode, addObj.triggerFetch, addObj.finished]
+    const {triggerFetch} = useSomeAPI("/api/v0/rooms", put_data, "POST", addCallback)
 
     const add_req = () => {
-        triggerAdd()
+        triggerFetch()
     }
 
-    useEffect(() => {
-        if (addFinished) {
-            alert("Put statusCode: " + addStatusCode)
+    function addCallback(result, statusCode) {
+        if (statusCode === 200) {
             refresh()
         }
-        //eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [addFinished])
+    }
 
     const theme = useTheme()
 
@@ -127,24 +115,24 @@ function AddRoom({refresh}) {
 }
 
 export function AdminRoomList() {
-    // const [refreshCount, setRefresh] = useState(0)
-    // const refresh = () => {
-    //     setRefresh(refreshCount+1)
-    // }
+    
+    let [drawList, setDrawList] = useState([])
 
-    let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/rooms')
+    let {triggerFetch} = useSomeAPI('/api/v0/rooms', null, 'GET', listCallback)
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [])
 
-    const draw_list = []
-
-    if (statusCode === 200 && finished && result != null) {
-        result.forEach((room) => {
-            draw_list.push(
-                <EditRoomRow room={room} key={room.id} refresh={triggerFetch}/>
-            )
-        })
+    function listCallback(result, statusCode) {
+        if (statusCode === 200) {
+            const newList = []
+            result.forEach((room) => {
+                newList.push(
+                    <EditRoomRow room={room} key={room.id} refresh={triggerFetch}/>
+                )
+            })
+            setDrawList(newList)
+        }
     }
 
     const page_name = (
@@ -162,7 +150,7 @@ export function AdminRoomList() {
         <AdminWrapper>
             <ContentWrapper page_name={page_name}>
                 <Stack spacing={theme.spacing()}>
-                    {draw_list}
+                    {drawList}
                 </Stack>
             </ContentWrapper>
             <ContentWrapper page_name="Add room">
