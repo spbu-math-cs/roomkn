@@ -1,7 +1,10 @@
 import "./SignUp.css";
-import React, {useEffect} from "react";
+import React, {useContext} from "react";
+import useSomeAPI from '../api/FakeAPI'
 import ContentWrapper from '../components/Content';
-import {useRegister} from "../components/Auth";
+import {IsAuthorizedContext, CurrentUserContext, saveUserData} from "../components/Auth";
+
+const IS_ADMIN_DEFAULT = true;
 
 function SignUpForm() {
         const [username, setUsername] = React.useState(null)
@@ -9,28 +12,51 @@ function SignUpForm() {
         const [password, setPassword] = React.useState(null)
         const [password2, setPassword2] = React.useState(null)
 
+        const {setIsAuthorized} = useContext(IsAuthorizedContext)
+        const {setCurrentUser} = useContext(CurrentUserContext)
 
-        const {statusCode, register, finished} = useRegister(username, password, email)
+        const user = {
+                username: username,
+                password: password,
+                email: email
+        }
+        
+        const { headers, 
+                triggerFetch
+        } = useSomeAPI("/api/v0/register", user, "POST", registerCallback)
+        
+
 
         const handleSubmit = (e) => {
                 e.preventDefault();
 
                 if (password === password2) {
-                        register()
+                        triggerFetch()
                         console.log(username, password)
                 } else {
                         alert("Passwords are not equal")
                 }
         };
 
-        useEffect(() => {
-                if (finished) {
-                        if (statusCode === 409) alert("Error: user with this username or email already exists")
-                        else if (statusCode === 200) alert("Registration succeeded!");
-                        else alert("statusCode: " + statusCode)
+        function registerCallback(result, statusCode) {
+                if (statusCode === 409) alert("Error: user with this username or email already exists")
+                else if (statusCode === 200 && result != null) {
+                        console.log(result)
+                        const userData = {
+                                user_id: result?.id,
+                                username: username,
+                                csrf_token: headers['X-CSRF-Token'],
+                                is_admin: IS_ADMIN_DEFAULT
+                        }
+                        alert("Registration succeeded!");
+                        console.log('user data:')
+                        console.log(userData)
+                        setCurrentUser(userData)
+                        saveUserData(userData)
+                        setIsAuthorized(true)
                 }
-                // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [finished])
+                else alert("statusCode: " + statusCode)
+        }
 
         return (
                 <div>
@@ -91,7 +117,6 @@ function SignUpForm() {
 function SignUp() {
         return (
                 <>
-                        {/*<AuthorizationStatusLabel/>*/}
                         <SignUpForm></SignUpForm>
                 </>
         )

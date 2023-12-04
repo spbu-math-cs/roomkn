@@ -1,9 +1,9 @@
-import {useEffect, useState} from 'react';
+import { useEffect, useState } from 'react';
 import {getCSRFToken} from "../components/Auth";
 
 const API_HOST = process.env.REACT_APP_REST_SERVER_ADDRESS
 
-export function useAPI(url, data = null, method = 'GET') {
+export function useAPI(url, data=null, method='GET', callback = () => {}) {
     const [result, setResult] = useState();
     const [loading, setLoading] = useState(true);
     const [finished, setFinished] = useState(false);
@@ -11,6 +11,9 @@ export function useAPI(url, data = null, method = 'GET') {
     const [statusCode, setStatus] = useState(0);
     const [fetchFlag, setFetchFlag] = useState(0)
     const [headers, setHeaders] = useState({})
+
+    let myResult = null
+    let myStatusCode = 0
 
     useEffect(() => {
         if (fetchFlag === 0) return
@@ -33,6 +36,8 @@ export function useAPI(url, data = null, method = 'GET') {
         fetch(API_HOST + url, options)
             .then(r => {
                 setStatus(r.status)
+                // eslint-disable-next-line react-hooks/exhaustive-deps
+                myStatusCode = r.status
                 // console.log(r.cookie ("userId"))
                 return r
             })
@@ -43,20 +48,35 @@ export function useAPI(url, data = null, method = 'GET') {
             .then(r => {
                 r.json().then(rjson => {
                     setResult(rjson)
-                    setLoading(false)
-                    setFinished(true)
-                }).catch(error => {
-                    setResult(error)
+
+                    // eslint-disable-next-line react-hooks/exhaustive-deps
+                    myResult = rjson
 
                     setLoading(false)
                     setFinished(true)
+                    console.log('starting callback for ' + url)
+                    console.log('method = ' + method)
+                    callback(myResult, myStatusCode)
+                }).catch(error => {
+                    setResult(error)
+
+                    myResult = error
+
+                    setLoading(false)
+                    setFinished(true)
+                    callback(myResult, myStatusCode)
                     setFailed(true)
                 })
             })
             .catch(error => {
                 setResult(error)
+
+                myResult = error
+
                 setStatus(0)
+                myStatusCode = 0
                 setFinished(true)
+                callback(myResult, myStatusCode)
                 setFailed(true)
             });
         //eslint-disable-next-line react-hooks/exhaustive-deps
@@ -76,8 +96,8 @@ export function toAPITime(date, time) {
 
 export function fromAPITime(ins) {
     // return {
-    //     date: "2022-10-12",
-    //     time: "8:30"
+    //         date: "2022-10-12",
+    //         time: "8:30"
     // }
 
     // console.log("fromAPITime: " + ins)

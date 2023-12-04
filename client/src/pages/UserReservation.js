@@ -3,17 +3,16 @@ import './UserReservation.css';
 import {NavLink} from 'react-router-dom'
 
 import ContentWrapper from '../components/Content';
-import React, {useContext, useEffect} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import useSomeAPI from '../api/FakeAPI';
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
 import {fromAPITime} from "../api/API";
 
-function useDeleteReservation(reservationId) {
-    let {triggerFetch, statusCode, finished, fetchFlag} = useSomeAPI('/api/v0/reservations/' + reservationId, null, 'DELETE')
-    return {triggerFetch, statusCode, finished, fetchFlag}
-}
 
 function Reservation({reservation, onDelete}) {
+
+    let [roomName, setRoomName] = useState(null)
+
     console.log("reservation: " + reservation)
 
     const from_obj = fromAPITime(reservation.from)
@@ -21,33 +20,33 @@ function Reservation({reservation, onDelete}) {
 
     const room_id = reservation.room_id
 
-    const getRoomQueryResult = useSomeAPI('/api/v0/rooms/' + room_id)
+    const getRoomQueryResult = useSomeAPI('/api/v0/rooms/' + room_id, null, 'GET', getRoomCallback)
 
     let getRoomTriggerFetch = getRoomQueryResult.triggerFetch
-    let getRoomResult = getRoomQueryResult.result
-    let getRoomFinished = getRoomQueryResult.finished
-    let getRoomStatusCode = getRoomQueryResult.statusCode
 
-    let deleteReturned = useDeleteReservation(reservation.id)
+    let {triggerFetch: deleteTriggerFetch} = useSomeAPI('/api/v0/reservations/' + reservation.id, null, 'DELETE', deleteCallback)
 
-    let deleteTriggerFetch = deleteReturned.triggerFetch
-    let deleteStatusCode = deleteReturned.statusCode
-    let deleteFetchFlag = deleteReturned.fetchFlag
-    let deleteFinished = deleteReturned.finished
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => getRoomTriggerFetch(), [])
 
-    useEffect(() => {
-        if (deleteFetchFlag === 0 || !deleteFinished) return
-        onDelete()
-        console.log("deleteFetchFlag: " + deleteFetchFlag)
-        if (getRoomStatusCode === 200) {
-            alert("Удалено!")
+    function deleteCallback(result, statusCode) {
+        if (statusCode === 200) {
+            alert('Удалено!')
+            onDelete()
         }
-        else alert("Error: " + deleteStatusCode)
-        //eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [deleteFetchFlag, deleteFinished]);
+    }
+
+    // useEffect(() => {
+    //     if (deleteFetchFlag === 0 || !deleteFinished) return
+    //     onDelete()
+    //     console.log("deleteFetchFlag: " + deleteFetchFlag)
+    //     if (getRoomStatusCode === 200) {
+    //         alert("Удалено!")
+    //     }
+    //     else alert("Error: " + deleteStatusCode)
+    //     //eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, [deleteFetchFlag, deleteFinished]);
 
     const deleteSubmit = (e) => {
         e.preventDefault();
@@ -55,14 +54,23 @@ function Reservation({reservation, onDelete}) {
         deleteTriggerFetch()
     };
 
-    if (getRoomStatusCode === 200 && getRoomResult != null && getRoomFinished) {
-        const room_name = getRoomResult.name
-        const link = "/room/" + room_id
-        return (    
+    function getRoomCallback(result, statusCode) {
+        if (statusCode === 200) {
+            setRoomName(result.name)
+        }
+    }
+
+    if (roomName === null) {
+        return <tr/>
+    }
+
+    const link = "/room/" + room_id
+
+    return (
         <tr>
             <td>
                 <label className='reservation-info-label'>
-                    Комната <NavLink to = {link}>{room_name} </NavLink>;
+                    Комната <NavLink to = {link}>{roomName} </NavLink>;
                     занята на {from_obj.date} с {from_obj.time} по {until_obj.time}
                 </label>
             </td>
@@ -72,29 +80,32 @@ function Reservation({reservation, onDelete}) {
                 </button>
             </td>
         </tr>
-        )
-    }
-    return <tr/>
+    )
 }
+
 function useReservationsList(user_id) {
-    let {triggerFetch, result, finished, statusCode, failed} =
-        useSomeAPI('/api/v0/reservations/by-user/' + user_id)
+
+    let [reservations, setReservations] = useState([])
+
+    let {triggerFetch} =
+        useSomeAPI('/api/v0/reservations/by-user/' + user_id, null, 'GET', listCallback)
+
+    
+    function listCallback(result, statusCode) {
+        if (statusCode === 200) {
+            setReservations(result)
+        }
+    }
 
     useEffect(() => {
         triggerFetch()
         //eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user_id])
 
-    if (statusCode === 200 && finished && result != null && !failed) {
-        return {
-            reservations: result,
-            triggerFetch: triggerFetch
-        }
-    }
 
     return {
-        reservations: [],
-        triggerFetch: () => {}
+        reservations: reservations,
+        triggerFetch: triggerFetch
     }
 }
 function EmptyReservationsPage() {
