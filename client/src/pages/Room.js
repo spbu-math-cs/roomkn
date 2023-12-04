@@ -58,6 +58,7 @@ function GetReservations(room_id, date) {
     useEffect(() => triggerFetch(), [date])
 
     function reservationsCallback(result, statusCode) {
+        alert('got reservations!')
         if (statusCode === 200 && result != null) {
             setReservs({
                 reservations: result.filter((reservation) => (fromAPITime(reservation.from).date === date)),
@@ -110,9 +111,10 @@ function BookingForm({room_id, triggerGetReservations}) {
     function bookingCallback(result, statusCode) {
         if (statusCode === 400) alert("Error: " + result)
         else if (statusCode === 409) alert("Impossible to reserve: at this time classroom already reserved")
-        else if (statusCode === 201) alert("Reservation succeeded!");
+        else if (statusCode === 201) alert("Reservation succeeded!")
         else alert("Status Code: " + statusCode)
 
+        alert('before trigger')
         triggerGetReservations()
     }
 
@@ -139,7 +141,6 @@ function BookingForm({room_id, triggerGetReservations}) {
         e.preventDefault();
 
         if (getMinutesByTime(from) <= getMinutesByTime(until)) triggerFetch()
-        triggerGetReservations()
     };
 
     return (
