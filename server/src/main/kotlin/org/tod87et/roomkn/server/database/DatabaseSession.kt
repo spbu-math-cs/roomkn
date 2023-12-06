@@ -234,8 +234,20 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
-    override fun getFullUsers(limit: Int, offset: Long): Result<List<FullUserInfo>> {
-        TODO("Not yet implemented")
+    override fun getFullUsers(limit: Int, offset: Long): Result<List<FullUserInfo>> = queryWrapper {
+        transaction(database) {
+            Users.selectAll()
+                .orderBy(Users.username to SortOrder.ASC, Users.id to SortOrder.ASC)
+                .limit(limit, offset)
+                .map {
+                    FullUserInfo(
+                        id = it[Users.id],
+                        username = it[Users.username],
+                        email = it[Users.email],
+                        permissions = maskToPermissions(it[Users.permissions]).toSet()
+                    )
+                }
+        }
     }
 
     override fun getUser(userId: Int): Result<UserInfo> = queryWrapper {
