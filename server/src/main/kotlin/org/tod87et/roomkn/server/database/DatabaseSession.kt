@@ -25,6 +25,7 @@ import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 import org.tod87et.roomkn.server.models.rooms.RoomInfo
 import org.tod87et.roomkn.server.models.rooms.ShortRoomInfo
+import org.tod87et.roomkn.server.models.users.FullUserInfo
 import org.tod87et.roomkn.server.models.users.RegistrationUserInfo
 import org.tod87et.roomkn.server.models.users.ShortUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
@@ -229,8 +230,12 @@ class DatabaseSession private constructor(private val database: Database) :
             Users.selectAll()
                 .orderBy(Users.username to SortOrder.ASC, Users.id to SortOrder.ASC)
                 .limit(limit, offset)
-                .map { ShortUserInfo(it[Users.id], it[Users.username]) }
+                .map { ShortUserInfo(it[Users.id], it[Users.username], it[Users.email]) }
         }
+    }
+
+    override fun getFullUsers(limit: Int, offset: Long): Result<List<FullUserInfo>> {
+        TODO("Not yet implemented")
     }
 
     override fun getUser(userId: Int): Result<UserInfo> = queryWrapper {

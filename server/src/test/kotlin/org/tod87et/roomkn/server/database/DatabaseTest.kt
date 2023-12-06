@@ -86,7 +86,7 @@ class DatabaseTest {
         assertEquals(user1Info, database.getUser(user1Info.id).getOrThrow())
         assertEquals(user2Info, database.getUser(user2Info.id).getOrThrow())
 
-        val expectedUsers = listOf(user1Info, user2Info).map { ShortUserInfo(it.id, it.username) }.sortedBy { it.id }
+        val expectedUsers = listOf(user1Info, user2Info).map { ShortUserInfo(it.id, it.username, it.email) }.sortedBy { it.id }
         val users = database.getUsers().getOrThrow().sortedBy { it.id }
 
         assertEquals(expectedUsers, users)

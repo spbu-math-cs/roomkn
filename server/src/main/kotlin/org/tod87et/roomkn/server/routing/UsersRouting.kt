@@ -35,9 +35,22 @@ fun Route.usersRouting() {
 
 private fun Route.listUsers(database: Database) {
     get {
+        val limit: Int = call.request.queryParameters["limit"]?.toIntOrNull() ?: Int.MAX_VALUE
+        val offset: Long = call.request.queryParameters["offset"]?.toLongOrNull() ?: 0
+        val includePermissions: Boolean = call.request.queryParameters["includePermissions"] == "true"
+
         call.requirePermission(database) { return@get call.onMissingPermission() }
 
-        database.getUsers().onSuccess { call.respond(it) }.onFailure { call.handleException(it) }
+        // should be in different branches to be correctly serialized
+        if (includePermissions) {
+            database.getFullUsers(limit = limit, offset = offset)
+                .onSuccess { call.respond(it) }
+                .onFailure { call.handleException(it) }
+        } else {
+            database.getUsers(limit = limit, offset = offset)
+                .onSuccess { call.respond(it) }
+                .onFailure { call.handleException(it) }
+        }
     }
 }
 
