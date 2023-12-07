@@ -16,3 +16,11 @@ suspend fun ApplicationCall.onMissingId() {
 suspend fun ApplicationCall.onIncorrectTimestamp() {
     respondText("timestamp should be correct Instant", status = HttpStatusCode.BadRequest)
 }
+
+suspend fun ApplicationCall.onIncorrectLimit() {
+    respondText("limit should be int", status = HttpStatusCode.BadRequest)
+}
+
+suspend fun ApplicationCall.onIncorrectOffset() {
+    respondText("offset should be int", status = HttpStatusCode.BadRequest)
+}

@@ -151,6 +151,7 @@ class DatabaseSession private constructor(private val database: Database) :
                     userCondition and roomCondition and dateCondition
                 }
                 .orderBy(Reservations.from to SortOrder.ASC, Reservations.until to SortOrder.ASC)
+                .limit(limit, offset)
                 .map {
                     Reservation(
                         id = it[Reservations.id],

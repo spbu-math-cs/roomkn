@@ -120,12 +120,33 @@ private fun String?.toResultInstantOrNull(): Result<Instant?> {
     }
 }
 
+private fun String?.toResultIntOrDefault(default: Int): Result<Int> {
+    return runCatching {
+        if (this == null) {
+            return@runCatching default
+        }
+        this.toInt()
+    }
+}
+
+private fun String?.toResultLongOrDefault(default: Long): Result<Long> {
+    return runCatching {
+        if (this == null) {
+            return@runCatching default
+        }
+        this.toLong()
+    }
+}
+
 private fun Route.reserveRouting(database: Database) {
     get {
         val fromResult = call.request.queryParameters["from"].toResultInstantOrNull()
         val untilResult = call.request.queryParameters["until"].toResultInstantOrNull()
         val userIdsString = call.request.queryParameters["user_ids"]
         val roomIdsString = call.request.queryParameters["room_ids"]
+        val limitResult = call.request.queryParameters["limit"].toResultIntOrDefault(Int.MAX_VALUE)
+        val offsetResult = call.request.queryParameters["offset"].toResultLongOrDefault(0)
+
         val userIds = userIdsString?.split(",")?.map {
             it.toIntOrNull() ?: return@get call.respondText(
                 "id in userIds should be int",
@@ -140,13 +161,21 @@ private fun Route.reserveRouting(database: Database) {
         } ?: listOf()
         fromResult.onSuccess { from ->
             untilResult.onSuccess { until ->
-                database.getReservations(userIds, roomIds, from, until)
-                    .onSuccess {
-                        call.respond(HttpStatusCode.Created, it)
+                limitResult.onSuccess { limit ->
+                    offsetResult.onSuccess { offset ->
+                        database.getReservations(userIds, roomIds, from, until, limit, offset)
+                            .onSuccess {
+                                call.respond(HttpStatusCode.Created, it)
+                            }
+                            .onFailure {
+                                call.handleReservationException(it)
+                            }
+                    }.onFailure {
+                        call.onIncorrectOffset()
                     }
-                    .onFailure {
-                        call.handleReservationException(it)
-                    }
+                }.onFailure {
+                    call.onIncorrectLimit()
+                }
             }.onFailure {
                 call.onIncorrectTimestamp()
             }
