@@ -138,7 +138,6 @@ private fun Route.reserveRouting(database: Database) {
                 status = HttpStatusCode.BadRequest
             )
         } ?: listOf()
-        //TODO(makselivanov) add to documentation
         fromResult.onSuccess { from ->
             untilResult.onSuccess { until ->
                 database.getReservations(userIds, roomIds, from, until)
