@@ -378,6 +378,8 @@ paths:
         - $ref: "#/components/parameters/RoomIdsQuery"
         - $ref: "#/components/parameters/From"
         - $ref: "#/components/parameters/Until"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
       responses:
         200:
           content:
@@ -435,6 +437,8 @@ paths:
         - $ref: "#/components/parameters/RoomIdsQuery"
         - $ref: "#/components/parameters/From"
         - $ref: "#/components/parameters/Until"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
       responses:
         200:
           content:
@@ -606,6 +610,22 @@ components:
       explode: false
       description: Массив id комнат
       example: [ 1, 2, 3 ]
+    Limit:
+      in: query
+      name: limit
+      schema:
+        type: integer
+      required: false
+      description: Этот параметр используется, чтобы ограничить количество возвращаемых элементов в ответе
+      example: 100
+    Offset:
+      in: query
+      name: offset
+      schema:
+        type: integer
+      required: false
+      description: Этот параметр используется, чтобы выкинуть какое-то количество элементов в ответе
+      example: 0
   schemas:
     Ok:
       type: string
