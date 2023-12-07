@@ -77,7 +77,7 @@ private fun Route.registerRouting(accountController: AccountController) {
         accountController.registerUser(body)
             .onSuccess { authSession ->
                 call.sessions.set(authSession)
-                call.respondText("cookie has been installed")
+                call.respond(UserId(authSession.userId))
             }
             .onFailure {
                 call.handleException(it)
