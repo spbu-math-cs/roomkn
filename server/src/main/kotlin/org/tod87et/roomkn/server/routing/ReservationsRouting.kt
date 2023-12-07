@@ -124,8 +124,8 @@ private fun Route.reserveRouting(database: Database) {
     get {
         val fromResult = call.request.queryParameters["from"].toResultInstantOrNull()
         val untilResult = call.request.queryParameters["until"].toResultInstantOrNull()
-        val userIdsString = call.request.queryParameters["userIds"]
-        val roomIdsString = call.request.queryParameters["roomIds"]
+        val userIdsString = call.request.queryParameters["user_ids"]
+        val roomIdsString = call.request.queryParameters["room_ids"]
         val userIds = userIdsString?.split(",")?.map {
             it.toIntOrNull() ?: return@get call.respondText(
                 "id in userIds should be int",

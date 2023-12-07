@@ -300,10 +300,10 @@ class ReservationsRoutesTests {
         return this.get(reservationsPath) {
             url {
                 if (userIds != null) {
-                    parameters.append("userIds", userIds.joinToString(","))
+                    parameters.append("user_ids", userIds.joinToString(","))
                 }
                 if (roomIds != null) {
-                    parameters.append("roomIds", roomIds.joinToString(","))
+                    parameters.append("room_ids", roomIds.joinToString(","))
                 }
                 if (from != null) {
                     parameters.append("from", from.toString())
