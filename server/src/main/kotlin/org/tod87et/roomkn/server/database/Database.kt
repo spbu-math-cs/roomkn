@@ -19,16 +19,16 @@ interface Database {
     fun deleteRoom(roomId: Int): Result<Unit>
     fun getRoomReservations(
         roomId: Int,
-        from: Instant = minusInf,
-        until: Instant = plusInf,
+        from: Instant? = null,
+        until: Instant? = null,
         limit: Int = Int.MAX_VALUE,
         offset: Long = 0L
     ): Result<List<Reservation>>
 
     fun getUserReservations(
         userId: Int,
-        from: Instant = minusInf,
-        until: Instant = plusInf,
+        from: Instant? = null,
+        until: Instant? = null,
         limit: Int = Int.MAX_VALUE,
         offset: Long = 0L
     ): Result<List<Reservation>>
@@ -37,8 +37,8 @@ interface Database {
     fun getReservations(
         usersIds: List<Int>,
         roomsIds: List<Int>,
-        from: Instant,
-        until: Instant,
+        from: Instant? = null,
+        until: Instant? = null,
         limit: Int = Int.MAX_VALUE,
         offset: Long = 0L
     ): Result<List<Reservation>>
@@ -59,9 +59,4 @@ interface Database {
      * Clear database for TEST/DEBUG purpose
      */
     fun clear(): Result<Unit>
-
-    companion object {
-        private val minusInf: Instant = Instant.fromEpochMilliseconds(0L)
-        private val plusInf: Instant = Instant.parse("3000-01-01T00:00:00+00:00")
-    }
 }

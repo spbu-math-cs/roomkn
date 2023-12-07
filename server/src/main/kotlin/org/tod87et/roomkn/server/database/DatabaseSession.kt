@@ -104,8 +104,8 @@ class DatabaseSession private constructor(private val database: Database) :
 
     override fun getRoomReservations(
         roomId: Int,
-        from: Instant,
-        until: Instant,
+        from: Instant?,
+        until: Instant?,
         limit: Int,
         offset: Long
     ): Result<List<Reservation>> = getReservations(
@@ -119,8 +119,8 @@ class DatabaseSession private constructor(private val database: Database) :
 
     override fun getUserReservations(
         userId: Int,
-        from: Instant,
-        until: Instant,
+        from: Instant?,
+        until: Instant?,
         limit: Int,
         offset: Long
     ): Result<List<Reservation>> = getReservations(
@@ -135,8 +135,8 @@ class DatabaseSession private constructor(private val database: Database) :
     override fun getReservations(
         usersIds: List<Int>,
         roomsIds: List<Int>,
-        from: Instant,
-        until: Instant,
+        from: Instant?,
+        until: Instant?,
         limit: Int,
         offset: Long
     ): Result<List<Reservation>> = queryWrapper {
@@ -145,8 +145,18 @@ class DatabaseSession private constructor(private val database: Database) :
                 .select {
                     val userCondition = if (usersIds.isEmpty()) Op.TRUE else Reservations.userId inList usersIds
                     val roomCondition = if (roomsIds.isEmpty()) Op.TRUE else Reservations.roomId inList roomsIds
-                    val dateCondition = (Reservations.from less until) and (Reservations.until greater from)
-
+                    val dateCondition =
+                        if (until == null) {
+                            if (from == null)
+                                Op.TRUE
+                            else
+                                (Reservations.until greater from)
+                        } else {
+                            if (from == null)
+                                (Reservations.from less until)
+                            else
+                                (Reservations.from less until) and (Reservations.until greater from)
+                        }
                     userCondition and roomCondition and dateCondition
                 }
                 .orderBy(Reservations.from to SortOrder.ASC, Reservations.until to SortOrder.ASC)
@@ -266,15 +276,16 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
-    override fun updateUserPermissions(userId: Int, permissions: List<UserPermission>): Result<Unit> = queryWrapper {
-        transaction(database) {
-            val cnt = Users.update({ Users.id eq userId }) {
-                it[Users.permissions] = permissionsToMask(permissions)
-            }
+    override fun updateUserPermissions(userId: Int, permissions: List<UserPermission>): Result<Unit> =
+        queryWrapper {
+            transaction(database) {
+                val cnt = Users.update({ Users.id eq userId }) {
+                    it[Users.permissions] = permissionsToMask(permissions)
+                }
 
-            if (cnt == 0) throw MissingElementException()
+                if (cnt == 0) throw MissingElementException()
+            }
         }
-    }
 
     override fun registerUser(user: RegistrationUserInfo): Result<UserInfo> = queryWrapper {
         transaction(database) {
@@ -327,7 +338,8 @@ class DatabaseSession private constructor(private val database: Database) :
 
     override fun getCredentialsInfoByUsername(username: String): Result<UserCredentialsInfo> = queryWrapper {
         transaction(database) {
-            val userRow = Users.select { Users.username eq username }.firstOrNull() ?: throw MissingElementException()
+            val userRow =
+                Users.select { Users.username eq username }.firstOrNull() ?: throw MissingElementException()
 
             UserCredentialsInfo(
                 userRow[Users.id],

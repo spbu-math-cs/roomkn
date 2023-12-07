@@ -55,7 +55,7 @@ class ReservationsRoutesTests {
         val otherId = KtorTestEnv.createUser("Bob")
         val room301Id = KtorTestEnv.createRoom("301").id
         val room302Id = KtorTestEnv.createRoom("302").id
-        val timestamp = Clock.System.now()
+        val timestamp = Instant.parse("2023-12-07T00:00:00+00:00")
         val reserveMyIdRoom301FirstHalf = KtorTestEnv.database.createReservation(
             UnregisteredReservation(
                 myId,
@@ -84,8 +84,8 @@ class ReservationsRoutesTests {
             UnregisteredReservation(
                 otherId,
                 room301Id,
-                timestamp + 1.hours,
-                timestamp + 2.hours
+                Instant.parse("3000-01-19T00:00:00+00:00") + 1.hours,
+                Instant.parse("3000-01-19T00:00:00+00:00") + 2.hours
             )
         ).getOrThrow()
         var bodyResponse = client.getRequestForAllReservationsWithQueryParams().body<List<Reservation>>()

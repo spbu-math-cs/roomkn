@@ -13,7 +13,6 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.util.pipeline.PipelineContext
-import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.toInstant
 import org.tod87et.roomkn.server.auth.AuthSession
@@ -28,7 +27,6 @@ import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.reservations.ReservationRequest
 import org.tod87et.roomkn.server.models.reservations.toUnregisteredReservation
 import org.tod87et.roomkn.server.util.defaultExceptionHandler
-import kotlin.time.Duration.Companion.days
 
 fun Route.reservationsRouting() {
     val database by injectDatabase()
@@ -113,10 +111,10 @@ private fun Route.reservationDeleteRouting(database: Database) {
  * If object is not null and toInstant is successful, return Success with result
  * Otherwise return Failure(error)
  */
-private fun String?.toResultInstant(default: Instant): Result<Instant> {
+private fun String?.toResultInstantOrNull(): Result<Instant?> {
     return runCatching {
         if (this == null) {
-            return@runCatching default
+            return@runCatching null
         }
         this.toInstant()
     }
@@ -124,8 +122,8 @@ private fun String?.toResultInstant(default: Instant): Result<Instant> {
 
 private fun Route.reserveRouting(database: Database) {
     get {
-        val fromResult = call.request.queryParameters["from"].toResultInstant(Instant.fromEpochMilliseconds(0))
-        val untilResult = call.request.queryParameters["until"].toResultInstant(Clock.System.now() + 1.days)
+        val fromResult = call.request.queryParameters["from"].toResultInstantOrNull()
+        val untilResult = call.request.queryParameters["until"].toResultInstantOrNull()
         val userIdsString = call.request.queryParameters["userIds"]
         val roomIdsString = call.request.queryParameters["roomIds"]
         val usersIds = userIdsString?.split(",")?.map { it.toIntOrNull() ?: return@get call.onMissingId() } ?: listOf()
@@ -141,10 +139,10 @@ private fun Route.reserveRouting(database: Database) {
                         call.handleReservationException(it)
                     }
             }.onFailure {
-                call.onMissingTimestamp()
+                call.onIncorrectTimestamp()
             }
         }.onFailure {
-            call.onMissingTimestamp()
+            call.onIncorrectTimestamp()
         }
     }
     post { body: ReservationRequest ->
