@@ -10,17 +10,16 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import kotlinx.datetime.Clock
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 import kotlinx.datetime.Instant
 import org.junit.jupiter.api.Test
 import org.tod87et.roomkn.server.models.reservations.Reservation
 import org.tod87et.roomkn.server.models.reservations.ReservationRequest
 import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
 import org.tod87et.roomkn.server.models.toRegistered
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.minutes
 
 class ReservationsRoutesTests {
     private val apiPath = KtorTestEnv.API_PATH
