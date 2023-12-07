@@ -126,12 +126,22 @@ private fun Route.reserveRouting(database: Database) {
         val untilResult = call.request.queryParameters["until"].toResultInstantOrNull()
         val userIdsString = call.request.queryParameters["userIds"]
         val roomIdsString = call.request.queryParameters["roomIds"]
-        val usersIds = userIdsString?.split(",")?.map { it.toIntOrNull() ?: return@get call.onMissingId() } ?: listOf()
-        val roomsIds = roomIdsString?.split(",")?.map { it.toIntOrNull() ?: return@get call.onMissingId() } ?: listOf()
+        val userIds = userIdsString?.split(",")?.map {
+            it.toIntOrNull() ?: return@get call.respondText(
+                "id in userIds should be int",
+                status = HttpStatusCode.BadRequest
+            )
+        } ?: listOf()
+        val roomIds = roomIdsString?.split(",")?.map {
+            it.toIntOrNull() ?: return@get call.respondText(
+                "id in roomIds should be int",
+                status = HttpStatusCode.BadRequest
+            )
+        } ?: listOf()
         //TODO(makselivanov) add to documentation
         fromResult.onSuccess { from ->
             untilResult.onSuccess { until ->
-                database.getReservations(usersIds, roomsIds, from, until)
+                database.getReservations(userIds, roomIds, from, until)
                     .onSuccess {
                         call.respond(HttpStatusCode.Created, it)
                     }
