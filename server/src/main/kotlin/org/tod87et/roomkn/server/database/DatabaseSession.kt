@@ -145,18 +145,9 @@ class DatabaseSession private constructor(private val database: Database) :
                 .select {
                     val userCondition = if (usersIds.isEmpty()) Op.TRUE else Reservations.userId inList usersIds
                     val roomCondition = if (roomsIds.isEmpty()) Op.TRUE else Reservations.roomId inList roomsIds
-                    val dateCondition =
-                        if (until == null) {
-                            if (from == null)
-                                Op.TRUE
-                            else
-                                (Reservations.until greater from)
-                        } else {
-                            if (from == null)
-                                (Reservations.from less until)
-                            else
-                                (Reservations.from less until) and (Reservations.until greater from)
-                        }
+                    val untilCondition = if (until == null) Op.TRUE else Reservations.from less until
+                    val fromCondition = if (from == null) Op.TRUE else (Reservations.until greater from)
+                    val dateCondition = untilCondition and fromCondition
                     userCondition and roomCondition and dateCondition
                 }
                 .orderBy(Reservations.from to SortOrder.ASC, Reservations.until to SortOrder.ASC)
