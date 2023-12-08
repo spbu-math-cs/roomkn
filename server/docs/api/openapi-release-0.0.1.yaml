@@ -195,6 +195,31 @@ paths:
               $ref: "#/components/schemas/UpdateUserInfo"
       tags:
         - users
+    patch:
+      operationId: editUserByIdPartially
+      summary: Частичная изменение информации о пользователе
+      responses:
+        200:
+          description: Информация о пользователе изменена
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/Ok"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/ServerError"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserInfoWithNull"
+      tags:
+        - users
     delete:
       operationId: deleteUserById
       summary: Удаление пользователя
@@ -638,6 +663,13 @@ components:
       required:
         - username
         - email
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+    UpdateUserInfoWithNull:
+      type: object
       properties:
         username:
           type: string
