@@ -18,6 +18,7 @@ import org.tod87et.roomkn.server.di.injectDatabase
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
 import org.tod87et.roomkn.server.util.defaultExceptionHandler
+import org.tod87et.roomkn.server.util.okResponse
 
 fun Route.usersRouting() {
     val database: Database by injectDatabase()
@@ -46,7 +47,7 @@ private fun Route.deleteUser(database: Database) {
         val id = call.parameters["id"]?.toInt() ?: return@delete call.onMissingId()
         call.requirePermission(database) { return@delete call.onMissingPermission() }
 
-        database.deleteUser(id).onSuccess { call.respond("Ok") }.onFailure { call.handleException(it) }
+        database.deleteUser(id).okResponseWithHandleException(call)
     }
 }
 
@@ -81,8 +82,7 @@ private fun Route.setUserPermissions(database: Database) {
         val id = call.parameters["id"]?.toInt() ?: return@put call.onMissingId()
         call.requirePermission(database) { return@put call.onMissingPermission() }
 
-        database.updateUserPermissions(id, body).onSuccess { call.respondText("Ok") }
-            .onFailure { call.handleException(it) }
+        database.updateUserPermissions(id, body).okResponseWithHandleException(call)
     }
 }
 
@@ -96,6 +96,13 @@ private suspend fun ApplicationCall.handleException(ex: Throwable) {
             defaultExceptionHandler(ex)
         }
     }
+}
+
+/**
+ * Response Ok on Success with local handler of exceptions
+ */
+private suspend fun <T> Result<T>.okResponseWithHandleException(call: ApplicationCall) {
+    this.okResponse(call, ApplicationCall::handleException)
 }
 
 private inline fun ApplicationCall.requirePermission(
