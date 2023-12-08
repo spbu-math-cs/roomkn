@@ -84,6 +84,31 @@ paths:
       tags:
         - rooms
       summary: Изменение информации о комнате
+    patch:
+      operationId: editRoomPartiallyById
+      responses:
+        200:
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/Ok"
+          description: Информация о комнате изменена
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/ServerError"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewRoomWithNull"
+      tags:
+        - rooms
+      summary: Частичное изменение информации о комнате
     delete:
       operationId: deleteRoomById
       summary: Удаление комнаты
@@ -529,6 +554,15 @@ components:
       example:
         name: "1001"
         description: "Симметричная комната"
+    NewRoomWithNull:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+      example:
+        name: "1234"
     RoomInfo:
       type: object
       required:
