@@ -4,6 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class UpdateUserInfoWithNull(
-    val username: String?,
-    val email: String?,
+    val username: String? = null,
+    val email: String? = null,
 )
