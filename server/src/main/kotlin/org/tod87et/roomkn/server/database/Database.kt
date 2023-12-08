@@ -8,6 +8,7 @@ import org.tod87et.roomkn.server.models.rooms.RoomInfo
 import org.tod87et.roomkn.server.models.rooms.ShortRoomInfo
 import org.tod87et.roomkn.server.models.users.ShortUserInfo
 import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
+import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
 import org.tod87et.roomkn.server.models.users.UserInfo
 
@@ -16,6 +17,7 @@ interface Database {
     fun getRoom(roomId: Int): Result<RoomInfo>
     fun createRoom(roomInfo: NewRoomInfo): Result<RoomInfo>
     fun updateRoom(roomId: Int, roomInfo: NewRoomInfo): Result<Unit>
+    fun updateRoomPartially(roomId: Int, roomInfo: NewRoomInfoWithNull): Result<Unit>
     fun deleteRoom(roomId: Int): Result<Unit>
     fun getRoomReservations(roomId: Int, limit: Int = Int.MAX_VALUE, offset: Long = 0L): Result<List<Reservation>>
     fun getUserReservations(userId: Int, limit: Int = Int.MAX_VALUE, offset: Long = 0L): Result<List<Reservation>>

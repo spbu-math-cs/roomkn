@@ -10,6 +10,7 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
+import io.ktor.server.routing.patch
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
@@ -20,6 +21,7 @@ import org.tod87et.roomkn.server.database.MissingElementException
 import org.tod87et.roomkn.server.di.injectDatabase
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
+import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
 import org.tod87et.roomkn.server.util.defaultExceptionHandler
 import org.tod87et.roomkn.server.util.okResponse
 
@@ -60,17 +62,19 @@ private fun Route.deleteRoom(database: Database) {
 }
 
 private fun Route.updateRoom(database: Database) {
-    put("/{id}") { body: NewRoomInfo ->
-        val id = call.parameters["id"]?.toInt() ?: return@put call.onMissingId()
-        call.requirePermission(database) { return@put call.onMissingPermission() }
+    route("/{id}") {
+        put { body: NewRoomInfo ->
+            val id = call.parameters["id"]?.toInt() ?: return@put call.onMissingId()
+            call.requirePermission(database) { return@put call.onMissingPermission() }
 
-        database.updateRoom(id, body)
-            .onSuccess {
-                call.respond("Ok")
-            }
-            .onFailure {
-                call.handleException(it)
-            }
+            database.updateRoom(id, body).okResponseWithHandleException(call)
+        }
+        patch { body: NewRoomInfoWithNull ->
+            val id = call.parameters["id"]?.toInt() ?: return@patch call.onMissingId()
+            call.requirePermission(database) { return@patch call.onMissingPermission() }
+
+            database.updateRoomPartially(id, body).okResponseWithHandleException(call)
+        }
     }
 }
 
