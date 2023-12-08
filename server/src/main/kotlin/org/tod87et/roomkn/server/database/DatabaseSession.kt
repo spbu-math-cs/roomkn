@@ -50,7 +50,7 @@ class DatabaseSession private constructor(private val database: Database) :
     constructor(dataSource: DataSource) : this(Database.connect(dataSource))
 
     init {
-        transaction(database) { SchemaUtils.create(Users, Rooms, Reservations, ActiveTokens) }
+        transaction(database) { SchemaUtils.create(Users, Rooms, Reservations, ActiveTokens, Map) }
     }
 
     override fun createRoom(roomInfo: NewRoomInfo): Result<RoomInfo> = queryWrapper {
@@ -94,8 +94,14 @@ class DatabaseSession private constructor(private val database: Database) :
     override fun updateMap(newMap: String): Result<Unit> = queryWrapper {
         transaction(database) {
             Map.update({ Map.id eq Map.selectAll().maxOf { Map.id } }) {
-                it[json] = newMap
+                it[Map.json] = newMap
             }
+        }
+    }
+
+    override fun createDefaultMap(): Result<Unit> = queryWrapper {
+        transaction(database) {
+            Map.insert { it[Map.json] = "" }
         }
     }
 

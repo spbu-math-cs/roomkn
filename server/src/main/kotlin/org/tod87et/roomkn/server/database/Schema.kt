@@ -5,7 +5,6 @@ import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
-import org.tod87et.roomkn.server.database.Reservations.autoIncrement
 
 object Users : Table() {
     val id: Column<Int> = integer("id").autoIncrement()
