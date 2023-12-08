@@ -4,6 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class NewRoomInfoWithNull(
-    val name: String?,
-    val description: String?,
+    val name: String? = null,
+    val description: String? = null,
 )
