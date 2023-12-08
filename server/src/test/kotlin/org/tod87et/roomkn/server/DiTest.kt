@@ -113,12 +113,25 @@ private class DatabaseMock : Database {
 
     override fun getRoomReservations(
         roomId: Int,
+        from: Instant?,
+        until: Instant?,
         limit: Int,
         offset: Long
     ): Result<List<Reservation>> = fail()
 
     override fun getUserReservations(
         userId: Int,
+        from: Instant?,
+        until: Instant?,
+        limit: Int,
+        offset: Long
+    ): Result<List<Reservation>> = fail()
+
+    override fun getReservations(
+        usersIds: List<Int>,
+        roomsIds: List<Int>,
+        from: Instant?,
+        until: Instant?,
         limit: Int,
         offset: Long
     ): Result<List<Reservation>> = fail()
