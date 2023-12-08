@@ -32,6 +32,7 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.test.Test
 import kotlin.test.assertNotNull
 import kotlin.test.fail
+import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
 
 class DiTest : KoinTest {
     @Test
@@ -107,6 +108,8 @@ private class DatabaseMock : Database {
     override fun createRoom(roomInfo: NewRoomInfo): Result<RoomInfo> = fail()
 
     override fun updateRoom(roomId: Int, roomInfo: NewRoomInfo): Result<Unit> = fail()
+
+    override fun updateRoomPartially(roomId: Int, roomInfo: NewRoomInfoWithNull): Result<Unit> = fail()
 
     override fun deleteRoom(roomId: Int): Result<Unit> = fail()
 
