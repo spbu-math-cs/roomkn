@@ -5,6 +5,10 @@ import io.ktor.server.application.ApplicationEnvironment
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.logging.Logger
+import kotlin.coroutines.CoroutineContext
+import kotlin.test.Test
+import kotlin.test.assertNotNull
+import kotlin.test.fail
 import kotlinx.datetime.Instant
 import org.junit.jupiter.api.assertAll
 import org.koin.dsl.koinApplication
@@ -21,18 +25,15 @@ import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.reservations.Reservation
 import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
+import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
 import org.tod87et.roomkn.server.models.rooms.RoomInfo
 import org.tod87et.roomkn.server.models.rooms.ShortRoomInfo
 import org.tod87et.roomkn.server.models.users.RegistrationUserInfo
 import org.tod87et.roomkn.server.models.users.ShortUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
+import org.tod87et.roomkn.server.models.users.UpdateUserInfoWithNull
 import org.tod87et.roomkn.server.models.users.UserCredentialsInfo
 import org.tod87et.roomkn.server.models.users.UserInfo
-import kotlin.coroutines.CoroutineContext
-import kotlin.test.Test
-import kotlin.test.assertNotNull
-import kotlin.test.fail
-import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
 
 class DiTest : KoinTest {
     @Test
@@ -143,6 +144,8 @@ private class DatabaseMock : Database {
     override fun getUser(userId: Int): Result<UserInfo> = fail()
 
     override fun updateUserInfo(userId: Int, info: UpdateUserInfo): Result<Unit> = fail()
+
+    override fun updateUserInfoPartially(userId: Int, info: UpdateUserInfoWithNull): Result<Unit> = fail()
 
     override fun deleteUser(userId: Int): Result<Unit> = fail()
 

@@ -31,6 +31,7 @@ import org.tod87et.roomkn.server.models.rooms.ShortRoomInfo
 import org.tod87et.roomkn.server.models.users.RegistrationUserInfo
 import org.tod87et.roomkn.server.models.users.ShortUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
+import org.tod87et.roomkn.server.models.users.UpdateUserInfoWithNull
 import org.tod87et.roomkn.server.models.users.UserCredentialsInfo
 import org.tod87et.roomkn.server.models.users.UserInfo
 import org.tod87et.roomkn.server.database.Database as RooMknDatabase
@@ -365,6 +366,17 @@ class DatabaseSession private constructor(private val database: Database) :
             val cnt = Users.update({ Users.id eq userId }) {
                 it[Users.username] = info.username
                 it[Users.email] = info.email
+            }
+
+            if (cnt == 0) throw MissingElementException()
+        }
+    }
+
+    override fun updateUserInfoPartially(userId: Int, info: UpdateUserInfoWithNull): Result<Unit> = queryWrapper {
+        transaction(database) {
+            val cnt = Users.update({ Users.id eq userId }) {
+                if (info.username != null) it[username] = info.username
+                if (info.email != null) it[email] = info.email
             }
 
             if (cnt == 0) throw MissingElementException()
