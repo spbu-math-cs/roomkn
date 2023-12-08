@@ -7,20 +7,15 @@ export function AdminPanel() {
     return (
         <AdminWrapper>
             <ContentWrapper page_name="Admin panel">
-
-                <NavLink to="/admin/rooms">
+                <NavLink to="/admin/rooms" className="navlink">
                     Room list
                 </NavLink>
 
-                <br/>
-
-                <NavLink to="/admin/users">
+                <NavLink to="/admin/users" className="navlink">
                     User list
                 </NavLink>
 
-                <br/>
-
-                <NavLink to="/admin/reservations">
+                <NavLink to="/admin/reservations" className="navlink">
                     Reservation list
                 </NavLink>
 
