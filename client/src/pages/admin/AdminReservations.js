@@ -25,15 +25,6 @@ function useGetRooms() {
     return []
 }
 
-function useGetUserReservations(userId) {
-    let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/reservations/by-user/' + userId)
-
-    useEffect(() => triggerFetch(), [userId]);
-
-    if (finished && statusCode === 200 && result != null) return result
-    return []
-}
-
 function Users() {
     const usersShortInfoList = useGetUsersShortInfo()
     let userList = []

@@ -58,7 +58,7 @@ function Reservation({reservation, onDelete}) {
     if (getRoomStatusCode === 200 && getRoomResult != null && getRoomFinished) {
         const room_name = getRoomResult.name
         const link = "/room/" + room_id
-        return (
+        return (    
         <tr>
             <td>
                 <label className='reservation-info-label'>
