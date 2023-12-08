@@ -28,6 +28,7 @@ import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
 import org.tod87et.roomkn.server.models.rooms.RoomInfo
 import org.tod87et.roomkn.server.models.rooms.ShortRoomInfo
+import org.tod87et.roomkn.server.models.users.FullUserInfo
 import org.tod87et.roomkn.server.models.users.RegistrationUserInfo
 import org.tod87et.roomkn.server.models.users.ShortUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
@@ -140,6 +141,8 @@ private class DatabaseMock : Database {
         fail()
 
     override fun getUsers(limit: Int, offset: Long): Result<List<ShortUserInfo>> = fail()
+
+    override fun getFullUsers(limit: Int, offset: Long): Result<List<FullUserInfo>> = fail()
 
     override fun getUser(userId: Int): Result<UserInfo> = fail()
 
