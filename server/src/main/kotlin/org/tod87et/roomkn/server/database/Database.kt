@@ -18,6 +18,8 @@ interface Database {
     fun createRoom(roomInfo: NewRoomInfo): Result<RoomInfo>
     fun updateRoom(roomId: Int, roomInfo: NewRoomInfo): Result<Unit>
     fun deleteRoom(roomId: Int): Result<Unit>
+    fun getMap(): Result<String>
+    fun updateMap(newMap: String): Result<Unit>
     fun getRoomReservations(roomId: Int, limit: Int = Int.MAX_VALUE, offset: Long = 0L): Result<List<Reservation>>
     fun getUserReservations(userId: Int, limit: Int = Int.MAX_VALUE, offset: Long = 0L): Result<List<Reservation>>
     fun getReservation(reservationId: Int): Result<Reservation>

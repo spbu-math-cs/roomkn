@@ -83,6 +83,18 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
+    override fun getMap(): Result<String> = queryWrapper {
+        transaction(database) {
+            //TODO
+        }
+    }
+
+    override fun updateMap(newMap: String): Result<Unit> = queryWrapper {
+        transaction(database) {
+            //TODO
+        }
+    }
+
     override fun getRooms(limit: Int, offset: Long): Result<List<ShortRoomInfo>> = queryWrapper {
         transaction(database) {
             Rooms.selectAll()

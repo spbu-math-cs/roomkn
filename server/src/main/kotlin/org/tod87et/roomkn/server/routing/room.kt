@@ -34,6 +34,12 @@ fun Route.roomsRouting() {
             deleteRoom(database)
         }
     }
+    route("/map") {
+        getMap(database)
+        authenticate(AuthenticationProvider.SESSION) {
+            updateMap(database)
+        }
+    }
 }
 
 private fun Route.roomReservationsRouting(database: Database) {
@@ -141,6 +147,21 @@ private fun Route.roomById(database: Database) {
                 status = HttpStatusCode.NotFound
             )
         }
+    }
+}
+
+private fun Route.getMap(database: Database) {
+    get {
+        val result = database.getMap()
+        result.onSuccess {
+
+        }
+    }
+}
+
+private fun Route.updateMap(database: Database) {
+    put {
+        //TODO
     }
 }
 
