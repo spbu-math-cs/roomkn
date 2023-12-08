@@ -50,7 +50,21 @@ class RoomsRoutesTests {
     }
 
     @Test
+    fun UpdateMapWithRegularClient() = KtorTestEnv.testJsonApplication { client ->
+        with(KtorTestEnv) {
+            client.createAndAuthUser()
+        }
+        val newMap = "This is Map from user, don't trust me"
+        val putResponse = client.put(mapPath) {
+            setBody(newMap)
+        }
+        assertEquals(HttpStatusCode.Forbidden, putResponse.status)
+    }
+
+    @Test
     fun getAndUpdateMap() = KtorTestEnv.testJsonApplication { client ->
+        val errorResponse = client.get(mapPath)
+        assertEquals(HttpStatusCode.Unauthorized, errorResponse.status)
         with(KtorTestEnv) {
             client.createAndAuthAdmin()
         }

@@ -35,8 +35,8 @@ fun Route.roomsRouting() {
         }
     }
     route("/map") {
-        getMap(database)
         authenticate(AuthenticationProvider.SESSION) {
+            getMap(database)
             updateMap(database)
         }
     }
@@ -163,6 +163,7 @@ private fun Route.getMap(database: Database) {
 
 private fun Route.updateMap(database: Database) {
     put { newMap: String ->
+        call.requirePermission(database) { return@put call.onMissingPermission() }
         val result = database.updateMap(newMap)
         result.onSuccess {
             call.respondText("Ok", status = HttpStatusCode.OK)
