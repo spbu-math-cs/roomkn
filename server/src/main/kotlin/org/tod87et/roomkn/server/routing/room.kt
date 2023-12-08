@@ -124,10 +124,7 @@ private fun Route.rooms(database: Database) {
 
 private fun Route.roomById(database: Database) {
     get("/{id}") {
-        val id = call.parameters["id"]?.toIntOrNull() ?: return@get call.respondText(
-            "Id should be int",
-            status = HttpStatusCode.BadRequest
-        )
+        val id = call.parameters["id"]?.toIntOrNull() ?: return@get call.onMissingId()
 
         val result = database.getRoom(id)
 
@@ -136,10 +133,7 @@ private fun Route.roomById(database: Database) {
         }
 
         result.onFailure {
-            return@get call.respondText(
-                "Room with this id not found",
-                status = HttpStatusCode.NotFound
-            )
+            call.handleException(it)
         }
     }
 }
