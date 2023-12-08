@@ -95,11 +95,7 @@ object KtorTestEnv {
             name,
             password,
             email,
-            listOf(
-                UserPermission.UsersAdmin,
-                UserPermission.RoomsAdmin,
-                UserPermission.ReservationsAdmin,
-            )
+            UserPermission.entries.toList(),
         )
     }
 

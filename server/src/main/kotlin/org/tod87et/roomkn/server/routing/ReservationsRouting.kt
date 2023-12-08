@@ -17,11 +17,11 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.toInstant
 import org.tod87et.roomkn.server.auth.AuthSession
 import org.tod87et.roomkn.server.auth.AuthenticationProvider
-import org.tod87et.roomkn.server.auth.permissions
 import org.tod87et.roomkn.server.auth.userId
 import org.tod87et.roomkn.server.database.ConstraintViolationException
 import org.tod87et.roomkn.server.database.Database
 import org.tod87et.roomkn.server.database.MissingElementException
+import org.tod87et.roomkn.server.database.ReservationException
 import org.tod87et.roomkn.server.di.injectDatabase
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.reservations.ReservationRequest
@@ -93,7 +93,7 @@ private fun Route.reservationDeleteRouting(database: Database) {
             .getOrElse {
                 return@delete call.handleReservationException(it)
             }
-        call.requirePermissionOrSelf(reservation.userId) { return@delete call.onMissingPermission() }
+        call.requirePermissionOrSelf(reservation.userId, database) { return@delete call.onMissingPermission() }
 
         val result = database.deleteReservation(id)
         result
@@ -199,12 +199,10 @@ private fun Route.reserveRouting(database: Database) {
 
 private inline fun ApplicationCall.requirePermissionOrSelf(
     self: Int,
+    database: Database,
     onPermissionMissing: () -> Nothing
 ) {
-    val session = principal<AuthSession>()
-    if (session == null || session.userId != self && !session.permissions.contains(UserPermission.ReservationsAdmin)) {
-        onPermissionMissing()
-    }
+    requirePermissionOrSelfImpl(self, database, UserPermission.ReservationsAdmin, onPermissionMissing)
 }
 
 private suspend fun ApplicationCall.handleReservationException(ex: Throwable) {
@@ -213,7 +211,7 @@ private suspend fun ApplicationCall.handleReservationException(ex: Throwable) {
             respondText("No such reservation", status = HttpStatusCode.BadRequest)
         }
 
-        is ConstraintViolationException -> {
+        is ConstraintViolationException, is ReservationException -> {
             respondText(
                 "Failed to add reservation: conflict with other reservations",
                 status = HttpStatusCode.BadRequest

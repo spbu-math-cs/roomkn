@@ -39,19 +39,16 @@ export function useAuthorizeByCookie() {
     const {currentUser, setCurrentUser} = useContext(CurrentUserContext)
 
     // document.cookie = "roomkn=234325"
-    const {
-        result: resultValidate,
-        statusCode: statusCodeCalidate,
+    const { 
         headers: headersValidate,
+        fetchFlag: fetchFlagValidate,
         triggerFetch: triggerFetchValidate,
-        finished: finishedValidate,
-        fetchFlag: fetchFlagValidate
-    } = useSomeAPI("/api/v0/auth/validate-token", null, "GET")
+        finished: finishedValidate
+    } = useSomeAPI("/api/v0/auth/validate-token", null, "GET", validateCallback)
 
-    useEffect(() => {
-        if (finishedValidate) {
-            console.log('validate: ', resultValidate, statusCodeCalidate, finishedValidate)
-            if (statusCodeCalidate === 200) {
+    function validateCallback(resultValidate, statusCodeValidate) {
+        console.log('validate: ', resultValidate, statusCodeValidate)
+            if (statusCodeValidate === 200) {
                 const userData = {
                     user_id: resultValidate?.id,
                     csrf_token: headersValidate['X-CSRF-Token'],
@@ -65,11 +62,22 @@ export function useAuthorizeByCookie() {
                 setIsAuthorized(false)
                 setCurrentUser(null)
             }
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [finishedValidate, resultValidate, fetchFlagValidate])
+    }
 
-    let {triggerFetch: triggerFetchUser, result: resultUser, finished: finishedUser} = useSomeAPI('/api/v0/users/' + currentUser?.user_id)
+    let {
+        triggerFetch: triggerFetchUser
+    } = useSomeAPI('/api/v0/users/' + currentUser?.user_id, null, 'GET', userCallback)
+
+    function userCallback(resultUser, statusCodeUser) {
+        if (currentUser?.user_id == null) return
+
+        if (resultUser?.username != null && statusCodeUser === 200) {
+            const tmp_user_data = currentUser
+            tmp_user_data.username = resultUser?.username
+            setCurrentUser(tmp_user_data)
+            console.log(tmp_user_data)
+        }
+    }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
@@ -78,26 +86,12 @@ export function useAuthorizeByCookie() {
             triggerFetchUser()
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fetchFlagValidate, finishedValidate, resultValidate, currentUser?.user_id]);
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => {
-        if (currentUser?.user_id == null) return
-
-        if (finishedUser && resultUser?.username != null) {
-            const tmp_user_data = currentUser
-            tmp_user_data.username = resultUser?.username
-            setCurrentUser(tmp_user_data)
-            console.log(tmp_user_data)
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentUser, finishedUser, resultUser])
+    }, [fetchFlagValidate, finishedValidate, currentUser?.user_id]);
 
     return {triggerValidate: triggerFetchValidate}
-
 }
 
-function createAuthorizeFunction(result, statusCode, headers, triggerFetch, user, setCurrentUser, setIsAuthorized) {
+export function createAuthorizeFunction(result, statusCode, headers, triggerFetch, user, setCurrentUser, setIsAuthorized) {
     return () => {
         triggerFetch()
     }
@@ -112,12 +106,12 @@ export function useAuthorize(username, password) {
     const {setIsAuthorized} = useContext(IsAuthorizedContext)
     const {setCurrentUser} = useContext(CurrentUserContext)
 
-    const {result, statusCode, headers, triggerFetch, finished} = useSomeAPI("/api/v0/login", user, "POST")
+    const {result, statusCode, headers, triggerFetch, finished} = useSomeAPI("/api/v0/login", user, "POST", authCallback)
 
     const authorize = createAuthorizeFunction(result, statusCode, headers, triggerFetch, user, setCurrentUser, setIsAuthorized)
 
-    useEffect(() => {
-        if (finished && result != null) {
+    function authCallback(result, statusCode) {
+        if (result != null) {
             if (statusCode === 200) {
                 const userData = {
                     user_id: result?.id,
@@ -135,37 +129,43 @@ export function useAuthorize(username, password) {
             }
 
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [finished, result]);
+    }
 
     return {result, statusCode, headers, authorize, finished}
 }
 
-export function useRegister(username, password, email) {
-    const user = {
-        username: username,
-        password: password,
-        email:    email
-    }
+// export function useRegister(username, password, email) {
+//     const user = {
+//         username: username,
+//         password: password,
+//         email: email
+//     }
 
-    const {result, statusCode, headers, triggerFetch, finished} = useSomeAPI("/api/v0/register", user, "POST")
+//     const {result, statusCode, headers, triggerFetch, finished} = useSomeAPI("/api/v0/register", user, "POST", registerCallback)
 
-    console.log(finished, statusCode, result)
+//     console.log(finished, statusCode, result)
 
-    return {result, statusCode, headers, register: triggerFetch, finished}
-}
+//     return {result, statusCode, headers, register: triggerFetch, finished}
+// }
 
 export function useLogout() {
     const {setIsAuthorized} = useContext(IsAuthorizedContext)
     const {setCurrentUser} = useContext(CurrentUserContext)
-    const {result, statusCode, headers, triggerFetch, finished} = useSomeAPI("/api/v0/logout", null, "DELETE")
+    const {result, statusCode, headers, triggerFetch, finished} = useSomeAPI("/api/v0/logout", null, "DELETE", logoutCallback)
 
-    useEffect(() => {
+
+    function logoutCallback(result, statusCode) {
         setIsAuthorized(false)
         setCurrentUser({})
         saveUserData({})
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [finished])
+    }
+
+    // useEffect(() => {
+    //     setIsAuthorized(false)
+    //     setCurrentUser({})
+    //     saveUserData({})
+    //     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, [finished])
 
 
     return {result, statusCode, headers, triggerLogout: triggerFetch, finished}

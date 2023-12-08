@@ -12,7 +12,7 @@ repositories {
 }
 
 group = "org.tod87et.roomkn"
-version = "0.0.0"
+version = "0.0.2"
 
 val exposedVersion: String = extra["exposed.version"] as String
 val ktorVersion = extra["ktor.version"] as String
@@ -22,6 +22,14 @@ val embeddedPostgresVersion = extra["embedded_postgres.version"] as String
 val junitVersion = extra["junit.version"] as String
 val koinVersion = extra["koin.version"] as String
 val koinTestVersion = extra["koin.test.version"] as String
+
+val runStressTests = project.properties["runStressTests"]?.toString()?.toBoolean() ?: false
+
+tasks.withType<Test> {
+    if (!runStressTests) {
+        exclude("org/tod87et/roomkn/server/stresstests/**")
+    }
+}
 
 dependencies {
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
@@ -38,6 +46,7 @@ dependencies {
     implementation("io.ktor:ktor-server-auth:$ktorVersion")
     implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")
     implementation("io.ktor:ktor-server-sessions:$ktorVersion")
+    implementation("io.ktor:ktor-server-call-logging:$ktorVersion")
 
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
 

@@ -22,13 +22,13 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import org.jetbrains.exposed.sql.upsert
 import org.postgresql.util.PSQLException
-import org.tod87et.roomkn.server.database.InvalidatedTokens.tokenHash
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.reservations.Reservation
 import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 import org.tod87et.roomkn.server.models.rooms.RoomInfo
 import org.tod87et.roomkn.server.models.rooms.ShortRoomInfo
+import org.tod87et.roomkn.server.models.users.FullUserInfo
 import org.tod87et.roomkn.server.models.users.RegistrationUserInfo
 import org.tod87et.roomkn.server.models.users.ShortUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
@@ -51,7 +51,7 @@ class DatabaseSession private constructor(private val database: Database) :
     constructor(dataSource: DataSource) : this(Database.connect(dataSource))
 
     init {
-        transaction(database) { SchemaUtils.create(Users, Rooms, Reservations, InvalidatedTokens) }
+        transaction(database) { SchemaUtils.create(Users, Rooms, Reservations, ActiveTokens) }
     }
 
     override fun createRoom(roomInfo: NewRoomInfo): Result<RoomInfo> = queryWrapper {
@@ -84,9 +84,12 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
-    override fun getRooms(): Result<List<ShortRoomInfo>> = queryWrapper {
+    override fun getRooms(limit: Int, offset: Long): Result<List<ShortRoomInfo>> = queryWrapper {
         transaction(database) {
-            Rooms.selectAll().map { ShortRoomInfo(it[Rooms.id], it[Rooms.name]) }
+            Rooms.selectAll()
+                .orderBy(Rooms.name to SortOrder.ASC, Rooms.id to SortOrder.ASC)
+                .limit(limit, offset)
+                .map { ShortRoomInfo(it[Rooms.id], it[Rooms.name]) }
         }
     }
 
@@ -241,9 +244,28 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
-    override fun getUsers(): Result<List<ShortUserInfo>> = queryWrapper {
+    override fun getUsers(limit: Int, offset: Long): Result<List<ShortUserInfo>> = queryWrapper {
         transaction(database) {
-            Users.selectAll().map { ShortUserInfo(it[Users.id], it[Users.username]) }
+            Users.selectAll()
+                .orderBy(Users.username to SortOrder.ASC, Users.id to SortOrder.ASC)
+                .limit(limit, offset)
+                .map { ShortUserInfo(it[Users.id], it[Users.username], it[Users.email]) }
+        }
+    }
+
+    override fun getFullUsers(limit: Int, offset: Long): Result<List<FullUserInfo>> = queryWrapper {
+        transaction(database) {
+            Users.selectAll()
+                .orderBy(Users.username to SortOrder.ASC, Users.id to SortOrder.ASC)
+                .limit(limit, offset)
+                .map {
+                    FullUserInfo(
+                        id = it[Users.id],
+                        username = it[Users.username],
+                        email = it[Users.email],
+                        permissions = maskToPermissions(it[Users.permissions]).toSet()
+                    )
+                }
         }
     }
 
@@ -305,26 +327,34 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
-    override fun invalidateToken(hash: ByteArray, expirationDate: Instant): Result<Unit> = queryWrapper {
+    override fun registerToken(hash: ByteArray, expirationDate: Instant): Result<Unit> = queryWrapper {
         transaction(database) {
-            InvalidatedTokens.upsert {
-                it[InvalidatedTokens.tokenHash] = hash
-                it[InvalidatedTokens.expirationDate] = expirationDate
+            ActiveTokens.upsert {
+                it[ActiveTokens.tokenHash] = hash
+                it[ActiveTokens.expirationDate] = expirationDate
             }
         }
     }
 
-    override fun checkTokenWasInvalidated(hash: ByteArray): Result<Boolean> = queryWrapper {
+    override fun invalidateToken(hash: ByteArray): Result<Unit> = queryWrapper {
         transaction(database) {
-            !InvalidatedTokens.select { tokenHash eq hash }.empty()
+            ActiveTokens.deleteWhere {
+                ActiveTokens.tokenHash eq hash
+            }
         }
     }
 
-    override fun cleanupExpiredInvalidatedTokens(): Result<Unit> = queryWrapper {
+    override fun checkTokenValid(hash: ByteArray): Result<Boolean> = queryWrapper {
+        transaction(database) {
+            !ActiveTokens.select { ActiveTokens.tokenHash eq hash }.empty()
+        }
+    }
+
+    override fun cleanupExpiredTokens(): Result<Unit> = queryWrapper {
         transaction(database) {
             val now = Clock.System.now()
 
-            InvalidatedTokens.deleteWhere { expirationDate lessEq now }
+            ActiveTokens.deleteWhere { expirationDate lessEq now }
         }
     }
 
@@ -383,6 +413,7 @@ class DatabaseSession private constructor(private val database: Database) :
             Reservations.deleteAll()
             Users.deleteAll()
             Rooms.deleteAll()
+            ActiveTokens.deleteAll()
         }
     }
 

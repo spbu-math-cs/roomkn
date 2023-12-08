@@ -1,50 +1,56 @@
 import './Profile.css';
 
-import React, { useEffect, useContext, useState } from "react";
+import React, {useContext, useEffect, useState} from "react";
 import ContentWrapper from "../components/Content";
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
 import useSomeAPI from "../api/FakeAPI";
+import {Box, Button, Stack, TextField, Typography} from "@mui/material";
 
 
 function ProfilePermissions({currentUser}) {
 
-    let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/users/' + currentUser?.user_id + '/permissions')
+    let [permDraw, setPermDraw] = useState([])
+
+    let {triggerFetch} = useSomeAPI('/api/v0/users/' + currentUser?.user_id + '/permissions', null, 'GET', permissionsCallback)
+
+
+    function permissionsCallback(result, statusCode) {
+        if (statusCode === 200 && result != null) {
+            console.log("success in getting perms")
+            const newPermDraw = []
+            for (let perm in result) {
+                let s;
+                switch (result[perm]) {
+                    case "ReservationsCreate":
+                        s = "You are allowed to make reservations."
+                        break
+                    case "ReservationsAdmin":
+                        s = "You are allowed to view other users' reservations and edit them."
+                        break
+                    case "RoomsAdmin":
+                        s = "You are allowed to change room names and descriptions as well as introduce new rooms."
+                        break
+                    case "UsersAdmin":
+                        s = "You are allowed to manage all users in the network and change their permissions."
+                        break
+                    case "GroupsAdmin":
+                        s = "You are allowed to manage all groups."
+                        break
+                    default:
+                        s = "You are allowed to eat draniki."
+                }
+                newPermDraw.push(<li key={perm}>
+                    <label className='profile-user-perm'>{s}</label>
+                </li>)
+            }
+            setPermDraw(newPermDraw)
+        }
+    }
 
     //eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [currentUser])
-    console.log("used effect")
 
-    if (statusCode === 200 && finished && result != null) {
-        console.log("success in getting perms")
-        const perm_draw = []
-        for (let perm in result) {  
-            let s;
-            console.log(perm)
-            switch (result[perm]) {
-                case "ReservationsCreate":
-                    s = "You are allowed to make reservations."
-                    break
-                case "ReservationsAdmin":
-                    s = "You are allowed to view other users' reservations and edit them."
-                    break
-                case "RoomsAdmin":
-                    s = "You are allowed to change room names and descriptions as well as introduce new rooms."
-                    break
-                case "UsersAdmin":
-                    s = "You are allowed to manage all users in the network and change their permissions."
-                    break
-                case "GroupsAdmin":
-                    s = "You are allowed to manage all groups." 
-                    break
-                default:
-                    s = "You are allowed to eat draniki."
-            }
-            perm_draw.push(<li key={perm}>
-                <label className='profile-user-perm'>{s}</label>
-            </li>)
-        }
-        return <ul>{perm_draw}</ul>
-    }
+    return <ul>{permDraw}</ul>
 }
 
 function ProfileChangeForm({id, actUsername, actEmail, triggerRefetch}) {
@@ -57,22 +63,18 @@ function ProfileChangeForm({id, actUsername, actEmail, triggerRefetch}) {
         email: email
     }
 
-    let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/users/' + id, put_data, 'PUT')
+    let {triggerFetch} = useSomeAPI('/api/v0/users/' + id, put_data, 'PUT', profileChangeCallback)
 
-    useEffect(() => {
-        if (finished) {
-            if (statusCode === 400) alert("Error: " + result)
+    function profileChangeCallback(result, statusCode) {
+        if (statusCode === 400) alert("Error: " + result)
             else if (statusCode === 401) alert("Error: you are unauthorized.")
             else if (statusCode === 403) alert("You are not allowed to change your credentials.")
             else if (statusCode === 500) alert("Internal server error.")
             else if (statusCode === 200) {
                 triggerRefetch()
-                alert("Credentials updated successfully!") 
-            }
-            else alert("Status Code: " + statusCode)
-        }
-        //eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [finished]);
+                alert("Credentials updated successfully!")
+            } else alert("Status Code: " + statusCode)
+    }
 
     const handleSubmit = (e) => {
         e.preventDefault()
@@ -81,45 +83,34 @@ function ProfileChangeForm({id, actUsername, actEmail, triggerRefetch}) {
     }
 
     return (
-        <ContentWrapper page_name="Change credentials">
-            <form className="credentials-form" onSubmit={handleSubmit}>
-                <div className="form-field">
-                    <label className="form-label">
-                        New username:
-                    </label>
-                    <input className="form-input" value={username} onChange={(e) => setUsername(e.target.value)}>
-                  
-                    </input>
-                </div>
-                <div className="form-field">
-                    <label className="form-label">
-                        New email:
-                    </label>
-                    <input className="form-input" value={email} onChange={(e) => setEmail(e.target.value)}>
-                  
-                    </input>
-                </div>
-                <input className="form-submit" type="submit" value="Change"></input>
-            </form>
+        <ContentWrapper page_name="Change user info">
+            <Stack spacing={1}>
+                <TextField variant="outlined" label="New username" value={username}
+                           onChange={(e) => setUsername(e.target.value)}/>
+                <TextField variant="outlined" label="New email" value={email}
+                           onChange={(e) => setEmail(e.target.value)}/>
+                <Button color="secondary" variant="outlined" onClick={handleSubmit}
+                        sx={{width: "100pt"}}>Change</Button>
+            </Stack>
         </ContentWrapper>
-    )
-
+    );
 }
- 
+
 const Profile = () => {
+
+    let [presult, setPresult] = useState(null)
+    let [pstatusCode, setPstatusCode] = useState(0)
 
     const {currentUser} = useContext(CurrentUserContext)
     const {isAuthorized} = useContext(IsAuthorizedContext)
 
-    let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/users/' + currentUser?.user_id)
+    let {triggerFetch} = useSomeAPI('/api/v0/users/' + currentUser?.user_id, null, 'GET', profileCallback)
 
-    
 
     //eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [currentUser])
-    
 
-    console.log(currentUser)
+
 
     if (!isAuthorized) {
         return (
@@ -129,26 +120,46 @@ const Profile = () => {
         )
     }
 
-    if (statusCode === 200 && finished && result != null) {
-
-
-
-        return (
-            <ContentWrapper page_name="My Profile">
-                <div className='profile-field'> My username: {result.username}</div>
-                <div className='profile-field'> My email: {result.email}</div>
-                <div className='profile-field'>My permissions:</div>
-                <ProfilePermissions currentUser={currentUser}></ProfilePermissions>
-                <ProfileChangeForm id={currentUser?.user_id} actUsername={result.username} actEmail={result.email} triggerRefetch={triggerFetch}></ProfileChangeForm>
-            </ContentWrapper>
-        )
+    function profileCallback(result, statusCode) {
+        if (statusCode === 200 && result != null) {
+            setPresult(result)
+            setPstatusCode(statusCode)
+        }
+        else {
+            setPresult(null)
+            setPstatusCode(0)
+        }
+        
     }
 
+    if (pstatusCode === 200) {
+        return (
+            <Stack>
+                <ContentWrapper page_name="Profile info">
+                    <Typography sx={{fontSize: 24}}>
+                        <Box>Username: {presult.username}</Box>
+                        <Box>Email: {presult.email}</Box>
+                    </Typography>
+                </ContentWrapper>
+                <ContentWrapper page_name="Permissions">
+                    <Typography sx={{fontSize: 24}}>
+                        <ProfilePermissions currentUser={currentUser}></ProfilePermissions>
+                    </Typography>
+                </ContentWrapper>
+                <Typography sx={{fontSize: 24}}>
+                    <ProfileChangeForm id={currentUser?.user_id} actUsername={presult.username} actEmail={presult.email}
+                                       triggerRefetch={triggerFetch}></ProfileChangeForm>
+                </Typography>
+            </Stack>
+        )
+    }
+    
     return (
         <ContentWrapper page_name="My profile">
             Unable to fetch current user information.
         </ContentWrapper>
     )
+    
 };
- 
+
 export default Profile;

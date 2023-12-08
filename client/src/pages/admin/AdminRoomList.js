@@ -5,156 +5,159 @@ import {NavLink} from "react-router-dom";
 
 import "./AdminRoomList.css"
 import AdminWrapper from "../../components/AdminWrapper";
+import {Box, Button, Stack, TextField, useTheme} from "@mui/material";
+import SnackbarAlert from "../../components/SnackbarAlert";
 
 function EditRoomRow({room, refresh}) {
 
-        let {triggerFetch, result, statusCode, finished} = useSomeAPI('/api/v0/rooms/' + room.id)
-        //eslint-disable-next-line react-hooks/exhaustive-deps
-        useEffect(() => triggerFetch(), [])
+    let [snackbarVis, setSnackbarVis] = useState(false)
+    let [putStatusCode, setPutStatusCode] = useState(0)
 
-        const [nameDefault] = useState(room.name)
-        const [descDefault, setDescDefault] = useState(room.description)
+    let {triggerFetch} = useSomeAPI('/api/v0/rooms/' + room.id, null, 'GET', roomGetCallback)
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => triggerFetch(), [])
 
-        const [name, setName] = useState(room.name)
-        const [desc, setDesc] = useState(room.description)
+    const [nameDefault] = useState(room.name)
+    const [descDefault, setDescDefault] = useState(room.description)
 
-        useEffect(() => {
-                if (finished && statusCode === 200 && result != null) {
-                        setDescDefault(result.description)
-                        setDesc(result.description)
-                }
-                //eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [result, finished, statusCode]);
+    const [name, setName] = useState(room.name)
+    const [desc, setDesc] = useState(room.description)
 
-        const put_data = {
-                name: name,
-                description: desc
+    function roomGetCallback(result, statusCode) {
+        if (statusCode === 200) {
+            console.log('setting room description to' + result.description)
+            setDescDefault(result.description)
+            setDesc(result.description)
         }
+    }
 
-        const putObj = useSomeAPI("/api/v0/rooms/" + room.id, put_data, "PUT")
-        const deleteObj = useSomeAPI("/api/v0/rooms/" + room.id, null, "DELETE")
+    const put_data = {
+        name: name,
+        description: desc
+    }
 
-        const [putStatusCode, triggerPut, putFinished] = [putObj.statusCode, putObj.triggerFetch, putObj.finished]
-        const [deleteStatusCode, triggerDelete, deleteFinished] = [deleteObj.statusCode, deleteObj.triggerFetch, deleteObj.finished]
-
-        const reset = () => {
-                setName(nameDefault)
-                setDesc(descDefault)
-        }
-
-        const put_req = () => {
-                triggerPut()
-        }
-
-        const delete_req = () => {
-                triggerDelete()
-        }
-
-        useEffect(() => {
-                if (putFinished) {
-                        alert("Put statusCode: " + putStatusCode)
-                        refresh()
-                }
-                // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [putFinished])
-
-        useEffect(() => {
-                if (deleteFinished) {
-                        alert("Delete statusCode: " + deleteStatusCode)
-                        refresh()
-                }
-                // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [deleteFinished])
+    const {triggerFetch: triggerPut} = useSomeAPI("/api/v0/rooms/" + room.id, put_data, "PUT", putDeleteCallback)
+    const {triggerFetch: triggerDelete} = useSomeAPI("/api/v0/rooms/" + room.id, null, "DELETE", putDeleteCallback)
 
 
-        return (
-                <div className="edit-room-row">
-                        <div className="edit-room-row-id">
-                                {room.id}
-                        </div>
-                        <input className="edit-room-row-reset" type="button" value="reset" onClick={reset}/>
-                        <input className="edit-room-row-name" type="text" value={name} onChange={(e) => setName(e.target.value)}/>
-                        <input className="edit-room-row-desc" type="text" value={desc} onChange={(e) => setDesc(e.target.value)}/>
 
+    const reset = () => {
+        setName(nameDefault)
+        setDesc(descDefault)
+    }
 
-                        <input className="edit-room-row-update" type="button" value="UPDATE" onClick={put_req}/>
-                        <input className="edit-room-row-delete" type="button" value="delete" onClick={delete_req}/>
-                </div>
-        )
+    const put_req = () => {
+        triggerPut()
+    }
+
+    const delete_req = () => {
+        triggerDelete()
+    }
+
+    function putDeleteCallback(result, statusCode) {
+        setSnackbarVis(true)
+        setPutStatusCode(statusCode)
+        refresh()
+    }
+
+    const theme = useTheme()
+
+    return (
+        <Stack direction="row" alignItems="baseline" spacing={theme.spacing()}>
+            <Box sx={{minWidth: "30pt"}}>{room.id}</Box>
+            <TextField label="Name" variant="outlined" value={name} onChange={(e) => setName(e.target.value)}/>
+            <TextField InputLabelProps={{shrink: true}}
+                       multiline
+                       maxRows={4}
+                       label="Description"
+                       variant="outlined" value={desc}
+                       onChange={(e) => setDesc(e.target.value)}/>
+            <Button variant="outlined" color="secondary" onClick={reset}>reset</Button>
+            <Button variant="contained" color="success" onClick={put_req}>update</Button>
+            <Button variant="outlined" color="error" onClick={delete_req}>delete</Button>
+            <SnackbarAlert label={"Status code: " + putStatusCode} shouldShow={snackbarVis} closeSelf={() => {
+                setSnackbarVis(false)
+            }}/>
+        </Stack>
+    )
 }
 
 function AddRoom({refresh}) {
-        const [name, setName] = useState("")
-        const [desc, setDesc] = useState("")
+    const [name, setName] = useState("")
+    const [desc, setDesc] = useState("")
 
-        const put_data = {
-                name: name,
-                description: desc
+    const put_data = {
+        name: name,
+        description: desc
+    }
+
+    const {triggerFetch} = useSomeAPI("/api/v0/rooms", put_data, "POST", addCallback)
+
+    const add_req = () => {
+        triggerFetch()
+    }
+
+    function addCallback(result, statusCode) {
+        if (statusCode === 200) {
+            refresh()
         }
+    }
 
-        const addObj = useSomeAPI("/api/v0/rooms", put_data, "POST")
+    const theme = useTheme()
 
-        const [addStatusCode, triggerAdd, addFinished] = [addObj.statusCode, addObj.triggerFetch, addObj.finished]
-
-        const add_req = () => {
-                triggerAdd()
-        }
-
-        useEffect(() => {
-                if (addFinished) {
-                        alert("Put statusCode: " + addStatusCode)
-                        refresh()
-                }
-                //eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [addFinished])
-
-        return (
-                <div className="add-room-row">
-                        <input className="add-room-row-name" placeholder="New room name" type="text" value={name} onChange={(e) => setName(e.target.value)}/>
-                        <input className="add-room-row-desc" placeholder="New room description" type="text" value={desc} onChange={(e) => setDesc(e.target.value)}/>
-                        <input className="add-room-row-add" type="button" value="ADD" onClick={add_req}/>
-                </div>
-        )
+    return (
+        <Stack direction="row" spacing={theme.spacing()}>
+            <TextField label="Name" variant="outlined" value={name} onChange={(e) => setName(e.target.value)}/>
+            <TextField label="Description" variant="outlined" value={desc} onChange={(e) => setDesc(e.target.value)}/>
+            <Button variant="contained" color="success" onClick={add_req}>add</Button>
+        </Stack>
+    )
 }
 
 export function AdminRoomList() {
-        // const [refreshCount, setRefresh] = useState(0)
-        // const refresh = () => {
-        //         setRefresh(refreshCount+1)
-        // }
+    
+    let [drawList, setDrawList] = useState([])
 
-        let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/rooms')
+    let {triggerFetch} = useSomeAPI('/api/v0/rooms', null, 'GET', listCallback)
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        useEffect(() => triggerFetch(), [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => triggerFetch(), [])
 
-        const draw_list = []
-
-        if (statusCode === 200 && finished && result != null) {
-                result.forEach((room) => {
-                        draw_list.push(
-                                <EditRoomRow room={room} key={room.id} refresh={triggerFetch}/>
+    function listCallback(result, statusCode) {
+        if (statusCode === 200) {
+            const newList = []
+            result.forEach((room) => {
+                newList.push(
+                    <EditRoomRow room={room} key={room.id} refresh={triggerFetch}/>
                 )
-                })
+            })
+            setDrawList(newList)
         }
+    }
 
-        const page_name = (
-                <div>
-                        <NavLink to="/admin/panel">
-                                Admin Panel
-                        </NavLink>
-                        /Room list
-                </div>
-        )
+    const page_name = (
+        <div>
+            <NavLink to="/admin/panel">
+                Admin Panel
+            </NavLink>
+            /Room list
+        </div>
+    )
 
-        return (
-                <AdminWrapper>
-                        <ContentWrapper page_name={page_name}>
-                                {draw_list}
-                                <AddRoom refresh={triggerFetch}/>
-                        </ContentWrapper>
-                </AdminWrapper>
-        )
+    const theme = useTheme()
+
+    return (
+        <AdminWrapper>
+            <ContentWrapper page_name={page_name}>
+                <Stack spacing={theme.spacing()}>
+                    {drawList}
+                </Stack>
+            </ContentWrapper>
+            <ContentWrapper page_name="Add room">
+                <AddRoom refresh={triggerFetch}/>
+            </ContentWrapper>
+        </AdminWrapper>
+    )
 }
 
 export default AdminRoomList

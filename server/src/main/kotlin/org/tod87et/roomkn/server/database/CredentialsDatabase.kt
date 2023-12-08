@@ -14,20 +14,11 @@ interface CredentialsDatabase {
 
     fun updateUserPassword(userId: Int, passwordHash: ByteArray, salt: ByteArray): Result<Unit>
 
-    /**
-     * Invalidates token with specified [hash] and records its original [expirationDate].
-     * If token with such [hash] has been already invalidated, overrides its [expirationDate].
-     */
-    fun invalidateToken(hash: ByteArray, expirationDate: Instant): Result<Unit>
+    fun registerToken(hash: ByteArray, expirationDate: Instant): Result<Unit>
 
-    /**
-     * Returns [Result.success] with `true` if token with such [hash] was invalidated and `false` otherwise.
-     * May return [Result.failure] with [ConnectionException] if database is not available.
-     */
-    fun checkTokenWasInvalidated(hash: ByteArray): Result<Boolean>
+    fun invalidateToken(hash: ByteArray): Result<Unit>
 
-    /**
-     * Removes all expired (with expiration date < current date) tokens from invalidated tokens database.
-     */
-    fun cleanupExpiredInvalidatedTokens(): Result<Unit>
+    fun checkTokenValid(hash: ByteArray): Result<Boolean>
+
+    fun cleanupExpiredTokens(): Result<Unit>
 }

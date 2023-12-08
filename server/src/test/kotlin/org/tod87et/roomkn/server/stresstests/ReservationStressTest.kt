@@ -1,4 +1,4 @@
-package org.tod87et.roomkn.server.database
+package org.tod87et.roomkn.server.stresstests
 
 import io.zonky.test.db.postgres.embedded.EmbeddedPostgres
 import java.util.GregorianCalendar
@@ -9,6 +9,9 @@ import kotlinx.datetime.Instant
 import org.junit.jupiter.api.AfterAll
 import javax.sql.DataSource
 import org.junit.jupiter.api.Test
+import org.tod87et.roomkn.server.database.DatabaseSession
+import org.tod87et.roomkn.server.database.ReservationException
+import org.tod87et.roomkn.server.database.SerializationException
 import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 import org.tod87et.roomkn.server.models.users.RegistrationUserInfo

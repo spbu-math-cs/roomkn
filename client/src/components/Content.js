@@ -1,21 +1,19 @@
 import './Content.css'
+import {Box, CardContent, CardHeader, Paper, Stack} from "@mui/material";
+import React from "react";
 
-function ContentWrapper({children, page_name}) {
+function ContentWrapper({children, page_name, orientation}) {
     return (
-        <div className="content-wrapper">
-            <div className="content-wrapper-content">
-                <div className="content-wrapper-content-name">
-                    <div className="content-name">
-                        {page_name}
-                    </div>
-                </div>
-                <div className="content-wrapper-content-border">
-                    <div className="content-wrapper-content-data">
+        <Box sx={{padding: "10pt"}}>
+            <Paper elevation={10} orientation={orientation}>
+                <CardHeader titleTypographyProps={{variant: "h4", color: "secondary"}} title={page_name}/>
+                <CardContent>
+                    <Stack>
                         {children}
-                    </div>
-                </div>
-            </div>
-        </div>
+                    </Stack>
+                </CardContent>
+            </Paper>
+        </Box>
     )
 }
 
