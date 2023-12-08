@@ -49,4 +49,5 @@ object ActiveTokens : Table() {
 object Map : Table() {
     val id: Column<Int> = integer("id").autoIncrement()
     val json: Column<String> = text("json")
+    override val primaryKey = PrimaryKey(id)
 }

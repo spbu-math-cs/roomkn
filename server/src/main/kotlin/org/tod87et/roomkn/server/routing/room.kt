@@ -154,14 +154,21 @@ private fun Route.getMap(database: Database) {
     get {
         val result = database.getMap()
         result.onSuccess {
-
+            call.respondText(it, status = HttpStatusCode.OK)
+        }.onFailure {
+            call.handleException(it)
         }
     }
 }
 
 private fun Route.updateMap(database: Database) {
-    put {
-        //TODO
+    put { newMap: String ->
+        val result = database.updateMap(newMap)
+        result.onSuccess {
+            call.respondText("Ok", status = HttpStatusCode.OK)
+        }.onFailure {
+            call.handleException(it)
+        }
     }
 }
 

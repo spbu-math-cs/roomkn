@@ -1,5 +1,7 @@
 package org.tod87et.roomkn.server.database
 
+import java.sql.Connection
+import javax.sql.DataSource
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import org.jetbrains.exposed.exceptions.ExposedSQLException
@@ -31,8 +33,6 @@ import org.tod87et.roomkn.server.models.users.ShortUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
 import org.tod87et.roomkn.server.models.users.UserCredentialsInfo
 import org.tod87et.roomkn.server.models.users.UserInfo
-import java.sql.Connection
-import javax.sql.DataSource
 import org.tod87et.roomkn.server.database.Database as RooMknDatabase
 
 class DatabaseSession private constructor(private val database: Database) :
@@ -85,13 +85,17 @@ class DatabaseSession private constructor(private val database: Database) :
 
     override fun getMap(): Result<String> = queryWrapper {
         transaction(database) {
-            //TODO
+            Map.selectAll().orderBy(Map.id to SortOrder.DESC).limit(1).map {
+                it[Map.json]
+            }[0]
         }
     }
 
     override fun updateMap(newMap: String): Result<Unit> = queryWrapper {
         transaction(database) {
-            //TODO
+            Map.update({ Map.id eq Map.selectAll().maxOf { Map.id } }) {
+                it[json] = newMap
+            }
         }
     }
 
