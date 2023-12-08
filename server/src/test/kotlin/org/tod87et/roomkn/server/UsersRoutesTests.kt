@@ -3,6 +3,7 @@ package org.tod87et.roomkn.server
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
+import io.ktor.client.request.patch
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.Test
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.users.ShortUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
+import org.tod87et.roomkn.server.models.users.UpdateUserInfoWithNull
 import org.tod87et.roomkn.server.models.users.UserInfo
 
 class UsersRoutesTests {
@@ -71,6 +73,23 @@ class UsersRoutesTests {
 
         val user = KtorTestEnv.database.getUser(id).getOrThrow()
         assertEquals(UserInfo(id, "bob-the-builder", "bob@bob.club"), user)
+    }
+
+    @Test
+    fun updateUserPartially() = KtorTestEnv.testJsonApplication { client ->
+        with(KtorTestEnv) {
+            client.createAndAuthAdmin()
+        }
+        val id = KtorTestEnv.createUser("Bob")
+
+        val resp = client.patch(userPath(id)) {
+            contentType(ContentType.Application.Json)
+            setBody(UpdateUserInfoWithNull(email = "bob@bob.club"))
+        }
+        assertEquals(HttpStatusCode.OK, resp.status)
+
+        val user = KtorTestEnv.database.getUser(id).getOrThrow()
+        assertEquals(UserInfo(id, "Bob", "bob@bob.club"), user)
     }
 
     @Test
