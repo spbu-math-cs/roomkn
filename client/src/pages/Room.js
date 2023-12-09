@@ -7,7 +7,7 @@ import {fromAPITime, toAPITime} from '../api/API';
 import useSomeAPI from '../api/FakeAPI';
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
 import {Box, Button, Slider, Stack, Typography} from "@mui/material";
-import Timeline from "../components/Timeline";
+import TimelineWithUsers from "../components/Timeline";
 
 const CurrentReservationContext = createContext()
 
@@ -266,7 +266,7 @@ function Room() {
                             <div>
                                 <div className='reservations-label'>Reservations on {date}:</div>
                             </div>
-                            <Timeline reservations={reservations} currentReservation={currentReservation}/>
+                            <TimelineWithUsers reservations={reservations} currentReservation={currentReservation}/>
                         </div>
                     </div>
                 </div>

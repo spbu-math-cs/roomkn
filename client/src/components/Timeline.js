@@ -77,7 +77,7 @@ function Reservation({reservation, is_current_reservation = false}) {
 }
 
 
-function Timeline({reservations, currentReservation = null}) {
+function TimelineWithUsers({reservations, currentReservation = null}) {
     if (reservations == null) return (
         <label className='reservations-not-found-label'>
             Не удалось получить список бронирований для этого кабинета.
@@ -89,14 +89,12 @@ function Timeline({reservations, currentReservation = null}) {
     const reservationsList = []
     reservations.forEach((reservation) => {
         reservationsList.push(
-            // <li>
             <Reservation reservation={reservation}/>
-            // </li>
         )
     })
 
     if (currentReservation != null) {
-        reservationsList.push(<Reservation reservation={currentReservation} is_current_reservation={true}/>)
+        reservationsList.push(<Reservation reservation={currentReservation}/>)
     }
 
 
@@ -108,4 +106,32 @@ function Timeline({reservations, currentReservation = null}) {
     )
 }
 
-export default Timeline
+
+function BareReservation({reservation}) {
+
+}
+
+function BareTimeline({reservations, from, until}) {
+    if (reservations == null) return (
+        <label className='reservations-not-found-label'>
+            Не удалось получить список бронирований для этого кабинета.
+        </label>
+    )
+
+    const reservationsList = []
+    reservations.forEach((reservation) => {
+        reservationsList.push(
+            <BareReservation reservation={reservation}/>
+        )
+    })
+
+
+    return (
+        <div className="reservation-list-wrapper">
+            <div className="reservation-list-background"/>
+            {reservationsList}
+        </div>
+    )
+}
+
+export default TimelineWithUsers
