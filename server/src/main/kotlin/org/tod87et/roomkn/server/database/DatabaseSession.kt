@@ -1,5 +1,7 @@
 package org.tod87et.roomkn.server.database
 
+import java.sql.Connection
+import javax.sql.DataSource
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import org.jetbrains.exposed.exceptions.ExposedSQLException
@@ -23,16 +25,16 @@ import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.reservations.Reservation
 import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
+import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
 import org.tod87et.roomkn.server.models.rooms.RoomInfo
 import org.tod87et.roomkn.server.models.rooms.ShortRoomInfo
 import org.tod87et.roomkn.server.models.users.FullUserInfo
 import org.tod87et.roomkn.server.models.users.RegistrationUserInfo
 import org.tod87et.roomkn.server.models.users.ShortUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
+import org.tod87et.roomkn.server.models.users.UpdateUserInfoWithNull
 import org.tod87et.roomkn.server.models.users.UserCredentialsInfo
 import org.tod87et.roomkn.server.models.users.UserInfo
-import java.sql.Connection
-import javax.sql.DataSource
 import org.tod87et.roomkn.server.database.Database as RooMknDatabase
 
 class DatabaseSession private constructor(private val database: Database) :
@@ -69,6 +71,17 @@ class DatabaseSession private constructor(private val database: Database) :
             val cnt = Rooms.update({ Rooms.id eq roomId }) {
                 it[name] = roomInfo.name
                 it[description] = roomInfo.description
+            }
+
+            if (cnt == 0) throw MissingElementException()
+        }
+    }
+
+    override fun updateRoomPartially(roomId: Int, roomInfo: NewRoomInfoWithNull): Result<Unit> = queryWrapper {
+        transaction(database) {
+            val cnt = Rooms.update({ Rooms.id eq roomId }) {
+                if (roomInfo.name != null) it[name] = roomInfo.name
+                if (roomInfo.description != null) it[description] = roomInfo.description
             }
 
             if (cnt == 0) throw MissingElementException()
@@ -370,6 +383,17 @@ class DatabaseSession private constructor(private val database: Database) :
             val cnt = Users.update({ Users.id eq userId }) {
                 it[Users.username] = info.username
                 it[Users.email] = info.email
+            }
+
+            if (cnt == 0) throw MissingElementException()
+        }
+    }
+
+    override fun updateUserInfoPartially(userId: Int, info: UpdateUserInfoWithNull): Result<Unit> = queryWrapper {
+        transaction(database) {
+            val cnt = Users.update({ Users.id eq userId }) {
+                if (info.username != null) it[username] = info.username
+                if (info.email != null) it[email] = info.email
             }
 
             if (cnt == 0) throw MissingElementException()
