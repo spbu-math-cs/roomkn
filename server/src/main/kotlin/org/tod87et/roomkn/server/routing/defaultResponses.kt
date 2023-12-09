@@ -19,6 +19,18 @@ suspend fun ApplicationCall.onMissingId() {
     respondText("id should be int", status = HttpStatusCode.BadRequest)
 }
 
+suspend fun ApplicationCall.onIncorrectTimestamp() {
+    respondText("timestamp should be correct Instant", status = HttpStatusCode.BadRequest)
+}
+
+suspend fun ApplicationCall.onIncorrectLimit() {
+    respondText("limit should be int", status = HttpStatusCode.BadRequest)
+}
+
+suspend fun ApplicationCall.onIncorrectOffset() {
+    respondText("offset should be long", status = HttpStatusCode.BadRequest)
+}
+
 
 inline fun ApplicationCall.requirePermissionOrSelfImpl(
     self: Int?,

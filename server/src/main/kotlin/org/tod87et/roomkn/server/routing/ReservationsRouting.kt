@@ -13,6 +13,8 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.util.pipeline.PipelineContext
+import kotlinx.datetime.Instant
+import kotlinx.datetime.toInstant
 import org.tod87et.roomkn.server.auth.AuthSession
 import org.tod87et.roomkn.server.auth.AuthenticationProvider
 import org.tod87et.roomkn.server.auth.userId
@@ -104,7 +106,71 @@ private fun Route.reservationDeleteRouting(database: Database) {
     }
 }
 
+/**
+ * If object is null, return Success(default)
+ * If object is not null and toInstant is successful, return Success with result
+ * Otherwise return Failure(error)
+ */
+private fun String?.toResultInstantOrNull(): Result<Instant?> {
+    return runCatching {
+        if (this == null) {
+            return@runCatching null
+        }
+        this.toInstant()
+    }
+}
+
+private fun String?.toResultIntOrDefault(default: Int): Result<Int> {
+    return runCatching {
+        if (this == null) {
+            return@runCatching default
+        }
+        this.toInt()
+    }
+}
+
+private fun String?.toResultLongOrDefault(default: Long): Result<Long> {
+    return runCatching {
+        if (this == null) {
+            return@runCatching default
+        }
+        this.toLong()
+    }
+}
+
 private fun Route.reserveRouting(database: Database) {
+    get {
+        val fromResult = call.request.queryParameters["from"].toResultInstantOrNull()
+        val untilResult = call.request.queryParameters["until"].toResultInstantOrNull()
+        val userIdsString = call.request.queryParameters["user_ids"]
+        val roomIdsString = call.request.queryParameters["room_ids"]
+        val limitResult = call.request.queryParameters["limit"].toResultIntOrDefault(Int.MAX_VALUE)
+        val offsetResult = call.request.queryParameters["offset"].toResultLongOrDefault(0)
+
+        val userIds = userIdsString?.split(",")?.map {
+            it.toIntOrNull() ?: return@get call.respondText(
+                "id in userIds should be int",
+                status = HttpStatusCode.BadRequest
+            )
+        } ?: listOf()
+        val roomIds = roomIdsString?.split(",")?.map {
+            it.toIntOrNull() ?: return@get call.respondText(
+                "id in roomIds should be int",
+                status = HttpStatusCode.BadRequest
+            )
+        } ?: listOf()
+        val from = fromResult.getOrElse { return@get call.onIncorrectTimestamp() }
+        val until = untilResult.getOrElse { return@get call.onIncorrectTimestamp() }
+        val limit = limitResult.getOrElse { return@get call.onIncorrectLimit() }
+        val offset = offsetResult.getOrElse { return@get call.onIncorrectOffset() }
+        database.getReservations(userIds, roomIds, from, until, limit, offset)
+            .onSuccess {
+                call.respond(HttpStatusCode.Created, it)
+            }
+            .onFailure {
+                call.handleReservationException(it)
+            }
+    }
     post { body: ReservationRequest ->
         val userId = call.principal<AuthSession>()!!.userId
 

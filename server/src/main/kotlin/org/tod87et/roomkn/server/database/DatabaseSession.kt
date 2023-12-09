@@ -6,6 +6,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -117,36 +118,54 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
-    override fun getRoomReservations(roomId: Int, limit: Int, offset: Long): Result<List<Reservation>> = queryWrapper {
-        transaction(database) {
-            if (Rooms.select { Rooms.id eq roomId }.empty()) {
-                throw MissingElementException()
-            }
+    override fun getRoomReservations(
+        roomId: Int,
+        from: Instant?,
+        until: Instant?,
+        limit: Int,
+        offset: Long
+    ): Result<List<Reservation>> = getReservations(
+        usersIds = emptyList(),
+        roomsIds = listOf(roomId),
+        from = from,
+        until = until,
+        limit = limit,
+        offset = offset
+    )
 
+    override fun getUserReservations(
+        userId: Int,
+        from: Instant?,
+        until: Instant?,
+        limit: Int,
+        offset: Long
+    ): Result<List<Reservation>> = getReservations(
+        usersIds = listOf(userId),
+        roomsIds = emptyList(),
+        from = from,
+        until = until,
+        limit = limit,
+        offset = offset
+    )
+
+    override fun getReservations(
+        usersIds: List<Int>,
+        roomsIds: List<Int>,
+        from: Instant?,
+        until: Instant?,
+        limit: Int,
+        offset: Long
+    ): Result<List<Reservation>> = queryWrapper {
+        transaction(database) {
             Reservations
-                .select { Reservations.roomId eq roomId }
-                .orderBy(Reservations.from to SortOrder.ASC, Reservations.until to SortOrder.ASC)
-                .limit(limit, offset)
-                .map {
-                    Reservation(
-                        id = it[Reservations.id],
-                        userId = it[Reservations.userId],
-                        roomId = it[Reservations.roomId],
-                        from = it[Reservations.from],
-                        until = it[Reservations.until]
-                    )
+                .select {
+                    val userCondition = if (usersIds.isEmpty()) Op.TRUE else Reservations.userId inList usersIds
+                    val roomCondition = if (roomsIds.isEmpty()) Op.TRUE else Reservations.roomId inList roomsIds
+                    val untilCondition = if (until == null) Op.TRUE else Reservations.from less until
+                    val fromCondition = if (from == null) Op.TRUE else (Reservations.until greater from)
+                    val dateCondition = untilCondition and fromCondition
+                    userCondition and roomCondition and dateCondition
                 }
-        }
-    }
-
-    override fun getUserReservations(userId: Int, limit: Int, offset: Long): Result<List<Reservation>> = queryWrapper {
-        transaction(database) {
-            if (Users.select { Users.id eq userId }.empty()) {
-                throw MissingElementException()
-            }
-
-            Reservations
-                .select { Reservations.userId eq userId }
                 .orderBy(Reservations.from to SortOrder.ASC, Reservations.until to SortOrder.ASC)
                 .limit(limit, offset)
                 .map {
@@ -284,15 +303,16 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
-    override fun updateUserPermissions(userId: Int, permissions: List<UserPermission>): Result<Unit> = queryWrapper {
-        transaction(database) {
-            val cnt = Users.update({ Users.id eq userId }) {
-                it[Users.permissions] = permissionsToMask(permissions)
-            }
+    override fun updateUserPermissions(userId: Int, permissions: List<UserPermission>): Result<Unit> =
+        queryWrapper {
+            transaction(database) {
+                val cnt = Users.update({ Users.id eq userId }) {
+                    it[Users.permissions] = permissionsToMask(permissions)
+                }
 
-            if (cnt == 0) throw MissingElementException()
+                if (cnt == 0) throw MissingElementException()
+            }
         }
-    }
 
     override fun registerUser(user: RegistrationUserInfo): Result<UserInfo> = queryWrapper {
         transaction(database) {
@@ -353,7 +373,8 @@ class DatabaseSession private constructor(private val database: Database) :
 
     override fun getCredentialsInfoByUsername(username: String): Result<UserCredentialsInfo> = queryWrapper {
         transaction(database) {
-            val userRow = Users.select { Users.username eq username }.firstOrNull() ?: throw MissingElementException()
+            val userRow =
+                Users.select { Users.username eq username }.firstOrNull() ?: throw MissingElementException()
 
             UserCredentialsInfo(
                 userRow[Users.id],

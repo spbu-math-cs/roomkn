@@ -58,7 +58,7 @@ paths:
         - rooms
   /rooms/{roomId}:
     parameters:
-      - $ref: "#/components/parameters/RoomId"
+      - $ref: "#/components/parameters/RoomIdPath"
     put:
       operationId: editRoomById
       responses:
@@ -169,7 +169,7 @@ paths:
         - users
   /users/{userId}:
     parameters:
-      - $ref: "#/components/parameters/UserId"
+      - $ref: "#/components/parameters/UserIdPath"
     put:
       operationId: editUserById
       summary: Изменение информации о пользователе
@@ -262,7 +262,7 @@ paths:
         - users
   /users/{userId}/permissions:
     parameters:
-      - $ref: "#/components/parameters/UserId"
+      - $ref: "#/components/parameters/UserIdPath"
     put:
       operationId: editUserPermissionsById
       description: "После выполнения операции у пользователя будут только те разрешения, которые были в массиве в запросе\n \n
@@ -418,6 +418,37 @@ paths:
       tags:
         - auth
   /reserve:
+    get:
+      operationId: getReserves
+      summary: Получение всех резерваций с возможностью фильтрации
+      description: "Если параметр не задан в запросе, то тогда по этому параметру не происходит фильтрация
+      Резервации, что пересекли отрезок/луч времени, заданный параметрами from/until, возвращаются в запросе"
+      parameters:
+        - $ref: "#/components/parameters/UserIdsQuery"
+        - $ref: "#/components/parameters/RoomIdsQuery"
+        - $ref: "#/components/parameters/From"
+        - $ref: "#/components/parameters/Until"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Reservation"
+          description: Все резервации, подходящих под ограничения
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/ServerError"
+      tags:
+        - reserve
     post:
       operationId: createReserve
       summary: Создание резервации
@@ -446,6 +477,37 @@ paths:
       tags:
         - reserve
   /reservations:
+    get:
+      operationId: getReserves
+      summary: Получение всех резерваций с возможностью фильтрации
+      description: "Если параметр не задан в запросе, то тогда по этому параметру не происходит фильтрация
+      Резервации, что пересекли отрезок/луч времени, заданный параметрами from/until, возвращаются в запросе"
+      parameters:
+        - $ref: "#/components/parameters/UserIdsQuery"
+        - $ref: "#/components/parameters/RoomIdsQuery"
+        - $ref: "#/components/parameters/From"
+        - $ref: "#/components/parameters/Until"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Reservation"
+          description: Все резервации, подходящих под ограничения
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/ServerError"
+      tags:
+        - reserve
     post:
       operationId: createReservation
       summary: Создание резервации
@@ -548,20 +610,72 @@ components:
       in: cookie
       name: auth_session
   parameters:
-    RoomId:
+    RoomIdPath:
       in: path
       name: roomId
       schema:
         type: integer
       required: true
       description: Id комнаты, с которой будет производится операция
-    UserId:
+    UserIdPath:
       in: path
       name: userId
       schema:
         type: integer
       required: true
       description: Id пользователя, с которой будет производится операция
+    From:
+      in: query
+      name: from
+      schema:
+        type: string
+      description: Время, записанное в формате ISO 8601
+      required: false
+      explode: false
+      example: 1970-01-01T00:00:00Z
+    Until:
+      in: query
+      name: until
+      schema:
+        type: string
+      description: Время, записанное в формате ISO 8601
+      required: false
+      explode: false
+      example: 1970-01-01T00:00:00Z
+    UserIdsQuery:
+      in: query
+      name: user_ids
+      schema:
+        type: array
+      required: false
+      explode: false
+      description: Массив id пользователей
+      example: [1, 2, 3]
+    RoomIdsQuery:
+      in: query
+      name: room_ids
+      schema:
+        type: array
+      required: false
+      explode: false
+      description: Массив id комнат
+      example: [ 1, 2, 3 ]
+    Limit:
+      in: query
+      name: limit
+      schema:
+        type: integer
+      required: false
+      description: Этот параметр используется, чтобы ограничить количество возвращаемых элементов в ответе
+      example: 100
+    Offset:
+      in: query
+      name: offset
+      schema:
+        type: integer
+      required: false
+      description: Этот параметр используется, чтобы выкинуть какое-то количество элементов в ответе
+      example: 0
   schemas:
     Ok:
       type: string
