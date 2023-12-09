@@ -3,6 +3,7 @@ package org.tod87et.roomkn.server
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
+import io.ktor.client.request.patch
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -18,6 +19,10 @@ import org.tod87et.roomkn.server.models.rooms.RoomInfo
 import org.tod87et.roomkn.server.models.rooms.ShortRoomInfo
 import org.tod87et.roomkn.server.models.toCreated
 import org.tod87et.roomkn.server.models.toShort
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
+import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
 
 class RoomsRoutesTests {
     private val apiPath = KtorTestEnv.API_PATH
@@ -111,6 +116,25 @@ class RoomsRoutesTests {
         assertEquals(
             KtorTestEnv.database.getRoom(room.id).getOrThrow(),
             newRoom.toCreated(room.id)
+        )
+    }
+
+    @Test
+    fun updateRoomPartially() = KtorTestEnv.testJsonApplication { client ->
+        with(KtorTestEnv) {
+            client.createAndAuthAdmin()
+        }
+        val room = KtorTestEnv.createRoom("301", "VK -- the meeting point")
+        val newRoom = NewRoomInfoWithNull(description =  "Be kind, be friendly, be MCS")
+
+        val resp = client.patch(roomPath(room.id)) {
+            contentType(ContentType.Application.Json)
+            setBody(newRoom)
+        }
+        assertEquals(HttpStatusCode.OK, resp.status)
+        assertEquals(
+            KtorTestEnv.database.getRoom(room.id).getOrThrow(),
+            newRoom.toCreated(room)
         )
     }
 }

@@ -9,6 +9,7 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
+import io.ktor.server.routing.patch
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import org.tod87et.roomkn.server.auth.AuthenticationProvider
@@ -17,7 +18,9 @@ import org.tod87et.roomkn.server.database.Database
 import org.tod87et.roomkn.server.di.injectDatabase
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
+import org.tod87et.roomkn.server.models.users.UpdateUserInfoWithNull
 import org.tod87et.roomkn.server.util.defaultExceptionHandler
+import org.tod87et.roomkn.server.util.okResponse
 
 fun Route.usersRouting() {
     val database: Database by injectDatabase()
@@ -59,16 +62,24 @@ private fun Route.deleteUser(database: Database) {
         val id = call.parameters["id"]?.toInt() ?: return@delete call.onMissingId()
         call.requirePermission(database) { return@delete call.onMissingPermission() }
 
-        database.deleteUser(id).onSuccess { call.respond("Ok") }.onFailure { call.handleException(it) }
+        database.deleteUser(id).okResponseWithHandleException(call)
     }
 }
 
 private fun Route.updateUser(database: Database) {
-    put("/{id}") { body: UpdateUserInfo ->
-        val id = call.parameters["id"]?.toInt() ?: return@put call.onMissingId()
-        call.requirePermissionOrSelf(id, database) { return@put call.onMissingPermission() }
+    route("/{id}") {
+        put { body: UpdateUserInfo ->
+            val id = call.parameters["id"]?.toInt() ?: return@put call.onMissingId()
+            call.requirePermissionOrSelf(id, database) { return@put call.onMissingPermission() }
 
-        database.updateUserInfo(id, body).onSuccess { call.respond("Ok") }.onFailure { call.handleException(it) }
+            database.updateUserInfo(id, body).okResponseWithHandleException(call)
+        }
+        patch { body: UpdateUserInfoWithNull ->
+            val id = call.parameters["id"]?.toInt() ?: return@patch call.onMissingId()
+            call.requirePermissionOrSelf(id, database) { return@patch call.onMissingPermission() }
+
+            database.updateUserInfoPartially(id, body).okResponseWithHandleException(call)
+        }
     }
 }
 
@@ -94,8 +105,7 @@ private fun Route.setUserPermissions(database: Database) {
         val id = call.parameters["id"]?.toInt() ?: return@put call.onMissingId()
         call.requirePermission(database) { return@put call.onMissingPermission() }
 
-        database.updateUserPermissions(id, body).onSuccess { call.respondText("Ok") }
-            .onFailure { call.handleException(it) }
+        database.updateUserPermissions(id, body).okResponseWithHandleException(call)
     }
 }
 
@@ -109,6 +119,13 @@ private suspend fun ApplicationCall.handleException(ex: Throwable) {
             defaultExceptionHandler(ex)
         }
     }
+}
+
+/**
+ * Response Ok on Success with local handler of exceptions
+ */
+private suspend fun <T> Result<T>.okResponseWithHandleException(call: ApplicationCall) {
+    this.okResponse(call, ApplicationCall::handleException)
 }
 
 private inline fun ApplicationCall.requirePermission(
