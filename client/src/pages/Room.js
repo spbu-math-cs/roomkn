@@ -7,6 +7,7 @@ import {fromAPITime, toAPITime} from '../api/API';
 import useSomeAPI from '../api/FakeAPI';
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
 import {Box, Button, Slider, Stack, Typography} from "@mui/material";
+import {SnackbarContext} from '../components/SnackbarAlert'
 import TimelineWithUsers from "../components/Timeline";
 
 const CurrentReservationContext = createContext()
@@ -43,7 +44,7 @@ function GetRoomInfo() {
 
 function GetReservations(room_id, date) {
 
-    let {triggerFetch} = useSomeAPI('/api/v0/rooms/' + room_id + '/reservations', null, 'GET', reservationsCallback)
+    let {triggerFetch} = useSomeAPI('/api/v0/rooms/' + room_id + '/reservations', null, 'GET', ReservationsCallback)
 
     let [reservs, setReservs] = useState({
         reservations: null,
@@ -56,8 +57,8 @@ function GetReservations(room_id, date) {
     //eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [date])
 
-    function reservationsCallback(result, statusCode) {
-        alert('got reservations!')
+
+    function ReservationsCallback(result, statusCode) {
         if (statusCode === 200 && result != null) {
             setReservs({
                 reservations: result.filter((reservation) => (fromAPITime(reservation.from).date === date)),
@@ -106,14 +107,15 @@ function BookingForm({room_id, triggerGetReservations}) {
 
     let {triggerFetch} = useSomeAPI('/api/v0/reserve', reservation, "POST", bookingCallback)
 
+    const {setNewMessageSnackbar} = useContext(SnackbarContext)
 
     function bookingCallback(result, statusCode) {
-        if (statusCode === 400) alert("Error: " + result)
-        else if (statusCode === 409) alert("Impossible to reserve: at this time classroom already reserved")
-        else if (statusCode === 201) alert("Reservation succeeded!")
-        else alert("Status Code: " + statusCode)
+        if (statusCode === 400) setNewMessageSnackbar("Error: " + result)
+        else if (statusCode === 409) setNewMessageSnackbar("Impossible to reserve: at this time classroom already reserved")
+        else if (statusCode === 201) setNewMessageSnackbar("Reservation succeeded!")
+        else setNewMessageSnackbar("Status Code: " + statusCode)
 
-        alert('before trigger')
+        setNewMessageSnackbar('before trigger')
         triggerGetReservations()
     }
 
@@ -228,6 +230,7 @@ function RoomDate({date, setDate}) {
     )
 }
 
+
 function Room() {
     const date_string = getTodayDate()
     const [date, setDate] = React.useState(date_string)
@@ -273,7 +276,7 @@ function Room() {
             </ContentWrapper>
             <BookingForm room_id={room_info.id} date={date} triggerGetReservations={triggerGetReservations}/>
         </CurrentReservationContext.Provider>
-    );
+    )
 }
 
 export default Room;
