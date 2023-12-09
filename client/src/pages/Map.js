@@ -2,7 +2,7 @@ import ContentWrapper from "../components/Content";
 
 import "@pixi/events";
 import {Stage, Sprite, Text, Graphics, Container} from '@pixi/react';
-import { useState } from 'react';
+import {useEffect, useState} from 'react';
 import { useNavigate } from "react-router-dom";
 
 import {cheba_map} from "./MapData"
@@ -117,21 +117,23 @@ function MapField() {
 
     const [map, setMap] = useState(cheba_map);
 
+    useEffect(() => {
+        setMap(cheba_map)
+    }, []);
+
     const [selectedLayer, setSelectedLayer] = useState(1);
-    const [layersList, setLayersList] = useState([]);
+    // const [layersList, setLayersList] = useState([]);
 
     const layers = []
-    const new_layers_list = []
     const layer_options = []
 
     map.layers.forEach((layer) => {
-        new_layers_list.push(layer.id)
         layer_options.push(
             <option value={layer.id}>
                 {layer.name}
             </option>
         )
-        if (selectedLayer == layer.id) {
+        if (selectedLayer.toString() === layer.id.toString()) {
             layers.push(
                 <Layer layer={layer} navigate={navigate}/>
             )
