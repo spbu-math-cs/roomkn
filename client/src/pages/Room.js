@@ -267,7 +267,6 @@ function Room() {
                                 <div className='reservations-label'>Reservations on {date}:</div>
                             </div>
                             <Timeline reservations={reservations} currentReservation={currentReservation}/>
-                            {/*<ReservationsList reservations={reservations}></ReservationsList>*/}
                         </div>
                     </div>
                 </div>

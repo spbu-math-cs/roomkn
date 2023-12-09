@@ -6,14 +6,12 @@ import "./Timeline.css"
 const Start_day_time = "09:00"
 const Finish_day_time = "23:59"
 
-/** возаращает разметку для конкретной резервации в таймлайне**/
 function Reservation({reservation, is_current_reservation = false}) {
 
     let [reservedUsername, setReservedUsername] = useState('')
 
     let {triggerFetch} = useSomeAPI('/api/v0/users/' + reservation.user_id, null, 'GET', userCallback)
 
-    /** useless comment for codacy **/
     function userCallback(result, statusCode) {
         if (statusCode === 200 && result != null) {
             setReservedUsername(result?.username)
@@ -79,7 +77,6 @@ function Reservation({reservation, is_current_reservation = false}) {
 }
 
 
-/** Таймлайн **/
 function Timeline({reservations, currentReservation = null}) {
     if (reservations == null) return (
         <label className='reservations-not-found-label'>
