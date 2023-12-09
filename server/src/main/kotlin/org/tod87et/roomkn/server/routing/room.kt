@@ -37,6 +37,12 @@ fun Route.roomsRouting() {
             deleteRoom(database)
         }
     }
+    route("/map") {
+        authenticate(AuthenticationProvider.SESSION) {
+            getMap(database)
+            updateMap(database)
+        }
+    }
 }
 
 private fun Route.roomReservationsRouting(database: Database) {
@@ -125,6 +131,29 @@ private fun Route.roomById(database: Database) {
         }
 
         result.onFailure {
+            call.handleException(it)
+        }
+    }
+}
+
+private fun Route.getMap(database: Database) {
+    get {
+        val result = database.getMap()
+        result.onSuccess {
+            call.respondText(it, status = HttpStatusCode.OK)
+        }.onFailure {
+            call.handleException(it)
+        }
+    }
+}
+
+private fun Route.updateMap(database: Database) {
+    put { newMap: String ->
+        call.requirePermission(database) { return@put call.onMissingPermission() }
+        val result = database.updateMap(newMap)
+        result.onSuccess {
+            call.respondText("Ok", status = HttpStatusCode.OK)
+        }.onFailure {
             call.handleException(it)
         }
     }

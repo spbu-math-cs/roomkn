@@ -53,7 +53,7 @@ class DatabaseSession private constructor(private val database: Database) :
     constructor(dataSource: DataSource) : this(Database.connect(dataSource))
 
     init {
-        transaction(database) { SchemaUtils.create(Users, Rooms, Reservations, ActiveTokens) }
+        transaction(database) { SchemaUtils.create(Users, Rooms, Reservations, ActiveTokens, Map) }
     }
 
     override fun createRoom(roomInfo: NewRoomInfo): Result<RoomInfo> = queryWrapper {
@@ -94,6 +94,31 @@ class DatabaseSession private constructor(private val database: Database) :
             val cnt = Rooms.deleteWhere { id eq roomId }
 
             if (cnt == 0) throw MissingElementException()
+        }
+    }
+
+    override fun getMap(): Result<String> = queryWrapper {
+        transaction(database) {
+            Map.selectAll().orderBy(Map.id to SortOrder.DESC).limit(1).map {
+                it[Map.json]
+            }[0]
+        }
+    }
+
+    override fun updateMap(newMap: String): Result<Unit> = queryWrapper {
+        transaction(database) {
+            Map.update({ Map.id eq Map.selectAll().maxOf { Map.id } }) {
+                it[Map.json] = newMap
+            }
+        }
+    }
+
+    override fun createDefaultMap(): Result<Unit> = queryWrapper {
+        transaction(database) {
+            val counter = Map.selectAll().count()
+            if (counter == 0L) {
+                Map.insert { it[Map.json] = "{}" }
+            }
         }
     }
 

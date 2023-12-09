@@ -114,6 +114,10 @@ private class DatabaseMock : Database {
     override fun updateRoomPartially(roomId: Int, roomInfo: NewRoomInfoWithNull): Result<Unit> = fail()
 
     override fun deleteRoom(roomId: Int): Result<Unit> = fail()
+    override fun getMap(): Result<String> = fail()
+
+    override fun updateMap(newMap: String): Result<Unit> = fail()
+    override fun createDefaultMap(): Result<Unit> = fail()
 
     override fun getRoomReservations(
         roomId: Int,
