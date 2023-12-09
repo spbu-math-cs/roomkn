@@ -159,29 +159,17 @@ private fun Route.reserveRouting(database: Database) {
                 status = HttpStatusCode.BadRequest
             )
         } ?: listOf()
-        fromResult.onSuccess { from ->
-            untilResult.onSuccess { until ->
-                limitResult.onSuccess { limit ->
-                    offsetResult.onSuccess { offset ->
-                        database.getReservations(userIds, roomIds, from, until, limit, offset)
-                            .onSuccess {
-                                call.respond(HttpStatusCode.Created, it)
-                            }
-                            .onFailure {
-                                call.handleReservationException(it)
-                            }
-                    }.onFailure {
-                        call.onIncorrectOffset()
-                    }
-                }.onFailure {
-                    call.onIncorrectLimit()
-                }
-            }.onFailure {
-                call.onIncorrectTimestamp()
+        val from = fromResult.getOrElse { return@get call.onIncorrectTimestamp() }
+        val until = untilResult.getOrElse { return@get call.onIncorrectTimestamp() }
+        val limit = limitResult.getOrElse { return@get call.onIncorrectLimit() }
+        val offset = offsetResult.getOrElse { return@get call.onIncorrectOffset() }
+        database.getReservations(userIds, roomIds, from, until, limit, offset)
+            .onSuccess {
+                call.respond(HttpStatusCode.Created, it)
             }
-        }.onFailure {
-            call.onIncorrectTimestamp()
-        }
+            .onFailure {
+                call.handleReservationException(it)
+            }
     }
     post { body: ReservationRequest ->
         val userId = call.principal<AuthSession>()!!.userId
