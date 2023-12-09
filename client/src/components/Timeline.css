@@ -34,7 +34,7 @@
 
 .reservation-current-wrapper {
     color: black;
-    background: #9999ff;
+    background: #9999ff77;
     border-top: 2px solid var(--idea-border-black, #1E1F22);
     border-right: 2px solid var(--idea-border-black, #1E1F22);
     border-left: 2px solid var(--idea-border-black, #1E1F22);

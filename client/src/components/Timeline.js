@@ -94,7 +94,7 @@ function TimelineWithUsers({reservations, currentReservation = null}) {
     })
 
     if (currentReservation != null) {
-        reservationsList.push(<Reservation reservation={currentReservation}/>)
+        reservationsList.push(<Reservation reservation={currentReservation} is_current_reservation={true }/>)
     }
 
 
