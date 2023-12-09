@@ -7,7 +7,6 @@ import {fromAPITime, toAPITime} from '../api/API';
 import useSomeAPI from '../api/FakeAPI';
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
 import {Box, Button, Slider, Stack, Typography} from "@mui/material";
-import Snackbar from "@mui/material/Snackbar";
 import {SnackbarContext} from '../components/SnackbarAlert'
 
 const CurrentReservationContext = createContext()
@@ -61,15 +60,11 @@ function GetReservations(room_id, date) {
 
     // ShowSnackbar("asdsdsd")
 
-    const {setOpenSnackbar, setMessageSnackbar} = useContext(SnackbarContext)
+    const {setNewMessageSnackbar} = useContext(SnackbarContext)
 
-    function showSnackbar(message) {
-        setMessageSnackbar(message)
-        setOpenSnackbar(true)
-    }
 
     function ReservationsCallback(result, statusCode) {
-        showSnackbar('got reservations!')
+        setNewMessageSnackbar('got reservations!')
         if (statusCode === 200 && result != null) {
             setReservs({
                 reservations: result.filter((reservation) => (fromAPITime(reservation.from).date === date)),
@@ -353,11 +348,6 @@ function RoomDate({date, setDate}) {
     )
 }
 
-function ShowSnackbar(message) {
-    const {setOpenSnackbar, setMessageSnackbar} = useContext(SnackbarContext)
-    setMessageSnackbar(message)
-    setOpenSnackbar(true)
-}
 
 function Room() {
     const date_string = getTodayDate()
@@ -371,17 +361,9 @@ function Room() {
 
     const page_name = "Classroom: " + room_info.name
 
-    const {openSnackbar, setOpenSnackbar, messageSnackbar} = useContext(SnackbarContext)
-
     return (
         <CurrentReservationContext.Provider value={{date, setDate, from, setFrom, until, setUntil}}>
             <ContentWrapper page_name={page_name}>
-                <Snackbar
-                    open = {openSnackbar}
-                    message={messageSnackbar}
-                    autoHideDuration = {6000}
-                    onClose={() => {setOpenSnackbar(false)}}
-                />
                 <div className="room-wrapper">
                     <div className='room-info'>
                         <div className='room-description'>{room_info.description}</div>
