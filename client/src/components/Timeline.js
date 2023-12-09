@@ -1,9 +1,8 @@
-import React, {createContext, useContext, useEffect, useState} from 'react';
-import {fromAPITime, toAPITime} from '../api/API';
+import React, {useEffect, useState} from 'react';
+import {fromAPITime} from '../api/API';
 import useSomeAPI from '../api/FakeAPI';
-import {CurrentUserContext, IsAuthorizedContext} from "./Auth";
+import "./Timeline.css"
 
-import {CurrentReservationContext} from "../pages/Room.js"
 const Start_day_time = "09:00"
 const Finish_day_time = "23:59"
 
