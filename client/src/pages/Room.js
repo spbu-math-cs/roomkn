@@ -8,7 +8,6 @@ import useSomeAPI from '../api/FakeAPI';
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
 import {Box, Button, Slider, Stack, Typography} from "@mui/material";
 import {SnackbarContext} from '../components/SnackbarAlert'
-import TimelineForRoomList from "../components/TimelineForRoomList";
 
 const CurrentReservationContext = createContext()
 const Start_day_time = "09:00"
@@ -371,8 +370,7 @@ function Room() {
                             <div>
                                 <div className='reservations-label'>Reservations on {date}:</div>
                             </div>
-                            <TimelineForRoomList reservations={reservations}/>
-                            {/*<ReservationsList reservations={reservations}></ReservationsList>*/}
+                            <ReservationsList reservations={reservations}></ReservationsList>
                         </div>
                     </div>
                 </div>

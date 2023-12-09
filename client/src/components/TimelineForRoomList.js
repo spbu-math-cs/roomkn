@@ -37,9 +37,7 @@ function Reservation({reservation, fromTimelineDate, untilTimelineDate}) {
 
     return (
         <div className="reservation-row" style={row_style}>
-            <div className="reservation-wrapper">
-                <div className="reservation-info"/>
-            </div>
+            <div className="reservation-wrapper"/>
         </div>
     )
 }
@@ -61,7 +59,7 @@ function TimelineForRoomList({reservations, fromTimelineDate = null, untilTimeli
         untilTimelineDate.setHours(FinishDayHours, FinishDayMinutes)
     }
 
-    console.log("reservations: " + reservations)
+    // console.log("reservations: " + reservations)
 
     const reservationsList = []
     reservations.forEach((reservation) => {
