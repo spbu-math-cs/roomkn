@@ -1,0 +1,77 @@
+.reservation-list-wrapper {
+    height: 150px;
+    width: 90%;
+    position: relative;
+}
+
+.reservation-list-background {
+    position: relative;
+    height: 146px;
+    width: 100%;
+
+    border-top: 2px solid var(--idea-border-black, #1E1F22);
+    border-right: 2px solid var(--idea-border-black, #1E1F22);
+    border-left: 2px solid var(--idea-border-black, #1E1F22);
+    border-bottom: 2px solid var(--idea-border-black, #1E1F22);
+    /*height: 100px;*/
+}
+
+.reservation-row {
+    position: absolute;
+}
+
+.reservation-wrapper {
+    color: black;
+    background: #777799;
+    border-top: 2px solid var(--idea-border-black, #1E1F22);
+    border-right: 2px solid var(--idea-border-black, #1E1F22);
+    border-left: 2px solid var(--idea-border-black, #1E1F22);
+    border-bottom: 2px solid var(--idea-border-black, #1E1F22);
+    border-radius: 2px;
+    height: 146px;
+    z-index: 1;
+}
+
+.reservation-current-wrapper {
+    color: black;
+    background: #9999ff77;
+    border-top: 2px solid var(--idea-border-black, #1E1F22);
+    border-right: 2px solid var(--idea-border-black, #1E1F22);
+    border-left: 2px solid var(--idea-border-black, #1E1F22);
+    border-bottom: 2px solid var(--idea-border-black, #1E1F22);
+    border-radius: 2px;
+    height: 146px;
+    z-index: 0;
+}
+
+.reservation-info {
+    writing-mode: sideways-lr;
+    height: 100%;
+    text-align: center;
+}
+
+.reservation-time-label {
+    font-size: 20px;
+}
+
+.reservation-user-label {
+    font-size: 20px;
+}
+
+.bare-reservation-list-wrapper {
+    height: 100px;
+    width: 90%;
+    position: relative;
+}
+
+.bare-reservation-list-background {
+    position: relative;
+    height: 146 px;
+    width: 100%;
+
+    border-top: 2px solid var(--idea-border-black, #1E1F22);
+    border-right: 2px solid var(--idea-border-black, #1E1F22);
+    border-left: 2px solid var(--idea-border-black, #1E1F22);
+    border-bottom: 2px solid var(--idea-border-black, #1E1F22);
+    /*height: 100px;*/
+}
