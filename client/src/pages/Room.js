@@ -58,13 +58,8 @@ function GetReservations(room_id, date) {
     //eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [date])
 
-    // ShowSnackbar("asdsdsd")
-
-    const {setNewMessageSnackbar} = useContext(SnackbarContext)
-
 
     function ReservationsCallback(result, statusCode) {
-        setNewMessageSnackbar('got reservations!')
         if (statusCode === 200 && result != null) {
             setReservs({
                 reservations: result.filter((reservation) => (fromAPITime(reservation.from).date === date)),
