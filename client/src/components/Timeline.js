@@ -13,7 +13,7 @@ function Reservation({reservation, is_current_reservation = false}) {
 
     let {triggerFetch} = useSomeAPI('/api/v0/users/' + reservation.user_id, null, 'GET', userCallback)
 
-    /** useless comment for codacy**/
+    /** useless comment for codacy **/
     function userCallback(result, statusCode) {
         if (statusCode === 200 && result != null) {
             setReservedUsername(result?.username)
