@@ -101,7 +101,10 @@ class DatabaseSession private constructor(private val database: Database) :
 
     override fun createDefaultMap(): Result<Unit> = queryWrapper {
         transaction(database) {
-            Map.insert { it[Map.json] = "" }
+            val counter = Map.selectAll().count()
+            if (counter == 0L) {
+                Map.insert { it[Map.json] = "" }
+            }
         }
     }
 
