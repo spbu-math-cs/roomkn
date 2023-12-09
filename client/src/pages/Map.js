@@ -1,39 +1,41 @@
 import ContentWrapper from "../components/Content";
 
+import React from 'react';
+
 import "@pixi/events";
-import {Stage, Sprite, Text, Graphics, Container} from '@pixi/react';
-import {useEffect, useState} from 'react';
+import { Stage, Sprite, Text, Graphics, Container } from '@pixi/react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from "react-router-dom";
 
-import {cheba_map} from "./MapData"
+import {cheba_map} from "./MapData";
 
 
-function Room({room_id, navigate, mesh}) {
+function Room({ room_id, navigate, mesh }) {
 
     const [hover, setHover] = useState(false);
-    function click() {
-        navigate('/room/' + room_id, {replace: false})
-    }
+    const click = () => {
+        navigate('/room/' + room_id, {replace: false});
+    };
 
-    let height = 0
-    let scale = 3
+    let height = 0;
+    let scale = 3;
     if (mesh != null) {
-        scale = mesh.scale
+        scale = mesh.scale;
     }
-    let room_name_element = <></>
+    let room_name_element = <></>;
 
-    const is_room = mesh.room_name != null
+    const is_room = mesh.room_name != null;
 
     if (is_room) {
         room_name_element = <Text text={mesh.room_name} anchor={{x: 0.5, y: 0.5}} scale={0.8}/>
 
         if (hover) {
             scale *= 1.10;
-            height = 100
+            height = 100;
         }
     }
 
-    const dummy_bunny = mesh == null
+    const dummy_bunny = mesh == null;
 
     const draw = (g) => {
         g.clear();
@@ -52,8 +54,8 @@ function Room({room_id, navigate, mesh}) {
     }
 
     if (dummy_bunny) {
-        let x = 400 + room_id * 100
-        let y = 270
+        let x = 400 + room_id * 100;
+        let y = 270;
 
         return (
             <Sprite
@@ -69,7 +71,7 @@ function Room({room_id, navigate, mesh}) {
             >
                 {room_name_element}
             </Sprite>
-        )
+        );
     } else {
         return (
             <Graphics
@@ -85,12 +87,12 @@ function Room({room_id, navigate, mesh}) {
             >
                 {room_name_element}
             </Graphics>
-        )
+        );
     }
 }
 
 
-function Layer({layer, navigate}) {
+function Layer({ layer, navigate }) {
 
     const rooms = []
 
