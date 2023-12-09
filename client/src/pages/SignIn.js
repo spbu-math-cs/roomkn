@@ -52,15 +52,6 @@ function SignInForm() {
         console.log(username, password)
     };
 
-    // useEffect(() => {
-    //     if (finished) {
-    //         if (statusCode === 400) alert("Error: incorrect username or password.")
-    //         else if (statusCode === 200) alert("Authorization succeeded!");
-    //         else alert("statusCode: " + statusCode)
-    //     }
-    //     // eslint-disable-next-line react-hooks/exhaustive-deps
-    // }, [finished])
-
     return (
         <div>
             <ContentWrapper page_name="Sign In">
