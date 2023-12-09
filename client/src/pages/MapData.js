@@ -23,7 +23,7 @@ const s2x1 = [
         x: 100,
         y: 50,
     },
-]
+];
 
 const s1x2 = [
     {
@@ -50,7 +50,7 @@ const s1x2 = [
         x: 50,
         y: 100,
     },
-]
+];
 
 const s1x1 = [
     {
@@ -77,7 +77,7 @@ const s1x1 = [
         x: 50,
         y: 50,
     },
-]
+];
 
 export const room_301 = {
     room_id: 1,

@@ -10,7 +10,6 @@ import { useNavigate } from "react-router-dom";
 import { cheba_map } from "./MapData";
 
 function Room({ room_id, navigate, mesh }) {
-
     const [hover, setHover] = useState(false);
     const click = () => {
         navigate('/room/' + room_id, {replace: false});
@@ -26,7 +25,9 @@ function Room({ room_id, navigate, mesh }) {
     const is_room = mesh.room_name != null;
 
     if (is_room) {
-        room_name_element = <Text text={mesh.room_name} anchor={{x: 0.5, y: 0.5}} scale={0.8}/>
+        room_name_element = (
+            <Text text={mesh.room_name} anchor={{ x: 0.5, y: 0.5 }} scale={0.8}/>
+        )
 
         if (hover) {
             scale *= 1.10;
@@ -62,8 +63,8 @@ function Room({ room_id, navigate, mesh }) {
                 x={x}
                 y={y}
                 scale={scale}
-                anchor={{x: 0.5, y: 0.5}}
-                eventMode={'static'}
+                anchor={{ x: 0.5, y: 0.5 }}
+                eventMode={"static"}
                 click={click}
                 pointerover={() => setHover(true)}
                 pointerout={() => setHover(false)}
