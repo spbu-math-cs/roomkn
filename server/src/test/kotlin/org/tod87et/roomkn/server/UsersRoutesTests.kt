@@ -3,21 +3,23 @@ package org.tod87et.roomkn.server
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
+import io.ktor.client.request.parameter
+import io.ktor.client.request.patch
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import java.security.Permission
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import org.jetbrains.exposed.sql.exposedLogger
 import org.junit.jupiter.api.Test
 import org.tod87et.roomkn.server.models.permissions.UserPermission
+import org.tod87et.roomkn.server.models.users.FullUserInfo
 import org.tod87et.roomkn.server.models.users.ShortUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
+import org.tod87et.roomkn.server.models.users.UpdateUserInfoWithNull
 import org.tod87et.roomkn.server.models.users.UserInfo
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class UsersRoutesTests {
     private val apiPath = "/api/v0"
@@ -39,7 +41,34 @@ class UsersRoutesTests {
         assertEquals(HttpStatusCode.OK, response.status, "Message: ${response.bodyAsText()}\n")
         val users = response.body<List<ShortUserInfo>>()
         assertEquals(
-            setOf(ShortUserInfo(idRoot, "Root"), ShortUserInfo(id1, "Bob"), ShortUserInfo(id2, "Alice")),
+            setOf(
+                ShortUserInfo(idRoot, "Root", "Root@example.org"),
+                ShortUserInfo(id1, "Bob", "Bob@example.org"),
+                ShortUserInfo(id2, "Alice", "Alice@example.org")
+            ),
+            users.toSet(),
+            "Expect all 3 users: Root, Bob, Alice"
+        )
+    }
+
+    @Test
+    fun getUsersFull() = KtorTestEnv.testJsonApplication { client ->
+        var idRoot: Int
+        with(KtorTestEnv) {
+            idRoot = client.createAndAuthAdmin("Root")
+        }
+        val id1 = KtorTestEnv.createUser("Bob")
+        val id2 = KtorTestEnv.createUser("Alice")
+
+        val response = client.get(usersPath) { parameter("includePermissions", true) }
+        assertEquals(HttpStatusCode.OK, response.status, "Message: ${response.bodyAsText()}\n")
+        val users = response.body<List<FullUserInfo>>()
+        assertEquals(
+            setOf(
+                FullUserInfo(idRoot, "Root", "Root@example.org", UserPermission.entries.toSet()),
+                FullUserInfo(id1, "Bob", "Bob@example.org", setOf(UserPermission.ReservationsCreate)),
+                FullUserInfo(id2, "Alice", "Alice@example.org", setOf(UserPermission.ReservationsCreate))
+            ),
             users.toSet(),
             "Expect all 3 users: Root, Bob, Alice"
         )
@@ -71,6 +100,23 @@ class UsersRoutesTests {
 
         val user = KtorTestEnv.database.getUser(id).getOrThrow()
         assertEquals(UserInfo(id, "bob-the-builder", "bob@bob.club"), user)
+    }
+
+    @Test
+    fun updateUserPartially() = KtorTestEnv.testJsonApplication { client ->
+        with(KtorTestEnv) {
+            client.createAndAuthAdmin()
+        }
+        val id = KtorTestEnv.createUser("Bob")
+
+        val resp = client.patch(userPath(id)) {
+            contentType(ContentType.Application.Json)
+            setBody(UpdateUserInfoWithNull(email = "bob@bob.club"))
+        }
+        assertEquals(HttpStatusCode.OK, resp.status)
+
+        val user = KtorTestEnv.database.getUser(id).getOrThrow()
+        assertEquals(UserInfo(id, "Bob", "bob@bob.club"), user)
     }
 
     @Test

@@ -19,6 +19,7 @@ import org.tod87et.roomkn.server.auth.userId
 import org.tod87et.roomkn.server.database.ConstraintViolationException
 import org.tod87et.roomkn.server.database.Database
 import org.tod87et.roomkn.server.database.MissingElementException
+import org.tod87et.roomkn.server.database.ReservationException
 import org.tod87et.roomkn.server.di.injectDatabase
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.reservations.ReservationRequest
@@ -132,7 +133,7 @@ private suspend fun ApplicationCall.handleReservationException(ex: Throwable) {
             respondText("No such reservation", status = HttpStatusCode.BadRequest)
         }
 
-        is ConstraintViolationException -> {
+        is ConstraintViolationException, is ReservationException -> {
             respondText(
                 "Failed to add reservation: conflict with other reservations",
                 status = HttpStatusCode.BadRequest

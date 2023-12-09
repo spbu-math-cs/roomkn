@@ -8,7 +8,10 @@ import org.tod87et.roomkn.server.models.rooms.RoomInfo
 import org.tod87et.roomkn.server.models.rooms.ShortRoomInfo
 import org.tod87et.roomkn.server.models.users.ShortUserInfo
 import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
+import org.tod87et.roomkn.server.models.users.FullUserInfo
+import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
+import org.tod87et.roomkn.server.models.users.UpdateUserInfoWithNull
 import org.tod87et.roomkn.server.models.users.UserInfo
 
 interface Database {
@@ -16,6 +19,7 @@ interface Database {
     fun getRoom(roomId: Int): Result<RoomInfo>
     fun createRoom(roomInfo: NewRoomInfo): Result<RoomInfo>
     fun updateRoom(roomId: Int, roomInfo: NewRoomInfo): Result<Unit>
+    fun updateRoomPartially(roomId: Int, roomInfo: NewRoomInfoWithNull): Result<Unit>
     fun deleteRoom(roomId: Int): Result<Unit>
     fun getRoomReservations(roomId: Int, limit: Int = Int.MAX_VALUE, offset: Long = 0L): Result<List<Reservation>>
     fun getUserReservations(userId: Int, limit: Int = Int.MAX_VALUE, offset: Long = 0L): Result<List<Reservation>>
@@ -24,8 +28,10 @@ interface Database {
     fun deleteReservation(reservationId: Int): Result<Unit>
     fun createReservation(reservation: UnregisteredReservation): Result<Reservation>
     fun getUsers(limit: Int = Int.MAX_VALUE, offset: Long = 0L): Result<List<ShortUserInfo>>
+    fun getFullUsers(limit: Int = Int.MAX_VALUE, offset: Long = 0L): Result<List<FullUserInfo>>
     fun getUser(userId: Int): Result<UserInfo>
     fun updateUserInfo(userId: Int, info: UpdateUserInfo): Result<Unit>
+    fun updateUserInfoPartially(userId: Int, info: UpdateUserInfoWithNull): Result<Unit>
     fun deleteUser(userId: Int): Result<Unit>
     fun getUserPermissions(userId: Int): Result<List<UserPermission>>
     fun updateUserPermissions(userId: Int, permissions: List<UserPermission>): Result<Unit>

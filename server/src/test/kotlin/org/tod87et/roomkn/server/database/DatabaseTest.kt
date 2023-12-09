@@ -21,7 +21,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
-import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
@@ -86,7 +86,7 @@ class DatabaseTest {
         assertEquals(user1Info, database.getUser(user1Info.id).getOrThrow())
         assertEquals(user2Info, database.getUser(user2Info.id).getOrThrow())
 
-        val expectedUsers = listOf(user1Info, user2Info).map { ShortUserInfo(it.id, it.username) }.sortedBy { it.id }
+        val expectedUsers = listOf(user1Info, user2Info).map { ShortUserInfo(it.id, it.username, it.email) }.sortedBy { it.id }
         val users = database.getUsers().getOrThrow().sortedBy { it.id }
 
         assertEquals(expectedUsers, users)
@@ -185,20 +185,25 @@ class DatabaseTest {
     }
 
     @Test
-    fun invalidatedTokensApiTest() {
+    fun activeTokensApiTest() {
         val tokenHash = byteArrayOf(1)
         val now = Clock.System.now()
 
-        database.invalidateToken(tokenHash, now)
-        assertTrue(database.checkTokenWasInvalidated(tokenHash).getOrThrow())
+        assertFalse(database.checkTokenValid(tokenHash).getOrThrow())
 
-        database.cleanupExpiredInvalidatedTokens()
-        assertFalse(database.checkTokenWasInvalidated(tokenHash).getOrThrow())
+        database.registerToken(tokenHash, (now + 1.days))
+        assertTrue(database.checkTokenValid(tokenHash).getOrThrow())
 
-        database.invalidateToken(tokenHash, now)
-        database.invalidateToken(tokenHash, now + 1.hours)
-        database.cleanupExpiredInvalidatedTokens()
-        assertTrue(database.checkTokenWasInvalidated(tokenHash).getOrThrow())
+        database.invalidateToken(tokenHash)
+        assertFalse(database.checkTokenValid(tokenHash).getOrThrow())
+
+        database.cleanupExpiredTokens()
+        assertFalse(database.checkTokenValid(tokenHash).getOrThrow())
+
+        database.invalidateToken(tokenHash)
+        database.invalidateToken(tokenHash)
+        database.cleanupExpiredTokens()
+        assertFalse(database.checkTokenValid(tokenHash).getOrThrow())
     }
 
     companion object {
