@@ -75,7 +75,7 @@ class RoomsRoutesTests {
         }
         val emptyResponse = client.get(mapPath)
         assertEquals(HttpStatusCode.OK, emptyResponse.status)
-        assertEquals("", emptyResponse.bodyAsText())
+        assertEquals("{}", emptyResponse.bodyAsText())
         val newMap = "This is Map, trust me"
         val putResponse = client.put(mapPath) {
             setBody(newMap)
