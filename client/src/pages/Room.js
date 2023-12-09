@@ -46,7 +46,7 @@ function GetRoomInfo() {
 
 function GetReservations(room_id, date) {
 
-    let {triggerFetch} = useSomeAPI('/api/v0/rooms/' + room_id + '/reservations', null, 'GET', reservationsCallback)
+    let {triggerFetch} = useSomeAPI('/api/v0/rooms/' + room_id + '/reservations', null, 'GET', ReservationsCallback)
 
     let [reservs, setReservs] = useState({
         reservations: null,
@@ -61,7 +61,7 @@ function GetReservations(room_id, date) {
 
     ShowSnackbar("asdsdsd")
 
-    function reservationsCallback(result, statusCode) {
+    function ReservationsCallback(result, statusCode) {
         alert('got reservations!')
         if (statusCode === 200 && result != null) {
             setReservs({
@@ -352,7 +352,7 @@ function ShowSnackbar(message) {
     setOpenSnackbar(true)
 }
 
-function Room() {
+function RoomNoSnackbar() {
     const date_string = getTodayDate()
     const [date, setDate] = React.useState(date_string)
     const [from, setFrom] = React.useState("09:30")
@@ -364,36 +364,44 @@ function Room() {
 
     const page_name = "Classroom: " + room_info.name
 
+    const {openSnackbar, setOpenSnackbar, messageSnackbar} = useContext(SnackbarContext)
+
+    return (
+        <CurrentReservationContext.Provider value={{date, setDate, from, setFrom, until, setUntil}}>
+            <ContentWrapper page_name={page_name}>
+                <Snackbar
+                    open = {openSnackbar}
+                    message={messageSnackbar}
+                    autoHideDuration = {6000}
+                    onClose={() => {setOpenSnackbar(false)}}
+                />
+                <div className="room-wrapper">
+                    <div className='room-info'>
+                        <div className='room-description'>{room_info.description}</div>
+                        <div className='room-date'>
+                            <RoomDate date={date} setDate={setDate}/>
+                        </div>
+                        <div className='reservations-info'>
+                            <div>
+                                <div className='reservations-label'>Reservations on {date}:</div>
+                            </div>
+                            <ReservationsList reservations={reservations}></ReservationsList>
+                        </div>
+                    </div>
+                </div>
+            </ContentWrapper>
+            <BookingForm room_id={room_info.id} date={date} triggerGetReservations={triggerGetReservations}/>
+        </CurrentReservationContext.Provider>
+    )
+}
+
+function Room() {
     const [openSnackbar, setOpenSnackbar] = useState(false)
     const [messageSnackbar, setMessageSnackbar] = useState("")
 
     return (
         <SnackbarContext.Provider value = {{openSnackbar, setOpenSnackbar, messageSnackbar, setMessageSnackbar}}>
-            <CurrentReservationContext.Provider value={{date, setDate, from, setFrom, until, setUntil}}>
-                <ContentWrapper page_name={page_name}>
-                    <Snackbar
-                        open = {openSnackbar}
-                        message={messageSnackbar}
-                        autoHideDuration = {6000}
-                        onClose={() => {setOpenSnackbar(false)}}
-                    />
-                    <div className="room-wrapper">
-                        <div className='room-info'>
-                            <div className='room-description'>{room_info.description}</div>
-                            <div className='room-date'>
-                                <RoomDate date={date} setDate={setDate}/>
-                            </div>
-                            <div className='reservations-info'>
-                                <div>
-                                    <div className='reservations-label'>Reservations on {date}:</div>
-                                </div>
-                                <ReservationsList reservations={reservations}></ReservationsList>
-                            </div>
-                        </div>
-                    </div>
-                </ContentWrapper>
-                <BookingForm room_id={room_info.id} date={date} triggerGetReservations={triggerGetReservations}/>
-            </CurrentReservationContext.Provider>
+            <RoomNoSnackbar/>
         </SnackbarContext.Provider>
     );
 }
