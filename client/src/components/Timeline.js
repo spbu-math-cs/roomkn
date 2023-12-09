@@ -106,32 +106,4 @@ function TimelineWithUsers({reservations, currentReservation = null}) {
     )
 }
 
-
-function BareReservation({reservation}) {
-
-}
-
-function BareTimeline({reservations, from, until}) {
-    if (reservations == null) return (
-        <label className='reservations-not-found-label'>
-            Не удалось получить список бронирований для этого кабинета.
-        </label>
-    )
-
-    const reservationsList = []
-    reservations.forEach((reservation) => {
-        reservationsList.push(
-            <BareReservation reservation={reservation}/>
-        )
-    })
-
-
-    return (
-        <div className="reservation-list-wrapper">
-            <div className="reservation-list-background"/>
-            {reservationsList}
-        </div>
-    )
-}
-
 export default TimelineWithUsers
