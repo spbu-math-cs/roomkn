@@ -1,14 +1,13 @@
 import ContentWrapper from "../components/Content";
 
-import React from 'react';
+import React from "react";
 
 import "@pixi/events";
-import { Stage, Sprite, Text, Graphics, Container } from '@pixi/react';
-import { useEffect, useState } from 'react';
+import { Stage, Sprite, Text, Graphics, Container } from "@pixi/react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import {cheba_map} from "./MapData";
-
+import { cheba_map } from "./MapData";
 
 function Room({ room_id, navigate, mesh }) {
 
@@ -35,7 +34,7 @@ function Room({ room_id, navigate, mesh }) {
         }
     }
 
-    const dummy_bunny = mesh == null;
+    const dummy_bunny = false;
 
     const draw = (g) => {
         g.clear();
