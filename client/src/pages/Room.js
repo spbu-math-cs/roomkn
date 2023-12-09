@@ -8,9 +8,9 @@ import useSomeAPI from '../api/FakeAPI';
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
 import {Box, Button, Slider, Stack, Typography} from "@mui/material";
 import Snackbar from "@mui/material/Snackbar";
+import {SnackbarContext} from '../components/SnackbarAlert'
 
 const CurrentReservationContext = createContext()
-const SnackbarContext = createContext()
 const Start_day_time = "09:00"
 const Finish_day_time = "23:59"
 
@@ -59,10 +59,17 @@ function GetReservations(room_id, date) {
     //eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [date])
 
-    ShowSnackbar("asdsdsd")
+    // ShowSnackbar("asdsdsd")
+
+    const {setOpenSnackbar, setMessageSnackbar} = useContext(SnackbarContext)
+
+    function showSnackbar(message) {
+        setMessageSnackbar(message)
+        setOpenSnackbar(true)
+    }
 
     function ReservationsCallback(result, statusCode) {
-        alert('got reservations!')
+        showSnackbar('got reservations!')
         if (statusCode === 200 && result != null) {
             setReservs({
                 reservations: result.filter((reservation) => (fromAPITime(reservation.from).date === date)),
@@ -352,7 +359,7 @@ function ShowSnackbar(message) {
     setOpenSnackbar(true)
 }
 
-function RoomNoSnackbar() {
+function Room() {
     const date_string = getTodayDate()
     const [date, setDate] = React.useState(date_string)
     const [from, setFrom] = React.useState("09:30")
@@ -393,17 +400,6 @@ function RoomNoSnackbar() {
             <BookingForm room_id={room_info.id} date={date} triggerGetReservations={triggerGetReservations}/>
         </CurrentReservationContext.Provider>
     )
-}
-
-function Room() {
-    const [openSnackbar, setOpenSnackbar] = useState(false)
-    const [messageSnackbar, setMessageSnackbar] = useState("")
-
-    return (
-        <SnackbarContext.Provider value = {{openSnackbar, setOpenSnackbar, messageSnackbar, setMessageSnackbar}}>
-            <RoomNoSnackbar/>
-        </SnackbarContext.Provider>
-    );
 }
 
 export default Room;
