@@ -4,8 +4,7 @@
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/dff54287099e41eca36e0a5c52f30035)](https://app.codacy.com/gh/spbu-math-cs/roomkn/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 
 # roomkn
-
-![RooMKN](https://drive.google.com/uc?id=1KIDf17csvmlzzo89rG8KvX6vMaigagAp)
+![RooMKN](https://github.com/spbu-math-cs/roomkn/assets/33569237/af9cb75c-b26b-4bf5-a5cc-a1afaebc44bd)
 
 RooMKN is open-source room booking service
 
