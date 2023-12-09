@@ -103,7 +103,7 @@ class DatabaseSession private constructor(private val database: Database) :
         transaction(database) {
             val counter = Map.selectAll().count()
             if (counter == 0L) {
-                Map.insert { it[Map.json] = "" }
+                Map.insert { it[Map.json] = "{}" }
             }
         }
     }
