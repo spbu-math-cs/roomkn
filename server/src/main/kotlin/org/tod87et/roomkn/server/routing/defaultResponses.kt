@@ -28,7 +28,7 @@ suspend fun ApplicationCall.onIncorrectLimit() {
 }
 
 suspend fun ApplicationCall.onIncorrectOffset() {
-    respondText("offset should be int", status = HttpStatusCode.BadRequest)
+    respondText("offset should be long", status = HttpStatusCode.BadRequest)
 }
 
 
