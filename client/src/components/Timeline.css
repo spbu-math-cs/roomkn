@@ -1,0 +1,152 @@
+.room-wrapper {
+    display: flex;
+}
+
+.room-info {
+    width: 50%;
+    height: 100%;
+}
+
+.room-booking-form {
+    height: 100%;
+    width: 50%;
+}
+
+.room-name {
+    font-size: 40px;
+}
+
+.room-description {
+    font-size: 30px;
+    margin-bottom: 20px;
+}
+
+.room-date {
+    display: flex;
+    margin-bottom: 20px;
+}
+
+.room-date-label {
+    margin-right: 20px;
+}
+
+.room-date-value {
+    margin-right: 20px;
+}
+
+.room-date-buttons {
+    height: 100%;
+    display: flex;
+}
+
+.room-date-button {
+    background: transparent;
+    font-size: 30px;
+    border: #f2f3f5;
+    color: #1E1F22;
+}
+
+.room-date-button:hover {
+    color: black;
+    border: transparent;
+}
+
+.form-input {
+    display: flex;
+    font-size: 30px;
+}
+
+.form-name {
+    font-size: 30px;
+}
+
+.form-field {
+    font-size: 30px;
+}
+
+.form-label {
+    float: left;
+    width: 20%;
+}
+
+.form-submit {
+    align-self: self-end;
+    font-size: 40px;
+}
+
+.reservations-label {
+    font-size: 30px;
+    margin-bottom: 20px;
+}
+
+.reservation-list-wrapper {
+    height: 150px;
+    width: 90%;
+    position: relative;
+
+}
+
+.reservation-list-background {
+    position: relative;
+    height: 146px;
+    width: 100%;
+
+    border-top: 2px solid var(--idea-border-black, #1E1F22);
+    border-right: 2px solid var(--idea-border-black, #1E1F22);
+    border-left: 2px solid var(--idea-border-black, #1E1F22);
+    border-bottom: 2px solid var(--idea-border-black, #1E1F22);
+    /*height: 100px;*/
+}
+
+.reservation-row {
+    position: absolute;
+}
+
+.reservation-wrapper {
+    color: black;
+    background: #777799;
+    border-top: 2px solid var(--idea-border-black, #1E1F22);
+    border-right: 2px solid var(--idea-border-black, #1E1F22);
+    border-left: 2px solid var(--idea-border-black, #1E1F22);
+    border-bottom: 2px solid var(--idea-border-black, #1E1F22);
+    border-radius: 2px;
+    height: 146px;
+    z-index: 1;
+}
+
+.reservation-current-wrapper {
+    color: black;
+    background: #9999ff;
+    border-top: 2px solid var(--idea-border-black, #1E1F22);
+    border-right: 2px solid var(--idea-border-black, #1E1F22);
+    border-left: 2px solid var(--idea-border-black, #1E1F22);
+    border-bottom: 2px solid var(--idea-border-black, #1E1F22);
+    border-radius: 2px;
+    height: 146px;
+    z-index: 0;
+}
+
+.reservation-info {
+    writing-mode: sideways-lr;
+    height: 100%;
+    text-align: center;
+}
+
+.reservation-time-label {
+    font-size: 20px;
+}
+
+.reservation-user-label {
+    font-size: 20px;
+}
+
+.not-authorized-label {
+    font-size: 20px;
+    display: flex;
+}
+
+.not-authorized-link {
+    color: blue;
+    font-size: 20px;
+    display: flex;
+}
