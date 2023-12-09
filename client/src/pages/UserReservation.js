@@ -7,6 +7,7 @@ import React, {useContext, useEffect, useState} from 'react';
 import useSomeAPI from '../api/FakeAPI';
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
 import {fromAPITime} from "../api/API";
+import {SnackbarContext} from "../components/SnackbarAlert";
 
 
 function Reservation({reservation, onDelete}) {
@@ -30,23 +31,14 @@ function Reservation({reservation, onDelete}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => getRoomTriggerFetch(), [])
 
+    const {setNewMessageSnackbar} = useContext(SnackbarContext)
+
     function deleteCallback(result, statusCode) {
         if (statusCode === 200) {
-            alert('Удалено!')
+            setNewMessageSnackbar('Удалено!')
             onDelete()
         }
     }
-
-    // useEffect(() => {
-    //     if (deleteFetchFlag === 0 || !deleteFinished) return
-    //     onDelete()
-    //     console.log("deleteFetchFlag: " + deleteFetchFlag)
-    //     if (getRoomStatusCode === 200) {
-    //         alert("Удалено!")
-    //     }
-    //     else alert("Error: " + deleteStatusCode)
-    //     //eslint-disable-next-line react-hooks/exhaustive-deps
-    // }, [deleteFetchFlag, deleteFinished]);
 
     const deleteSubmit = (e) => {
         e.preventDefault();

@@ -113,14 +113,15 @@ function BookingForm({room_id, triggerGetReservations}) {
 
     let {triggerFetch} = useSomeAPI('/api/v0/reserve', reservation, "POST", bookingCallback)
 
+    const {setNewMessageSnackbar} = useContext(SnackbarContext)
 
     function bookingCallback(result, statusCode) {
-        if (statusCode === 400) alert("Error: " + result)
-        else if (statusCode === 409) alert("Impossible to reserve: at this time classroom already reserved")
-        else if (statusCode === 201) alert("Reservation succeeded!")
-        else alert("Status Code: " + statusCode)
+        if (statusCode === 400) setNewMessageSnackbar("Error: " + result)
+        else if (statusCode === 409) setNewMessageSnackbar("Impossible to reserve: at this time classroom already reserved")
+        else if (statusCode === 201) setNewMessageSnackbar("Reservation succeeded!")
+        else setNewMessageSnackbar("Status Code: " + statusCode)
 
-        alert('before trigger')
+        setNewMessageSnackbar('before trigger')
         triggerGetReservations()
     }
 
