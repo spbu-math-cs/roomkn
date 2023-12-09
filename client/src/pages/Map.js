@@ -2,7 +2,7 @@ import ContentWrapper from "../components/Content";
 
 import "@pixi/events";
 import {Stage, Sprite, Text, Graphics, Container} from '@pixi/react';
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 
 import {cheba_map} from "./MapData"
@@ -35,7 +35,7 @@ function Room({room_id, navigate, mesh}) {
 
     const dummy_bunny = mesh == null
 
-    const draw = useCallback((g) => {
+    const draw = (g) => {
         g.clear();
         g.beginFill(0xffffff);
         g.lineStyle(4, 0x000000, 1);
@@ -49,7 +49,7 @@ function Room({room_id, navigate, mesh}) {
 
         g.endFill();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }
 
     if (dummy_bunny) {
         let x = 400 + room_id * 100
@@ -115,21 +115,38 @@ function Layer({layer, navigate}) {
 function MapField() {
     const navigate = useNavigate()
 
-    const layers = []
+    const [map, setMap] = useState(cheba_map);
 
-    cheba_map.layers.forEach((layer) => {
-        layers.push(
-            <Layer layer={layer} navigate={navigate}/>
+    const [selectedLayer, setSelectedLayer] = useState(1);
+    const [layersList, setLayersList] = useState([]);
+
+    const layers = []
+    const new_layers_list = []
+    const layer_options = []
+
+    map.layers.forEach((layer) => {
+        new_layers_list.push(layer.id)
+        layer_options.push(
+            <option value={layer.id}>
+                {layer.name}
+            </option>
         )
+        if (selectedLayer == layer.id) {
+            layers.push(
+                <Layer layer={layer} navigate={navigate}/>
+            )
+        }
     })
 
     return (
-        <Stage options={{ antialias: true, backgroundAlpha: 0 }} width={1000} height={700}>
-            {layers}
-            {/*<Room room_id={0} navigate={navigate} mesh={third_corridor}/>*/}
-            {/*<Room room_id={1} navigate={navigate}/>*/}
-            {/*<Room room_id={2} navigate={navigate}/>*/}
-        </Stage>
+        <>
+            <select value={selectedLayer} onChange={e => setSelectedLayer(e.target.value)} >
+                {layer_options}
+            </select>
+            <Stage options={{ antialias: true, backgroundAlpha: 0 }} width={1000} height={700}>
+                {layers}
+            </Stage>
+        </>
     );
 }
 
