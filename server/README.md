@@ -2,14 +2,19 @@
 
 ## Run
 
-`npm run start`
+`./gradlew run`
 
 ## Build
 
-`npm run build`
+`./gradlew distZip`
 
 Built static files in `./build`
 
 ## Environment variables
 
-`REACT_APP_REST_SERVER_ADDRESS`
+`DB_DRIVER`
+`DB_PASSWORD`
+`DB_URL`
+`DB_USER`
+`JWT_SECRET`
+`PEPPER`
