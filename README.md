@@ -5,7 +5,7 @@
 
 # roomkn
 
-![RooMKN](https://i.imgur.com/KsSyAoZ.jpeg)
+![RooMKN](https://drive.google.com/uc?id=1KIDf17csvmlzzo89rG8KvX6vMaigagAp)
 
 RooMKN is open-source 
 
