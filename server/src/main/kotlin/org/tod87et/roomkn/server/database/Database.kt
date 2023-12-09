@@ -21,6 +21,9 @@ interface Database {
     fun updateRoom(roomId: Int, roomInfo: NewRoomInfo): Result<Unit>
     fun updateRoomPartially(roomId: Int, roomInfo: NewRoomInfoWithNull): Result<Unit>
     fun deleteRoom(roomId: Int): Result<Unit>
+    fun getMap(): Result<String>
+    fun updateMap(newMap: String): Result<Unit>
+    fun createDefaultMap(): Result<Unit>
     fun getRoomReservations(
         roomId: Int,
         from: Instant? = null,
