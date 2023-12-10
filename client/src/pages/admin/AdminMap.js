@@ -47,7 +47,7 @@ function MapUploader({setMap, setEditMap}) {
     }
 
     return (
-        <Button component="label" variant="contained" startIcon={<UploadFile />} onChange={onChange}>
+        <Button component="label" variant="contained" startIcon={<UploadFile />} onChange={onChange} data-test-id="file-input">
             Upload file
             <VisuallyHiddenInput type="file" Upload File/>
         </Button>
