@@ -7,10 +7,11 @@ import { Stage, Sprite, Text, Graphics, Container } from "@pixi/react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { cheba_map } from "./MapData";
+import {empty_map} from "./MapData";
 import useSomeAPI from "../api/FakeAPI";
 
 import "./Map.css"
+import {MenuItem, Select} from "@mui/material";
 
 function Room({ room_id, navigate, mesh }) {
     const [hover, setHover] = useState(false);
@@ -128,9 +129,9 @@ export function MapField({map}) {
 
     map.layers.forEach((layer) => {
         layer_options.push(
-            <option value={layer.id}>
+            <MenuItem value={layer.id}>
                 {layer.name}
-            </option>
+            </MenuItem>
         )
         if (selectedLayer.toString() === layer.id.toString()) {
             layers.push(
@@ -141,9 +142,9 @@ export function MapField({map}) {
 
     return (
         <>
-            <select value={selectedLayer} onChange={e => setSelectedLayer(e.target.value)} >
+            <Select value={selectedLayer} onChange={e => setSelectedLayer(e.target.value)} >
                 {layer_options}
-            </select>
+            </Select>
             <Stage options={{ antialias: true, backgroundAlpha: 0 }} width={1000} height={700} className="map-stage">
                 {layers}
             </Stage>
@@ -151,16 +152,11 @@ export function MapField({map}) {
     );
 }
 
-function GetMap() {
+export function GetMap() {
 
     const {triggerFetch} = useSomeAPI('/api/v0/map', null, 'GET', getMapCallback)
 
-    const [map, setMap] = useState(cheba_map);
-
-    useEffect(() => {
-        triggerFetch()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    const [map, setMap] = useState(empty_map);
 
     function getMapCallback(result, statusCode) {
         if (statusCode === 200) {
@@ -171,12 +167,17 @@ function GetMap() {
     // console.log(JSON.stringify(cheba_map))
 
 
-    return map;
+    return {map, triggerGetMap: triggerFetch};
 }
 
 export function Map() {
 
-    const map = GetMap()
+    const {map, triggerGetMap} = GetMap()
+
+    useEffect(() => {
+        triggerGetMap()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     return (
         <ContentWrapper page_name="Map">

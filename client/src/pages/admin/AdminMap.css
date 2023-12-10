@@ -1,0 +1,15 @@
+.admin-map-buttons-wraper {
+    display: flex;
+    flex-direction: row;
+}
+
+.admin-map-buttons-group {
+    display: flex;
+    float: left;
+}
+
+.admin-map-publish-group {
+    display: flex;
+    float: right;
+    position: relative;
+}
