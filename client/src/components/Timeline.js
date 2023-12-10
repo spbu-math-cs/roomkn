@@ -1,12 +1,15 @@
-import React, {useEffect, useState} from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {fromAPITime} from '../api/API';
 import useSomeAPI from '../api/FakeAPI';
 import "./Timeline.css"
+import {CurrentUserContext} from "./Auth";
 
 const Start_day_time = "09:00"
 const Finish_day_time = "23:59"
 
 function Reservation({reservation, is_current_reservation = false}) {
+
+    const {currentUser} = useContext(CurrentUserContext)
 
     let [reservedUsername, setReservedUsername] = useState('')
 
@@ -18,8 +21,19 @@ function Reservation({reservation, is_current_reservation = false}) {
         }
     }
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => triggerFetch(), [reservation])
+    useEffect(() => {
+        if (!is_current_reservation)
+            triggerFetch()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [reservation])
+
+
+    useEffect(() => {
+        if (is_current_reservation) {
+            setReservedUsername(currentUser.username)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentUser])
 
     const from_obj = fromAPITime(reservation.from)
     const until_obj = fromAPITime(reservation.until)
