@@ -1,5 +1,6 @@
 import {fromAPITime} from '../api/API';
 import "./TimelineForRoomList.css"
+import React from 'react';
 
 function Reservation({reservation, fromTimelineDate, untilTimelineDate}) {
     const fromReservationObj = fromAPITime(reservation.from)
