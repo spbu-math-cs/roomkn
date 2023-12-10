@@ -1,15 +1,43 @@
-.admin-map-buttons-wraper {
-    display: flex;
-    flex-direction: row;
+.admin-map-buttons-wrapper {
+    /*display: flex;*/
+    /*flex-direction: row;*/
 }
 
 .admin-map-buttons-group {
-    display: flex;
+    /*display: flex;*/
     float: left;
 }
 
 .admin-map-publish-group {
+    /*display: flex;*/
+    float: right;
+    position: relative;
+}
+
+.admin-map-ide-wrapper {
+    /*display: block;*/
+    margin-top: 20px;
+    /*flex-direction: row;*/
+}
+
+.admin-map-preview-wrapper {
+    width: 50%;
+    height: 100%;
+    float: left;
+    position: sticky;
+}
+
+.admin-map-preview-content {
+    width: 100%;
     display: flex;
+    float: left;
+    position: sticky;
+    flex-direction: column;
+}
+
+.admin-map-editor-wrapper {
+    width: 40%;
+    /*display: flex;*/
     float: right;
     position: relative;
 }

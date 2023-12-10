@@ -1,7 +1,7 @@
 import React, {useContext, useEffect, useState} from "react";
 import useSomeAPI from "../../api/FakeAPI";
 import {NavLink} from "react-router-dom";
-import {ButtonGroup, CardHeader, styled, TextField} from "@mui/material";
+import {ButtonGroup, styled, Typography} from "@mui/material";
 import Button from '@mui/material/Button';
 import UploadFile from '@mui/icons-material/UploadFile';
 import CloudDownload from '@mui/icons-material/CloudDownload';
@@ -13,6 +13,7 @@ import {MapField, GetMap} from "../Map";
 import {empty_map} from "../MapData";
 import {SnackbarContext} from "../../components/SnackbarAlert";
 import "./AdminMap.css"
+import CodeEditor from '@uiw/react-textarea-code-editor';
 
 const VisuallyHiddenInput = styled('input')({
     clip: 'rect(0 0 0 0)',
@@ -26,12 +27,15 @@ const VisuallyHiddenInput = styled('input')({
     width: 1,
 });
 
-function MapUploader({setMap}) {
+function MapUploader({setMap, setEditMap}) {
+    const {setNewMessageSnackbar} = useContext(SnackbarContext)
 
     function onUpload(event) {
         console.log("gggg", event.target.result);
         var map = JSON.parse(event.target.result);
         setMap(map)
+        setEditMap(event.target.result)
+        setNewMessageSnackbar("Map uploaded from file")
     }
 
     function onChange(event) {
@@ -85,7 +89,7 @@ function MapUpdate({setMap, editMap}) {
     )
 }
 
-function MapDownload({setMap}) {
+function MapDownload({setMap, setEditMap}) {
 
     const {map: downloaded_map, triggerGetMap} = GetMap()
 
@@ -95,30 +99,33 @@ function MapDownload({setMap}) {
 
     useEffect(() => {
         setMap(downloaded_map)
+        setEditMap(JSON.stringify(downloaded_map))
+
+        // setNewMessageSnackbar("Map downloaded from server")
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [downloaded_map])
 
     return (
         <Button component="label" variant="contained" startIcon={<CloudDownload />} onClick={download}>
-            Download map
+            Download map from server
         </Button>
     )
 }
 
 function MapControls({map, setMap, editMap, setEditMap}) {
 
-    useEffect(() => {
-        setEditMap(JSON.stringify(map))
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [map]);
+    // useEffect(() => {
+    //     setEditMap(JSON.stringify(map))
+    //     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, [map]);
 
     return (
         <div className="admin-map-buttons-wrapper">
             <div className="admin-map-buttons-group">
                 <ButtonGroup>
-                    <MapDownload setMap={setMap}/>
+                    <MapDownload setMap={setMap} setEditMap={setEditMap}/>
                     <MapUploader setMap={setMap} setEditMap={setEditMap}/>
-                    <MapUpdate editMap={editMap} setMap={setMap}/>
+                    <MapUpdate editMap={editMap} setMap={setMap} setEditMap={setEditMap}/>
                 </ButtonGroup>
             </div>
 
@@ -135,9 +142,28 @@ function MapControls({map, setMap, editMap, setEditMap}) {
 
 function MapEditor({editMap, setEditMap}) {
     return (
-        <TextField value={editMap} onChange={(event) => {
-            setEditMap(event.target.value);
-        }}/>
+        <div>
+            {/*<TextField label="MapEditor" multiline maxRows={Infinity} value={editMap} onChange={(event) => setEditMap(event.target.value)}/>*/}
+            {/*<pre id="highlighting" aria-hidden="true">*/}
+            {/*    <code class="language-html" id="highlighting-content">*/}
+            {/*        {editMap.toString()}*/}
+            {/*    </code>*/}
+            {/*</pre>*/}
+            <CodeEditor
+                value={editMap}
+                language="js"
+                placeholder="Please enter JS code."
+                onChange={(evn) => setEditMap(evn.target.value)}
+                padding={15}
+                style={{
+                    backgroundColor: "#050505",
+                    fontSize: "16px",
+                    fontFamily: 'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
+                }}
+            />
+
+        </div>
+
     )
 }
 
@@ -171,11 +197,24 @@ export function AdminMap() {
 
                 <MapControls map={map} setMap={setMap} editMap={editMap} setEditMap={setEditMap}/>
 
-                <CardHeader titleTypographyProps={{variant: "h5", color: "secondary"}} title="Map Preview"/>
+                <Typography variant="h5" color="secondary" margin="20px 0 0 0">
+                    Map Preview
+                </Typography>
 
-                <MapField map={map}/>
+                <div className="admin-map-ide-wrapper">
+                    <div className="admin-map-preview-wrapper">
+                        <div className="admin-map-preview-content ">
+                            <MapField map={map} scale={0.65}/>
+                        </div>
+                    </div>
 
-                <MapEditor editMap={editMap} setEditMap={setEditMap}/>
+
+                    <div className="admin-map-editor-wrapper">
+                        <MapEditor editMap={editMap} setEditMap={setEditMap}/>
+                    </div>
+                </div>
+
+
             </ContentWrapper>
         </AdminWrapper>
     )

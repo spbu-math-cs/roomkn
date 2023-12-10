@@ -13,7 +13,7 @@ import useSomeAPI from "../api/FakeAPI";
 import "./Map.css"
 import {MenuItem, Select} from "@mui/material";
 
-function Room({ room_id, navigate, mesh }) {
+function Room({ room_id, navigate, mesh, window_scale }) {
     const [hover, setHover] = useState(false);
     const click = () => {
         navigate('/room/' + room_id, {replace: false});
@@ -80,10 +80,10 @@ function Room({ room_id, navigate, mesh }) {
         return (
             <Graphics
                 draw={draw}
-                x={mesh.x}
-                y={mesh.y}
+                x={mesh.x * window_scale}
+                y={mesh.y * window_scale}
                 zIndex={height}
-                scale={scale}
+                scale={scale * window_scale}
                 interactive={true}
                 click={click}
                 pointerover={() => setHover(true)}
@@ -96,20 +96,20 @@ function Room({ room_id, navigate, mesh }) {
 }
 
 
-function Layer({ layer, navigate }) {
+function Layer({ layer, navigate, scale }) {
 
     const rooms = []
 
     layer.objects.forEach(object => {
         rooms.push(
-            <Room room_id={1} navigate={navigate} mesh={object}/>
+            <Room room_id={1} navigate={navigate} mesh={object} window_scale={scale}/>
         )
     })
 
     return (
         <Container
-            x={layer.x}
-            y={layer.y}
+            x={layer.x * scale}
+            y={layer.y * scale}
             sortableChildren={true}
         >
             {rooms}
@@ -118,14 +118,14 @@ function Layer({ layer, navigate }) {
 
 }
 
-export function MapField({map}) {
-    const navigate = useNavigate()
+export function MapField({map, scale=1}) {
+    const navigate = useNavigate();
 
     const [selectedLayer, setSelectedLayer] = useState(1);
     // const [layersList, setLayersList] = useState([]);
 
-    const layers = []
-    const layer_options = []
+    const layers = [];
+    const layer_options = [];
 
     map.layers.forEach((layer) => {
         layer_options.push(
@@ -135,17 +135,20 @@ export function MapField({map}) {
         )
         if (selectedLayer.toString() === layer.id.toString()) {
             layers.push(
-                <Layer layer={layer} navigate={navigate}/>
+                <Layer layer={layer} navigate={navigate} scale={scale}/>
             )
         }
     })
+
+    const width = 1000*scale;
+    const height = 700*scale;
 
     return (
         <>
             <Select value={selectedLayer} onChange={e => setSelectedLayer(e.target.value)} >
                 {layer_options}
             </Select>
-            <Stage options={{ antialias: true, backgroundAlpha: 0 }} width={1000} height={700} className="map-stage">
+            <Stage options={{ antialias: true, backgroundAlpha: 0 }} width={width} height={height} className="map-stage">
                 {layers}
             </Stage>
         </>
@@ -154,7 +157,7 @@ export function MapField({map}) {
 
 export function GetMap() {
 
-    const {triggerFetch} = useSomeAPI('/api/v0/map', null, 'GET', getMapCallback)
+    const {triggerFetch} = useSomeAPI('/api/v0/map', null, 'GET', getMapCallback);
 
     const [map, setMap] = useState(empty_map);
 
