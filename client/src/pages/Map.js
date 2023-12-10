@@ -8,6 +8,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { cheba_map } from "./MapData";
+import useSomeAPI from "../api/FakeAPI";
+
+import "./Map.css"
 
 function Room({ room_id, navigate, mesh }) {
     const [hover, setHover] = useState(false);
@@ -114,14 +117,8 @@ function Layer({ layer, navigate }) {
 
 }
 
-function MapField() {
+export function MapField({map}) {
     const navigate = useNavigate()
-
-    const [map, setMap] = useState(cheba_map);
-
-    useEffect(() => {
-        setMap(cheba_map)
-    }, []);
 
     const [selectedLayer, setSelectedLayer] = useState(1);
     // const [layersList, setLayersList] = useState([]);
@@ -147,17 +144,43 @@ function MapField() {
             <select value={selectedLayer} onChange={e => setSelectedLayer(e.target.value)} >
                 {layer_options}
             </select>
-            <Stage options={{ antialias: true, backgroundAlpha: 0 }} width={1000} height={700}>
+            <Stage options={{ antialias: true, backgroundAlpha: 0 }} width={1000} height={700} className="map-stage">
                 {layers}
             </Stage>
         </>
     );
 }
 
+function GetMap() {
+
+    const {triggerFetch} = useSomeAPI('/api/v0/map', null, 'GET', getMapCallback)
+
+    const [map, setMap] = useState(cheba_map);
+
+    useEffect(() => {
+        triggerFetch()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
+    function getMapCallback(result, statusCode) {
+        if (statusCode === 200) {
+            setMap(result)
+        }
+    }
+
+    // console.log(JSON.stringify(cheba_map))
+
+
+    return map;
+}
+
 export function Map() {
+
+    const map = GetMap()
+
     return (
         <ContentWrapper page_name="Map">
-            <MapField/>
+            <MapField map={map}/>
         </ContentWrapper>
     )
 }

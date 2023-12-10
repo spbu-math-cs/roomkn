@@ -20,6 +20,8 @@ import {SnackbarContextProvider} from './components/SnackbarAlert'
 import AdminPanel from "./pages/admin/AdminPanel";
 import AdminRoomList from "./pages/admin/AdminRoomList";
 import AdminUserList from "./pages/admin/AdminUserList";
+import AdminMap from "./pages/admin/AdminMap";
+
 import {createTheme, ThemeProvider} from "@mui/material";
 
 
@@ -79,6 +81,7 @@ function App() {
                             <Route path="admin/panel" element={<AdminPanel/>}/>
                             <Route path="admin/rooms" element={<AdminRoomList/>}/>
                             <Route path="admin/users" element={<AdminUserList/>}/>
+                            <Route path='admin/map' element={<AdminMap/>}/>
                         </Routes>
                         {/*<Footer />*/}
                     </Router>
