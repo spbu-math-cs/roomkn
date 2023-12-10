@@ -5,6 +5,7 @@ import React, {useContext, useEffect} from "react";
 import {NavLink} from "react-router-dom";
 import {CurrentUserContext, IsAuthorizedContext, useLogout} from "./Auth";
 import {Paper} from "@mui/material";
+import {SnackbarContext} from "./SnackbarAlert";
 
 const NavSignIn = () => {
     const {isAuthorized} = useContext(IsAuthorizedContext)
@@ -17,14 +18,16 @@ const NavSignIn = () => {
         // browser.cookies.remove('_xsrf');
     }
 
+    const {setNewMessageSnackbar} = useContext(SnackbarContext)
+
     useEffect(() => {
         if (finished) {
             if (statusCode === 200) {
-                alert("You successfully logged out")
+                setNewMessageSnackbar("You successfully logged out")
             } else if (statusCode === 401) {
-                alert("Authorization cookies are not present, expired or incorrect!")
+                setNewMessageSnackbar("Authorization cookies are not present, expired or incorrect!")
             } else {
-                alert("Status code: " + statusCode)
+                setNewMessageSnackbar("Status code: " + statusCode)
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -77,6 +80,9 @@ const Navbar = () => {
                         <div className="navbar-left">
                             <NavLink to="/" className="navlink">
                                 Classrooms
+                            </NavLink>
+                            <NavLink to="/map" className="navlink">
+                                Map
                             </NavLink>
                             <NavLink to="/about" className="navlink">
                                 About

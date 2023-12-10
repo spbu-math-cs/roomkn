@@ -1,22 +1,25 @@
 package org.tod87et.roomkn.server
 
+import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 import kotlinx.datetime.Instant
 import org.junit.jupiter.api.Test
 import org.tod87et.roomkn.server.models.reservations.Reservation
 import org.tod87et.roomkn.server.models.reservations.ReservationRequest
 import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
 import org.tod87et.roomkn.server.models.toRegistered
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import kotlin.time.Duration.Companion.hours
 
 class ReservationsRoutesTests {
     private val apiPath = KtorTestEnv.API_PATH
@@ -41,6 +44,110 @@ class ReservationsRoutesTests {
 
         val respReservations = client.get(roomReservationsPath(room.id)).body<List<Reservation>>()
         assertEquals(reservations, respReservations)
+    }
+
+    @Test
+    fun getAllReservations() = KtorTestEnv.testJsonApplication { client ->
+        val myId = with(KtorTestEnv) {
+            client.createAndAuthUser("Alice")
+        }
+        val otherId = KtorTestEnv.createUser("Bob")
+        val room301Id = KtorTestEnv.createRoom("301").id
+        val room302Id = KtorTestEnv.createRoom("302").id
+        val timestamp = Instant.parse("2023-12-07T00:00:00+00:00")
+        val reserveMyIdRoom301FirstHalf = KtorTestEnv.database.createReservation(
+            UnregisteredReservation(
+                myId,
+                room301Id,
+                timestamp,
+                timestamp + 1.hours
+            )
+        ).getOrThrow()
+        val reserveMyIdRoom302SecondHalf = KtorTestEnv.database.createReservation(
+            UnregisteredReservation(
+                myId,
+                room302Id,
+                timestamp + 1.hours,
+                timestamp + 2.hours
+            )
+        ).getOrThrow()
+        val reserveOtherIdRoom302FirstHalf = KtorTestEnv.database.createReservation(
+            UnregisteredReservation(
+                otherId,
+                room302Id,
+                timestamp,
+                timestamp + 1.hours
+            )
+        ).getOrThrow()
+        val reserveOtherIdRoom301SecondHalf = KtorTestEnv.database.createReservation(
+            UnregisteredReservation(
+                otherId,
+                room301Id,
+                Instant.parse("3000-01-19T00:00:00+00:00") + 1.hours,
+                Instant.parse("3000-01-19T00:00:00+00:00") + 2.hours
+            )
+        ).getOrThrow()
+        var bodyResponse = client.getRequestForAllReservationsWithQueryParams().body<List<Reservation>>()
+        assertEquals(
+            setOf(
+                reserveMyIdRoom301FirstHalf,
+                reserveMyIdRoom302SecondHalf,
+                reserveOtherIdRoom302FirstHalf,
+                reserveOtherIdRoom301SecondHalf
+            ),
+            bodyResponse.toSet(),
+            "Expect every reservations with empty queries"
+        )
+        bodyResponse = client.getRequestForAllReservationsWithQueryParams(
+            userIds = listOf(myId)
+        ).body<List<Reservation>>()
+        assertEquals(
+            setOf(reserveMyIdRoom301FirstHalf, reserveMyIdRoom302SecondHalf),
+            bodyResponse.toSet(),
+            "Expect only reservations with my user id"
+        )
+        bodyResponse = client.getRequestForAllReservationsWithQueryParams(
+            userIds = listOf(otherId)
+        ).body<List<Reservation>>()
+        assertEquals(
+            setOf(reserveOtherIdRoom301SecondHalf, reserveOtherIdRoom302FirstHalf),
+            bodyResponse.toSet(),
+            "Expect only reservations with other user id"
+        )
+
+        bodyResponse = client.getRequestForAllReservationsWithQueryParams(
+            roomIds = listOf(room301Id)
+        ).body<List<Reservation>>()
+        assertEquals(
+            setOf(reserveMyIdRoom301FirstHalf, reserveOtherIdRoom301SecondHalf),
+            bodyResponse.toSet(),
+            "Expect only reservations with 301 room"
+        )
+        bodyResponse = client.getRequestForAllReservationsWithQueryParams(
+            roomIds = listOf(room302Id)
+        ).body<List<Reservation>>()
+        assertEquals(
+            setOf(reserveOtherIdRoom302FirstHalf, reserveMyIdRoom302SecondHalf),
+            bodyResponse.toSet(),
+            "Expect only reservations with 302 room"
+        )
+
+        bodyResponse = client.getRequestForAllReservationsWithQueryParams(
+            until = timestamp + 30.minutes
+        ).body<List<Reservation>>()
+        assertEquals(
+            setOf(reserveMyIdRoom301FirstHalf, reserveOtherIdRoom302FirstHalf),
+            bodyResponse.toSet(),
+            "Expect only reservations which start before ${timestamp + 30.minutes}"
+        )
+        bodyResponse = client.getRequestForAllReservationsWithQueryParams(
+            from = timestamp + 90.minutes
+        ).body<List<Reservation>>()
+        assertEquals(
+            setOf(reserveOtherIdRoom301SecondHalf, reserveMyIdRoom302SecondHalf),
+            bodyResponse.toSet(),
+            "Expect only reservations which end after ${timestamp + 90.minutes}"
+        )
     }
 
     @Test
@@ -182,6 +289,30 @@ class ReservationsRoutesTests {
 
         assertEquals(HttpStatusCode.Forbidden, resp.status)
         assertEquals(reservation, KtorTestEnv.database.getReservation(reservation.id).getOrThrow())
+    }
+
+    private suspend fun HttpClient.getRequestForAllReservationsWithQueryParams(
+        userIds: List<Int>? = null,
+        roomIds: List<Int>? = null,
+        from: Instant? = null,
+        until: Instant? = null,
+    ): HttpResponse {
+        return this.get(reservationsPath) {
+            url {
+                if (userIds != null) {
+                    parameters.append("user_ids", userIds.joinToString(","))
+                }
+                if (roomIds != null) {
+                    parameters.append("room_ids", roomIds.joinToString(","))
+                }
+                if (from != null) {
+                    parameters.append("from", from.toString())
+                }
+                if (until != null) {
+                    parameters.append("until", until.toString())
+                }
+            }
+        }
     }
 
     private fun prepareAndRegisterReservations(userId: Int, roomId: Int, startHour: Int = 0): List<Reservation> {

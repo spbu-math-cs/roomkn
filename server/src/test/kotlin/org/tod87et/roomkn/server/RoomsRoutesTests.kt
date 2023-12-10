@@ -3,11 +3,16 @@ package org.tod87et.roomkn.server
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
+import io.ktor.client.request.patch
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import org.junit.jupiter.api.Test
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 import org.tod87et.roomkn.server.models.rooms.RoomInfo
@@ -17,11 +22,13 @@ import org.tod87et.roomkn.server.models.toShort
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
 
 class RoomsRoutesTests {
     private val apiPath = KtorTestEnv.API_PATH
     private val roomsPath = "$apiPath/rooms"
     private fun roomPath(id: Int) = "$roomsPath/$id"
+    private val mapPath = "$apiPath/map"
 
     @Test
     fun getRooms() = KtorTestEnv.testJsonApplication { client ->
@@ -45,6 +52,38 @@ class RoomsRoutesTests {
 
         val room2 = client.get(roomPath(room.id)).body<RoomInfo>()
         assertEquals(room, room2)
+    }
+
+    @Test
+    fun UpdateMapWithRegularClient() = KtorTestEnv.testJsonApplication { client ->
+        with(KtorTestEnv) {
+            client.createAndAuthUser()
+        }
+        val newMap = "This is Map from user, don't trust me"
+        val putResponse = client.put(mapPath) {
+            setBody(newMap)
+        }
+        assertEquals(HttpStatusCode.Forbidden, putResponse.status)
+    }
+
+    @Test
+    fun getAndUpdateMap() = KtorTestEnv.testJsonApplication { client ->
+        val errorResponse = client.get(mapPath)
+        assertEquals(HttpStatusCode.Unauthorized, errorResponse.status)
+        with(KtorTestEnv) {
+            client.createAndAuthAdmin()
+        }
+        val emptyResponse = client.get(mapPath)
+        assertEquals(HttpStatusCode.OK, emptyResponse.status)
+        assertEquals("{}", emptyResponse.bodyAsText())
+        val newMap = "This is Map, trust me"
+        val putResponse = client.put(mapPath) {
+            setBody(newMap)
+        }
+        assertEquals(HttpStatusCode.OK, putResponse.status)
+        val response = client.get(mapPath)
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(newMap, response.bodyAsText())
     }
 
     @Test
@@ -77,6 +116,25 @@ class RoomsRoutesTests {
         assertEquals(
             KtorTestEnv.database.getRoom(room.id).getOrThrow(),
             newRoom.toCreated(room.id)
+        )
+    }
+
+    @Test
+    fun updateRoomPartially() = KtorTestEnv.testJsonApplication { client ->
+        with(KtorTestEnv) {
+            client.createAndAuthAdmin()
+        }
+        val room = KtorTestEnv.createRoom("301", "VK -- the meeting point")
+        val newRoom = NewRoomInfoWithNull(description =  "Be kind, be friendly, be MCS")
+
+        val resp = client.patch(roomPath(room.id)) {
+            contentType(ContentType.Application.Json)
+            setBody(newRoom)
+        }
+        assertEquals(HttpStatusCode.OK, resp.status)
+        assertEquals(
+            KtorTestEnv.database.getRoom(room.id).getOrThrow(),
+            newRoom.toCreated(room)
         )
     }
 }

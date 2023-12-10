@@ -3,6 +3,7 @@ import React, {useContext} from "react";
 import useSomeAPI from '../api/FakeAPI'
 import ContentWrapper from '../components/Content';
 import {IsAuthorizedContext, CurrentUserContext, saveUserData} from "../components/Auth";
+import {SnackbarContext} from "../components/SnackbarAlert";
 
 const IS_ADMIN_DEFAULT = true;
 
@@ -25,7 +26,7 @@ function SignUpForm() {
                 triggerFetch
         } = useSomeAPI("/api/v0/register", user, "POST", registerCallback)
         
-
+        const {setNewMessageSnackbar} = useContext(SnackbarContext)
 
         const handleSubmit = (e) => {
                 e.preventDefault();
@@ -34,12 +35,12 @@ function SignUpForm() {
                         triggerFetch()
                         console.log(username, password)
                 } else {
-                        alert("Passwords are not equal")
+                        setNewMessageSnackbar("Passwords are not equal")
                 }
         };
 
         function registerCallback(result, statusCode) {
-                if (statusCode === 409) alert("Error: user with this username or email already exists")
+                if (statusCode === 409) setNewMessageSnackbar("Error: user with this username or email already exists")
                 else if (statusCode === 200 && result != null) {
                         console.log(result)
                         const userData = {
@@ -48,14 +49,14 @@ function SignUpForm() {
                                 csrf_token: headers['X-CSRF-Token'],
                                 is_admin: IS_ADMIN_DEFAULT
                         }
-                        alert("Registration succeeded!");
+                        setNewMessageSnackbar("Registration succeeded!");
                         console.log('user data:')
                         console.log(userData)
                         setCurrentUser(userData)
                         saveUserData(userData)
                         setIsAuthorized(true)
                 }
-                else alert("statusCode: " + statusCode)
+                else setNewMessageSnackbar("statusCode: " + statusCode)
         }
 
         return (

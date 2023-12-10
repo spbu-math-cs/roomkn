@@ -7,10 +7,10 @@ import {fromAPITime, toAPITime} from '../api/API';
 import useSomeAPI from '../api/FakeAPI';
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
 import {Box, Button, Slider, Stack, Typography} from "@mui/material";
+import {SnackbarContext} from '../components/SnackbarAlert'
+import TimelineWithUsers from "../components/Timeline";
 
 const CurrentReservationContext = createContext()
-const Start_day_time = "09:00"
-const Finish_day_time = "23:59"
 
 function GetRoomInfo() {
     // TODO
@@ -44,7 +44,7 @@ function GetRoomInfo() {
 
 function GetReservations(room_id, date) {
 
-    let {triggerFetch} = useSomeAPI('/api/v0/rooms/' + room_id + '/reservations', null, 'GET', reservationsCallback)
+    let {triggerFetch} = useSomeAPI('/api/v0/rooms/' + room_id + '/reservations', null, 'GET', ReservationsCallback)
 
     let [reservs, setReservs] = useState({
         reservations: null,
@@ -57,8 +57,8 @@ function GetReservations(room_id, date) {
     //eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [date])
 
-    function reservationsCallback(result, statusCode) {
-        alert('got reservations!')
+
+    function ReservationsCallback(result, statusCode) {
         if (statusCode === 200 && result != null) {
             setReservs({
                 reservations: result.filter((reservation) => (fromAPITime(reservation.from).date === date)),
@@ -107,14 +107,15 @@ function BookingForm({room_id, triggerGetReservations}) {
 
     let {triggerFetch} = useSomeAPI('/api/v0/reserve', reservation, "POST", bookingCallback)
 
+    const {setNewMessageSnackbar} = useContext(SnackbarContext)
 
     function bookingCallback(result, statusCode) {
-        if (statusCode === 400) alert("Error: " + result)
-        else if (statusCode === 409) alert("Impossible to reserve: at this time classroom already reserved")
-        else if (statusCode === 201) alert("Reservation succeeded!")
-        else alert("Status Code: " + statusCode)
+        if (statusCode === 400) setNewMessageSnackbar("Error: " + result)
+        else if (statusCode === 409) setNewMessageSnackbar("Impossible to reserve: at this time classroom already reserved")
+        else if (statusCode === 201) setNewMessageSnackbar("Reservation succeeded!")
+        else setNewMessageSnackbar("Status Code: " + statusCode)
 
-        alert('before trigger')
+        setNewMessageSnackbar('before trigger')
         triggerGetReservations()
     }
 
@@ -169,133 +170,6 @@ function BookingForm({room_id, triggerGetReservations}) {
                 </Stack>
             </Typography>
         </ContentWrapper>
-    )
-}
-
-function Reservation({reservation, is_current_reservation = false}) {
-
-    const {currentUser} = useContext(CurrentUserContext)
-
-    let [reservedUsername, setReservedUsername] = useState('')
-
-    let {triggerFetch} = useSomeAPI('/api/v0/users/' + reservation.user_id, null, 'GET', userCallback)
-
-
-
-    function userCallback(result, statusCode) {
-        if (statusCode === 200 && result != null) {
-            setReservedUsername(result?.username)
-        }
-    }
-
-    useEffect(() => {
-        if (!is_current_reservation)
-            triggerFetch()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reservation])
-
-
-    useEffect(() => {
-        if (is_current_reservation) {
-            setReservedUsername(currentUser.username)
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentUser])
-
-
-    const from_obj = fromAPITime(reservation.from)
-    const until_obj = fromAPITime(reservation.until)
-
-    const from_date = new Date(from_obj.date + " " + from_obj.time)
-    const until_date = new Date(until_obj.date + " " + until_obj.time)
-    const day_start_date = new Date(until_obj.date + " " + Start_day_time)
-    const day_finish_date = new Date(from_obj.date + " " + Finish_day_time)
-
-    const day_finish_time = day_finish_date.getTime()
-    const from_time = from_date.getTime()
-    const day_start_time = day_start_date.getTime()
-    const timeline_from_time = (from_time >= day_start_time ? from_time : day_start_time)
-    const until_time = until_date.getTime()
-    const timeline_finish_time = (from_time <= until_time ? until_time : day_finish_time)
-
-    const old_duration_in_second = (timeline_finish_time - timeline_from_time) / 1000
-    const duration_in_seconds = (old_duration_in_second >= 0 ? old_duration_in_second : 0)
-    const from_start_in_seconds = (timeline_from_time - day_start_date.getTime()) / 1000
-    const day_duration_in_seconds = 14 * 60 * 60
-
-    const left_offset = (from_start_in_seconds / day_duration_in_seconds * 100) + "%"
-    const reservation_width = (duration_in_seconds / day_duration_in_seconds * 100) + "%"
-
-    const row_style = {
-        top: 0,
-        left: left_offset,
-        width: reservation_width,
-        height: "100px"
-    }
-
-    var reservation_class_name = "reservation-wrapper"
-    if (is_current_reservation) {
-        reservation_class_name = "reservation-current-wrapper"
-    }
-
-    return (
-        <div className="reservation-row" style={row_style}>
-            <div className={reservation_class_name}>
-                <div className="reservation-info">
-                    <div className="reservation-time">
-                        <label className='reservation-time-label'>
-                            {fromAPITime(reservation.from).time} - {fromAPITime(reservation.until).time}
-                        </label>
-                    </div>
-                    <div className="reservation-user">
-                        <label className='reservation-user-label'>
-                            {reservedUsername}
-                        </label>
-                    </div>
-                </div>
-            </div>
-        </div>
-    )
-}
-
-function ReservationsList({reservations}) {
-    const {currentUser} = useContext(CurrentUserContext)
-    const {isAuthorized} = useContext(IsAuthorizedContext)
-    const {from, until, date} = useContext(CurrentReservationContext)
-
-    if (reservations == null) return (
-        <label className='reservations-not-found-label'>
-            Не удалось получить список бронирований для этого кабинета.
-        </label>
-    )
-
-    console.log("reservations: " + reservations)
-
-
-    const reservationsList = []
-    reservations.forEach((reservation) => {
-        reservationsList.push(
-            // <li>
-            <Reservation reservation={reservation}/>
-            // </li>
-        )
-    })
-
-    if (isAuthorized && currentUser != null) {
-        const current_reservation = {
-            from: toAPITime(date, from),
-            until: toAPITime(date, until),
-            user_id: currentUser?.user_id
-        }
-        reservationsList.push(<Reservation reservation={current_reservation} is_current_reservation={true}></Reservation>)
-    }
-
-
-    return (
-        <div className="reservation-list-wrapper">
-            <div className="reservation-list-background"/>
-            {reservationsList}
-        </div>
     )
 }
 
@@ -356,6 +230,7 @@ function RoomDate({date, setDate}) {
     )
 }
 
+
 function Room() {
     const date_string = getTodayDate()
     const [date, setDate] = React.useState(date_string)
@@ -367,6 +242,19 @@ function Room() {
     console.log(reservations)
 
     const page_name = "Classroom: " + room_info.name
+
+    let currentReservation = null
+
+    const {currentUser} = useContext(CurrentUserContext)
+    const {isAuthorized} = useContext(IsAuthorizedContext)
+
+    if (currentUser != null && isAuthorized) {
+        currentReservation = {
+            from: toAPITime(date, from),
+            until: toAPITime(date, until),
+            user_id: currentUser?.user_id
+        }
+    }
 
     return (
         <CurrentReservationContext.Provider value={{date, setDate, from, setFrom, until, setUntil}}>
@@ -381,14 +269,14 @@ function Room() {
                             <div>
                                 <div className='reservations-label'>Reservations on {date}:</div>
                             </div>
-                            <ReservationsList reservations={reservations}></ReservationsList>
+                            <TimelineWithUsers reservations={reservations} currentReservation={currentReservation}/>
                         </div>
                     </div>
                 </div>
             </ContentWrapper>
             <BookingForm room_id={room_info.id} date={date} triggerGetReservations={triggerGetReservations}/>
         </CurrentReservationContext.Provider>
-    );
+    )
 }
 
 export default Room;

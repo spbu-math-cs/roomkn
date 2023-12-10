@@ -5,6 +5,7 @@ import ContentWrapper from "../components/Content";
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
 import useSomeAPI from "../api/FakeAPI";
 import {Box, Button, Stack, TextField, Typography} from "@mui/material";
+import {SnackbarContext} from "../components/SnackbarAlert";
 
 
 function ProfilePermissions({currentUser}) {
@@ -65,15 +66,17 @@ function ProfileChangeForm({id, actUsername, actEmail, triggerRefetch}) {
 
     let {triggerFetch} = useSomeAPI('/api/v0/users/' + id, put_data, 'PUT', profileChangeCallback)
 
+    const {setNewMessageSnackbar} = useContext(SnackbarContext)
+
     function profileChangeCallback(result, statusCode) {
-        if (statusCode === 400) alert("Error: " + result)
-            else if (statusCode === 401) alert("Error: you are unauthorized.")
-            else if (statusCode === 403) alert("You are not allowed to change your credentials.")
-            else if (statusCode === 500) alert("Internal server error.")
+        if (statusCode === 400) setNewMessageSnackbar("Error: " + result)
+            else if (statusCode === 401) setNewMessageSnackbar("Error: you are unauthorized.")
+            else if (statusCode === 403) setNewMessageSnackbar("You are not allowed to change your credentials.")
+            else if (statusCode === 500) setNewMessageSnackbar("Internal server error.")
             else if (statusCode === 200) {
                 triggerRefetch()
-                alert("Credentials updated successfully!")
-            } else alert("Status Code: " + statusCode)
+                setNewMessageSnackbar("Credentials updated successfully!")
+            } else setNewMessageSnackbar("Status Code: " + statusCode)
     }
 
     const handleSubmit = (e) => {

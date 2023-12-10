@@ -1,9 +1,12 @@
 package org.tod87et.roomkn.server.database
 
+import java.sql.Connection
+import javax.sql.DataSource
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -23,15 +26,16 @@ import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.reservations.Reservation
 import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
+import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
 import org.tod87et.roomkn.server.models.rooms.RoomInfo
 import org.tod87et.roomkn.server.models.rooms.ShortRoomInfo
+import org.tod87et.roomkn.server.models.users.FullUserInfo
 import org.tod87et.roomkn.server.models.users.RegistrationUserInfo
 import org.tod87et.roomkn.server.models.users.ShortUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
+import org.tod87et.roomkn.server.models.users.UpdateUserInfoWithNull
 import org.tod87et.roomkn.server.models.users.UserCredentialsInfo
 import org.tod87et.roomkn.server.models.users.UserInfo
-import java.sql.Connection
-import javax.sql.DataSource
 import org.tod87et.roomkn.server.database.Database as RooMknDatabase
 
 class DatabaseSession private constructor(private val database: Database) :
@@ -49,7 +53,7 @@ class DatabaseSession private constructor(private val database: Database) :
     constructor(dataSource: DataSource) : this(Database.connect(dataSource))
 
     init {
-        transaction(database) { SchemaUtils.create(Users, Rooms, Reservations, ActiveTokens) }
+        transaction(database) { SchemaUtils.create(Users, Rooms, Reservations, ActiveTokens, Map) }
     }
 
     override fun createRoom(roomInfo: NewRoomInfo): Result<RoomInfo> = queryWrapper {
@@ -74,11 +78,47 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
+    override fun updateRoomPartially(roomId: Int, roomInfo: NewRoomInfoWithNull): Result<Unit> = queryWrapper {
+        transaction(database) {
+            val cnt = Rooms.update({ Rooms.id eq roomId }) {
+                if (roomInfo.name != null) it[name] = roomInfo.name
+                if (roomInfo.description != null) it[description] = roomInfo.description
+            }
+
+            if (cnt == 0) throw MissingElementException()
+        }
+    }
+
     override fun deleteRoom(roomId: Int): Result<Unit> = queryWrapper {
         transaction(database) {
             val cnt = Rooms.deleteWhere { id eq roomId }
 
             if (cnt == 0) throw MissingElementException()
+        }
+    }
+
+    override fun getMap(): Result<String> = queryWrapper {
+        transaction(database) {
+            Map.selectAll().orderBy(Map.id to SortOrder.DESC).limit(1).map {
+                it[Map.json]
+            }[0]
+        }
+    }
+
+    override fun updateMap(newMap: String): Result<Unit> = queryWrapper {
+        transaction(database) {
+            Map.update({ Map.id eq Map.selectAll().maxOf { Map.id } }) {
+                it[Map.json] = newMap
+            }
+        }
+    }
+
+    override fun createDefaultMap(): Result<Unit> = queryWrapper {
+        transaction(database) {
+            val counter = Map.selectAll().count()
+            if (counter == 0L) {
+                Map.insert { it[Map.json] = "{}" }
+            }
         }
     }
 
@@ -103,36 +143,54 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
-    override fun getRoomReservations(roomId: Int, limit: Int, offset: Long): Result<List<Reservation>> = queryWrapper {
-        transaction(database) {
-            if (Rooms.select { Rooms.id eq roomId }.empty()) {
-                throw MissingElementException()
-            }
+    override fun getRoomReservations(
+        roomId: Int,
+        from: Instant?,
+        until: Instant?,
+        limit: Int,
+        offset: Long
+    ): Result<List<Reservation>> = getReservations(
+        usersIds = emptyList(),
+        roomsIds = listOf(roomId),
+        from = from,
+        until = until,
+        limit = limit,
+        offset = offset
+    )
 
+    override fun getUserReservations(
+        userId: Int,
+        from: Instant?,
+        until: Instant?,
+        limit: Int,
+        offset: Long
+    ): Result<List<Reservation>> = getReservations(
+        usersIds = listOf(userId),
+        roomsIds = emptyList(),
+        from = from,
+        until = until,
+        limit = limit,
+        offset = offset
+    )
+
+    override fun getReservations(
+        usersIds: List<Int>,
+        roomsIds: List<Int>,
+        from: Instant?,
+        until: Instant?,
+        limit: Int,
+        offset: Long
+    ): Result<List<Reservation>> = queryWrapper {
+        transaction(database) {
             Reservations
-                .select { Reservations.roomId eq roomId }
-                .orderBy(Reservations.from to SortOrder.ASC, Reservations.until to SortOrder.ASC)
-                .limit(limit, offset)
-                .map {
-                    Reservation(
-                        id = it[Reservations.id],
-                        userId = it[Reservations.userId],
-                        roomId = it[Reservations.roomId],
-                        from = it[Reservations.from],
-                        until = it[Reservations.until]
-                    )
+                .select {
+                    val userCondition = if (usersIds.isEmpty()) Op.TRUE else Reservations.userId inList usersIds
+                    val roomCondition = if (roomsIds.isEmpty()) Op.TRUE else Reservations.roomId inList roomsIds
+                    val untilCondition = if (until == null) Op.TRUE else Reservations.from less until
+                    val fromCondition = if (from == null) Op.TRUE else (Reservations.until greater from)
+                    val dateCondition = untilCondition and fromCondition
+                    userCondition and roomCondition and dateCondition
                 }
-        }
-    }
-
-    override fun getUserReservations(userId: Int, limit: Int, offset: Long): Result<List<Reservation>> = queryWrapper {
-        transaction(database) {
-            if (Users.select { Users.id eq userId }.empty()) {
-                throw MissingElementException()
-            }
-
-            Reservations
-                .select { Reservations.userId eq userId }
                 .orderBy(Reservations.from to SortOrder.ASC, Reservations.until to SortOrder.ASC)
                 .limit(limit, offset)
                 .map {
@@ -229,7 +287,23 @@ class DatabaseSession private constructor(private val database: Database) :
             Users.selectAll()
                 .orderBy(Users.username to SortOrder.ASC, Users.id to SortOrder.ASC)
                 .limit(limit, offset)
-                .map { ShortUserInfo(it[Users.id], it[Users.username]) }
+                .map { ShortUserInfo(it[Users.id], it[Users.username], it[Users.email]) }
+        }
+    }
+
+    override fun getFullUsers(limit: Int, offset: Long): Result<List<FullUserInfo>> = queryWrapper {
+        transaction(database) {
+            Users.selectAll()
+                .orderBy(Users.username to SortOrder.ASC, Users.id to SortOrder.ASC)
+                .limit(limit, offset)
+                .map {
+                    FullUserInfo(
+                        id = it[Users.id],
+                        username = it[Users.username],
+                        email = it[Users.email],
+                        permissions = maskToPermissions(it[Users.permissions]).toSet()
+                    )
+                }
         }
     }
 
@@ -254,15 +328,16 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
-    override fun updateUserPermissions(userId: Int, permissions: List<UserPermission>): Result<Unit> = queryWrapper {
-        transaction(database) {
-            val cnt = Users.update({ Users.id eq userId }) {
-                it[Users.permissions] = permissionsToMask(permissions)
-            }
+    override fun updateUserPermissions(userId: Int, permissions: List<UserPermission>): Result<Unit> =
+        queryWrapper {
+            transaction(database) {
+                val cnt = Users.update({ Users.id eq userId }) {
+                    it[Users.permissions] = permissionsToMask(permissions)
+                }
 
-            if (cnt == 0) throw MissingElementException()
+                if (cnt == 0) throw MissingElementException()
+            }
         }
-    }
 
     override fun registerUser(user: RegistrationUserInfo): Result<UserInfo> = queryWrapper {
         transaction(database) {
@@ -323,7 +398,8 @@ class DatabaseSession private constructor(private val database: Database) :
 
     override fun getCredentialsInfoByUsername(username: String): Result<UserCredentialsInfo> = queryWrapper {
         transaction(database) {
-            val userRow = Users.select { Users.username eq username }.firstOrNull() ?: throw MissingElementException()
+            val userRow =
+                Users.select { Users.username eq username }.firstOrNull() ?: throw MissingElementException()
 
             UserCredentialsInfo(
                 userRow[Users.id],
@@ -353,6 +429,17 @@ class DatabaseSession private constructor(private val database: Database) :
             val cnt = Users.update({ Users.id eq userId }) {
                 it[Users.username] = info.username
                 it[Users.email] = info.email
+            }
+
+            if (cnt == 0) throw MissingElementException()
+        }
+    }
+
+    override fun updateUserInfoPartially(userId: Int, info: UpdateUserInfoWithNull): Result<Unit> = queryWrapper {
+        transaction(database) {
+            val cnt = Users.update({ Users.id eq userId }) {
+                if (info.username != null) it[username] = info.username
+                if (info.email != null) it[email] = info.email
             }
 
             if (cnt == 0) throw MissingElementException()

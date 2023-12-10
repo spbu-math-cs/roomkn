@@ -10,6 +10,7 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
+import io.ktor.server.routing.patch
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
@@ -20,7 +21,9 @@ import org.tod87et.roomkn.server.database.MissingElementException
 import org.tod87et.roomkn.server.di.injectDatabase
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
+import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
 import org.tod87et.roomkn.server.util.defaultExceptionHandler
+import org.tod87et.roomkn.server.util.okResponse
 
 fun Route.roomsRouting() {
     val database by injectDatabase()
@@ -34,6 +37,12 @@ fun Route.roomsRouting() {
             deleteRoom(database)
         }
     }
+    route("/map") {
+        authenticate(AuthenticationProvider.SESSION) {
+            getMap(database)
+            updateMap(database)
+        }
+    }
 }
 
 private fun Route.roomReservationsRouting(database: Database) {
@@ -45,14 +54,7 @@ private fun Route.roomReservationsRouting(database: Database) {
 private fun Route.createRoom(database: Database) {
     post { body: NewRoomInfo ->
         call.requirePermission(database) { return@post call.onMissingPermission() }
-
-        database.createRoom(body)
-            .onSuccess {
-                call.respond("Ok")
-            }
-            .onFailure {
-                call.handleException(it)
-            }
+        database.createRoom(body).okResponseWithHandleException(call)
     }
 }
 
@@ -61,28 +63,24 @@ private fun Route.deleteRoom(database: Database) {
         val id = call.parameters["id"]?.toInt() ?: return@delete call.onMissingId()
         call.requirePermission(database) { return@delete call.onMissingPermission() }
 
-        database.deleteRoom(id)
-            .onSuccess {
-                call.respond("Ok")
-            }
-            .onFailure {
-                call.handleException(it)
-            }
+        database.deleteRoom(id).okResponseWithHandleException(call)
     }
 }
 
 private fun Route.updateRoom(database: Database) {
-    put("/{id}") { body: NewRoomInfo ->
-        val id = call.parameters["id"]?.toInt() ?: return@put call.onMissingId()
-        call.requirePermission(database) { return@put call.onMissingPermission() }
+    route("/{id}") {
+        put { body: NewRoomInfo ->
+            val id = call.parameters["id"]?.toInt() ?: return@put call.onMissingId()
+            call.requirePermission(database) { return@put call.onMissingPermission() }
 
-        database.updateRoom(id, body)
-            .onSuccess {
-                call.respond("Ok")
-            }
-            .onFailure {
-                call.handleException(it)
-            }
+            database.updateRoom(id, body).okResponseWithHandleException(call)
+        }
+        patch { body: NewRoomInfoWithNull ->
+            val id = call.parameters["id"]?.toInt() ?: return@patch call.onMissingId()
+            call.requirePermission(database) { return@patch call.onMissingPermission() }
+
+            database.updateRoomPartially(id, body).okResponseWithHandleException(call)
+        }
     }
 }
 
@@ -124,10 +122,7 @@ private fun Route.rooms(database: Database) {
 
 private fun Route.roomById(database: Database) {
     get("/{id}") {
-        val id = call.parameters["id"]?.toIntOrNull() ?: return@get call.respondText(
-            "Id should be int",
-            status = HttpStatusCode.BadRequest
-        )
+        val id = call.parameters["id"]?.toIntOrNull() ?: return@get call.onMissingId()
 
         val result = database.getRoom(id)
 
@@ -136,10 +131,30 @@ private fun Route.roomById(database: Database) {
         }
 
         result.onFailure {
-            return@get call.respondText(
-                "Room with this id not found",
-                status = HttpStatusCode.NotFound
-            )
+            call.handleException(it)
+        }
+    }
+}
+
+private fun Route.getMap(database: Database) {
+    get {
+        val result = database.getMap()
+        result.onSuccess {
+            call.respondText(it, status = HttpStatusCode.OK)
+        }.onFailure {
+            call.handleException(it)
+        }
+    }
+}
+
+private fun Route.updateMap(database: Database) {
+    put { newMap: String ->
+        call.requirePermission(database) { return@put call.onMissingPermission() }
+        val result = database.updateMap(newMap)
+        result.onSuccess {
+            call.respondText("Ok", status = HttpStatusCode.OK)
+        }.onFailure {
+            call.handleException(it)
         }
     }
 }
@@ -154,6 +169,13 @@ private suspend fun ApplicationCall.handleException(ex: Throwable) {
             defaultExceptionHandler(ex)
         }
     }
+}
+
+/**
+ * Response Ok on Success with local handler of exceptions
+ */
+private suspend fun <T> Result<T>.okResponseWithHandleException(call: ApplicationCall) {
+    this.okResponse(call, ApplicationCall::handleException)
 }
 
 private inline fun ApplicationCall.requirePermission(
