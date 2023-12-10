@@ -1,11 +1,6 @@
 import {fromAPITime} from '../api/API';
 import "./TimelineForRoomList.css"
 
-const StartDayHours = 9
-const StartDayMinutes = 0
-const FinishDayHours = 23
-const FinishDayMinutes = 59
-
 function Reservation({reservation, fromTimelineDate, untilTimelineDate}) {
     const fromReservationObj = fromAPITime(reservation.from)
     const untilReservationObj = fromAPITime(reservation.until)
@@ -36,30 +31,18 @@ function Reservation({reservation, fromTimelineDate, untilTimelineDate}) {
     }
 
     return (
-        <div className="reservation-row" style={row_style}>
-            <div className="reservation-wrapper"/>
+        <div className="for-rooms-reservation-row" style={row_style}>
+            <div className="for-rooms-reservation-wrapper"/>
         </div>
     )
 }
 
 function TimelineForRoomList({reservations, fromTimelineDate = null, untilTimelineDate = null}) {
     if (reservations == null) return (
-        <label className='reservations-not-found-label'>
+        <label className='for-rooms-reservations-not-found-label'>
             Не удалось получить список бронирований для этого кабинета.
         </label>
     )
-
-    if (fromTimelineDate == null) {
-        fromTimelineDate = new Date()
-        fromTimelineDate.setHours(StartDayHours, StartDayMinutes)
-    }
-    
-    if (untilTimelineDate == null) {
-        untilTimelineDate = new Date()
-        untilTimelineDate.setHours(FinishDayHours, FinishDayMinutes)
-    }
-
-    // console.log("reservations: " + reservations)
 
     const reservationsList = []
     reservations.forEach((reservation) => {
@@ -73,8 +56,8 @@ function TimelineForRoomList({reservations, fromTimelineDate = null, untilTimeli
     })
 
     return (
-        <div className="reservation-list-wrapper">
-            <div className="reservation-list-background"/>
+        <div className="for-rooms-reservation-list-wrapper">
+            <div className="for-rooms-reservation-list-background"/>
             {reservationsList}
         </div>
     )
