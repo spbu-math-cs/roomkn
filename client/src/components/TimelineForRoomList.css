@@ -25,6 +25,14 @@
     position: absolute;
 }
 
+.for-rooms-divider-row{
+    position: absolute;
+    background: #4f5258;
+    height: 52px;
+    width: 3px;
+    z-index: 1;
+}
+
 .for-rooms-reservation-wrapper {
     color: black;
     background: darkorchid;
