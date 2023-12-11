@@ -3,14 +3,11 @@ import ContentWrapper from "../components/Content"
 import useSomeAPI from "../api/FakeAPI"
 import React, {useEffect, useState} from "react";
 import {
-    Divider,
-    List,
-    ListItem,
+    Box,
+    Grid,
     ListItemButton,
-    ListItemText,
     Stack,
     TextField,
-    useTheme
 } from "@mui/material";
 import {fromAPITime} from "../api/API";
 import TimelineForRoomList from "../components/TimelineForRoomList";
@@ -69,48 +66,60 @@ function GetReservationsInSegment(room_id, dateFrom, dateUntil) {
     return reservs
 }
 
+function updateDate(date, diff) {
+    const new_date = new Date(date)
+    new_date.setDate(new_date.getDate() + diff)
+    return new_date
+}
+
 function TimelineForRoom({room, fromDate, untilDate}) {
     const {reservations} = GetReservationsInSegment(room.id, fromDate, untilDate)
 
-    console.log("reservations for room" + room.name + " " + room.id + "are:")
-    console.log(reservations)
-
     let realFromDate = new Date(fromDate)
-    realFromDate.setHours(9, 0)
+    realFromDate.setHours(0, 0)
 
     let realUntilDate = new Date(untilDate)
-    realUntilDate.setHours(23, 59)
+    realUntilDate.setHours(0, 0)
+    realUntilDate = updateDate(realUntilDate, +1)
 
     return (
         <TimelineForRoomList reservations = {reservations} fromTimelineDate={realFromDate} untilTimelineDate={realUntilDate}/>
     )
 }
 
-function RoomRow({room}) {
+function DateSelect({setFromDate, setUntilDate}) {
 
-    const link = "/room/" + String(room.id)
-    const theme = useTheme()
     const date = getTodayDate()
 
-    const [fromDate, setFromDate] = useState(date)
-    const [untilDate, setUntilDate] = useState(date)
+    return (
+        <Stack direction="row" spacing={1}>
+            {/*<DateTimePicker>*/}
+
+            {/*</DateTimePicker>*/}
+            <TextField id="date" label="From" type="date" defaultValue={date} onChange={(e) => {setFromDate(e.target.value)}}/>
+            <TextField id="date" label="Until" type="date" defaultValue={date} onChange={(e) => {setUntilDate(e.target.value)}}/>
+        </Stack>
+    )
+}
+
+function RoomRow({room, from, until}) {
+
+    const link = "/room/" + String(room.id)
 
     return (
-        <ListItem>
-            <Stack direction="column" alignItems="center" spacing={theme.spacing()}>
-                <ListItemButton href={link} data-test-id={"link-" + room.id}>
-                    <Stack direction="column" alignItems="center" spacing={theme.spacing()}>
-                        <ListItemText primary={room.name} secondary={room.description}/>
-                        <TimelineForRoom room={room} fromDate={fromDate} untilDate={untilDate}/>
-                    </Stack>
-                </ListItemButton>
-                <Stack direction="row">
-                    <TextField id="date" label="From" type="date" defaultValue={date} onChange={(e) => {setFromDate(e.target.value)}}/>
-                    <TextField id="date" label="Until" type="date" defaultValue={date} onChange={(e) => {setUntilDate(e.target.value)}}/>
-                </Stack>
-            </Stack>
-            <Divider/>
-        </ListItem>
+        <Grid item>
+            <ListItemButton href={link} data-test-id={"link-" + room.id}>
+            <Grid container item alignItems="center">
+                <Grid item xs = {1}>
+                    <Box fontSize={20}> {room.name} </Box>
+                </Grid>
+                <Grid item xs = {1}>
+                    <TimelineForRoom room={room} fromDate={from} untilDate={until}/>
+                </Grid>
+            </Grid>
+            </ListItemButton>
+        </Grid>
+
     );
 }
 
@@ -118,16 +127,19 @@ function RoomList() {
 
     let [draw_list, setDrawList] = useState([])
 
+    const today = getTodayDate()
+
+    const [from, setFrom] = useState(today)
+    const [until, setUntil] = useState(today)
+
+    const [roomList, setRoomList] = useState([])
+
     function my_callback(result, statusCode) {
         console.log("result: " + result)
         console.log("statusCode:"  + statusCode)
         if (statusCode === 200 && result != null) {
+            setRoomList(result);
             console.log(result)
-            const new_draw_list = []
-            result.forEach((room) => {
-                new_draw_list.push(<RoomRow room={room} key={room.id}/>)
-            })
-            setDrawList(new_draw_list)
         }
     }
 
@@ -135,11 +147,23 @@ function RoomList() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [])
 
+    useEffect(() => {
+        const new_draw_list = []
+        roomList.forEach((room) => {
+            new_draw_list.push(<RoomRow room={room} from={from} until={until}/>)
+        })
+        setDrawList(new_draw_list)
+    }, [from, until, roomList]);
+
     return (
         <ContentWrapper page_name="Classrooms">
-            <List>
-                {draw_list}
-            </List>
+            <Stack direction = "column">
+                <DateSelect setFromDate={setFrom} setUntilDate={setUntil}/>
+                <Grid container spacing = {3}>
+                    {draw_list}
+                </Grid>
+            </Stack>
+
         </ContentWrapper>
     );
 }

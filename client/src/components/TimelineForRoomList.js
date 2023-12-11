@@ -58,25 +58,9 @@ function DividerTimeline ({dividerDate, fromTimelineDate, untilTimelineDate}) {
     )
 }
 
-function dateFormat(date, format = "yyyy-mm-dd") {
-    let mlz = ""
-    if (date.getMonth() + 1 < 10) mlz = "0"
-    let dlz = ""
-    if (date.getDate() < 10) dlz = "0"
-    const map = {
-        mm: mlz + (date.getMonth() + 1),
-        dd: dlz + date.getDate(),
-        yyyy: date.getFullYear(),
-        // yy: date.getFullYear().toString().slice(-2)
-    }
-
-    return format.replace(/mm|dd|yyyy/gi, matched => map[matched])
-}
-
 function updateDate(date, diff) {
-    const new_date = new Date(date)
-    new_date.setDate(new_date.getDate() + diff)
-    return dateFormat(new_date)
+    date.setDate(date.getDate() + diff)
+    return date
 }
 
 function TimelineForRoomList({reservations, fromTimelineDate = null, untilTimelineDate = null}) {
@@ -85,6 +69,8 @@ function TimelineForRoomList({reservations, fromTimelineDate = null, untilTimeli
             Can't get reservations list for this room.
         </label>
     )
+
+    console.log("timeline from: " + fromTimelineDate + "until: " + untilTimelineDate)
 
     const reservationsList = []
     reservations.forEach((reservation) => {
@@ -101,16 +87,14 @@ function TimelineForRoomList({reservations, fromTimelineDate = null, untilTimeli
     function getStartDate(date) {
         let newDate = new Date(date)
         newDate.setHours(0, 0)
-        while (newDate < date) newDate = new Date(updateDate(newDate, +1))
+        while (newDate < date) newDate.setDate(newDate.getDate() + 1)/* = new Date(updateDate(newDate, +1))*/
         return newDate
     }
 
     const dividersList = []
-    for (let dividerDate = getStartDate(fromTimelineDate); dividerDate < untilTimelineDate; dividerDate = new Date(updateDate(dividerDate, +1))) {
+    for (let dividerDate = getStartDate(fromTimelineDate); dividerDate < untilTimelineDate; dividerDate = new Date(updateDate(dividerDate, +1))) /*= new Date(updateDate(dividerDate, +1))*/ {
         dividersList.push(<DividerTimeline dividerDate={dividerDate} fromTimelineDate={fromTimelineDate} untilTimelineDate={untilTimelineDate}/>)
     }
-
-    console.log("dividersList: " + dividersList.length)
 
     return (
         <div className="for-rooms-reservation-list-wrapper">
