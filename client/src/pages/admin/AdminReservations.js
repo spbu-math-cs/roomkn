@@ -5,47 +5,51 @@ import {NavLink} from "react-router-dom";
 import useSomeAPI from "../../api/FakeAPI";
 import {fromAPITime} from "../../api/API";
 import "./AdminReservations.css"
+import {
+    Button,
+    Checkbox,
+    FormControl,
+    InputLabel,
+    ListItemText,
+    MenuItem,
+    Select,
+    Stack, TextField,
+    useTheme
+} from "@mui/material";
 
 
 function useGetUsersShortInfo() {
 
-    let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/users')
+    const [users, setUsers] = useState([])
+
+    const usersCallback = (result, statusCode) => {
+        if (result != null && statusCode === 200) {
+            setUsers(result)
+        }
+        else setUsers([])
+    }
+
+    let {triggerFetch} = useSomeAPI('/api/v0/users', null, 'GET', usersCallback)
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), []);
-    if (statusCode === 200 && finished && result != null) return result
-    return []
+    return users
 }
 
 function useGetRooms() {
-    let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/rooms')
+    const [rooms, setRooms] = useState([])
+
+    const roomsCallback = (result, statusCode) => {
+        if (result != null && statusCode === 200) {
+            setRooms(result)
+        }
+        else setRooms([])
+    }
+
+    let {triggerFetch} = useSomeAPI('/api/v0/rooms', null, 'GET', roomsCallback)
 
     useEffect(() => triggerFetch(), []);
-    if (statusCode === 200 && finished && result != null) return result
-    return []
-}
-
-function Users() {
-    const usersShortInfoList = useGetUsersShortInfo()
-    let userList = []
-    usersShortInfoList.forEach((shortUserInfo) => {
-        userList.push(<li><label> Пользователь {shortUserInfo.username} номер {shortUserInfo.id}</label></li>)
-    })
-
-    // const allReservationsList = useGetAllReservations()
-    // let reservationsList = []
-    // allReservationsList.forEach((resevation) => {
-    //     reservationsList.push(
-    //         <li>
-    //         <Reservation reservation={resevation}/>
-    //         </li>
-    //     )
-    // })
-
-    return <ul>
-        {userList}
-        {/*{reservationsList}*/}
-    </ul>
+    return rooms
 }
 
 function Reservation({reservation}) {
@@ -69,35 +73,6 @@ function Reservation({reservation}) {
     return <div></div>
 }
 
-function useGetAllReservations() {
-    const usersShortInfoList = useGetUsersShortInfo()
-    const allReservations = []
-    usersShortInfoList.forEach((userShortInfo) => {
-        // const reservations = useGetUserReservations(userShortInfo.id)
-        const reservations = []
-        reservations.forEach((reservation) => {
-            allReservations.push(reservation)
-        })
-    })
-
-    return allReservations
-}
-
-function changeOrderBy(newOrderBy) {
-    //TODO
-}
-
-function changeFiltersVisibility() {
-    const elem = document.getElementById("filters")
-    if (elem.className === "filters-none") elem.className = "filters-ok"
-    else elem.className = "filters-none"
-}
-
-function changeOnFromUntilChange(e) {
-    e.preventDefault();
-    alert("Ждем API...")
-}
-
 function dateFormat(date, format = "yyyy-mm-dd") {
     let mlz = ""
     if (date.getMonth() + 1 < 10) mlz = "0"
@@ -119,112 +94,113 @@ function getTodayDate(format = "yyyy-mm-dd") {
     return dateFormat(date, format)
 }
 
-function UserInSelect({userInfo, form}) {
-    let [checked, setChecked] = useState(true)
-    const inputId = "take-user-" + userInfo.id
-    return (
-        <div>
-            <input type="checkbox" id={inputId} form={form} checked={checked} onChange={() => {setChecked(!checked)}}/>
-            <label>{userInfo.username}</label>
-        </div>
-    )
-}
-
-function RoomInSelect({roomInfo, form}) {
-    let [checked, setChecked] = useState(false)
-    const inputId = "take-user-" + roomInfo.name
-    return (
-        <div>
-            <input type="checkbox" id={inputId} form={form} checked={checked} onChange={() => {setChecked(!checked)}}/>
-            <label>{roomInfo.name}</label>
-        </div>
-    )
-}
-
-function UserSelect({form}) {
-    const users = useGetUsersShortInfo()
-    const usersWithCheckbox = []
-    users.forEach((userInfo) => {
-        usersWithCheckbox.push(
-            <UserInSelect userInfo={userInfo} form={form}/>
-        )
-    })
-    return (
-        <fieldset>
-            {usersWithCheckbox}
-        </fieldset>
-    )
-}
-
-function RoomsSelect({form}) {
-    const rooms = useGetRooms()
-    console.log("rooms:" + rooms)
-    const roomsWithCheckbox = []
-    rooms.forEach((roomInfo) => {
-        roomsWithCheckbox.push(
-            <RoomInSelect roomInfo={roomInfo} form={form}/>
-        )
-    })
-    return (
-        <fieldset>
-            {roomsWithCheckbox}
-        </fieldset>
-    )
-}
-
 function Filters() {
     const today = getTodayDate()
-    console.log(today + "T09:30")
     const [from, setFrom] = React.useState(today + "T09:30")
     const [until, setUntil] = React.useState(today + "T23:00")
-    return (
-        <table>
-            <tbody>
-            <tr>
-                <td>
-                    <button onClick={changeFiltersVisibility}> Фильтры </button>
-                </td>
-                <td>
-                    Отсортировать по:
-                    <select onChange={(e) => {
-                        changeOrderBy(e.target.value)
-                    }}>
-                        <option value="users">Именам пользователей</option>
-                        <option value="rooms">Комнатам</option>
-                        <option value="time">Времени резервации</option>
-                    </select>
-                </td>
-            </tr>
-            <tr>
-                <td><div className="filters-none" id = "filters">
-                    <form className="form-admin-reservation" onSubmit={changeOnFromUntilChange}>
-                        <div>
-                            <label>
-                                От
-                            </label>
-                            <input type="datetime-local" value={from} onChange={(e) => {setFrom(e.target.value)}}/>
-                        </div>
-                        <div>
-                            <label>
-                                До
-                            </label>
-                            <input type="datetime-local" value={until} onChange={(e) => {setUntil(e.target.value)}}/>
-                        </div>
-                        <div>
-                            Пользователи:
-                            <UserSelect formId="form-admin-reservations"/>
-                        </div>
-                        <div>
-                            Комнаты:
-                            <RoomsSelect form="form-admin-reservations"/>
-                        </div>
-                        <input type="submit" value="Обновить"></input>
-                    </form>
+    const [orderBy, setOrderBy] = useState("")
+    const [selectedUserIds, setSelectedUserIds] = useState([])
+    const [selectedRoomsIds, setSelectedRoomsIds] = useState([])
 
-                </div></td>
-            </tr>
-            </tbody>
-        </table>
+    console.log((selectedRoomsIds.indexOf("1")))
+
+    const users = useGetUsersShortInfo()
+
+    const rooms = useGetRooms()
+
+    const handleChangeUsers = (event) => {
+        const {
+            target: { value },
+        } = event;
+
+        setSelectedUserIds(
+            typeof value === 'string' ? value.split(',') : value,
+        )
+    }
+
+    const handleChangeRooms = (event) => {
+        const {
+            target: { value },
+        } = event;
+
+        console.log("value: " + value + " " + typeof value)
+
+        setSelectedRoomsIds(
+            typeof value === 'string' ? value.split(',') : value,
+        );
+
+        console.log("selected rooms: " + selectedRoomsIds)
+    };
+
+    const userMap = new Map()
+    users.forEach((user) => {userMap.set(user.id, user.username)})
+
+    const roomMap = new Map()
+    rooms.forEach((room) => {roomMap.set(room.id, room.name)})
+
+    const theme = useTheme()
+
+    const date = getTodayDate()
+
+    return (
+        <Stack direction="row" spacing = {theme.spacing()}>
+            <FormControl sx={{ m: 1, width: 200 }}>
+                <InputLabel id="order-by-label-id">Order by</InputLabel>
+                <Select
+                    label="Order by:"
+                    labelId="order-by-label-id"
+                    id="order-by-select"
+                    value = {orderBy}
+                    onChange = {(e) => {setOrderBy(e.target.value)}}
+                >
+                    <MenuItem value = "reservation-date">Reservation date</MenuItem>
+                    <MenuItem value = "user-name">User name</MenuItem>
+                    <MenuItem value = "room-name">Room name</MenuItem>
+                </Select>
+            </FormControl>
+            <FormControl sx={{ m: 1, width: 200 }}>
+                <InputLabel id="select-users-label-id">Users:</InputLabel>
+                <Select
+                    multiple
+                    label="Users:"
+                    labelId="select-users-label-id"
+                    id="users-select"
+                    value={selectedUserIds}
+                    onChange={handleChangeUsers}
+                    renderValue={(selected) => selected.map((id) => userMap.get(id)).join(', ')}
+                >
+                    {users.map((user) => (
+                        <MenuItem value={user.id}>
+                            <Checkbox checked={(selectedUserIds.indexOf(user.id) > -1)}/>
+                            <ListItemText primary={user.username} />
+                        </MenuItem>
+                    ))}
+                </Select>
+            </FormControl>
+
+            <FormControl sx={{ m: 1, width: 200 }}>
+                <InputLabel id="select-rooms-label-id">Rooms:</InputLabel>
+                <Select
+                    multiple
+                    label="Rooms:"
+                    labelId="select-rooms-label-id"
+                    id="rooms-select"
+                    value={selectedRoomsIds}
+                    onChange={handleChangeRooms}
+                    renderValue={(selected) => selected.map((id) => roomMap.get(id)).join(', ')}
+                >
+                    {rooms.map((room) => (
+                        <MenuItem value={room.id}>
+                            <Checkbox checked={(selectedRoomsIds.indexOf(room.id) > -1)}/>
+                            <ListItemText primary={room.name} />
+                        </MenuItem>
+                    ))}
+                </Select>
+            </FormControl>
+            <TextField id="date" label="From" type="date" defaultValue={date} onChange={(e) => {setFrom(e.target.value)}}/>
+            <TextField id="date" label="Until" type="date" defaultValue={date} onChange={(e) => {setUntil(e.target.value)}}/>
+            <Button variant="contained" color="success" onClick={() => {}}>Update</Button>
+        </Stack>
     )
 }
 
@@ -241,7 +217,6 @@ function AdminReservations() {
         <AdminWrapper>
             <ContentWrapper page_name={page_name}>
                 <Filters/>
-                <Users/>
             </ContentWrapper>
         </AdminWrapper>)
 }
