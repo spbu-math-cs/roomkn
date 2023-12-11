@@ -4,7 +4,6 @@ import AdminWrapper from "../../components/AdminWrapper";
 import {NavLink} from "react-router-dom";
 import useSomeAPI from "../../api/FakeAPI";
 import {fromAPITime} from "../../api/API";
-import "./AdminReservations.css"
 import {
     Button,
     Checkbox,
