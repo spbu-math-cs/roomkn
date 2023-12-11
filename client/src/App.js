@@ -3,7 +3,6 @@ import './App.css';
 import {BrowserRouter as Router, Route, Routes} from 'react-router-dom';
 
 import Navbar from './components/Navbar';
-import {Footer} from "./components/Footer";
 
 import RoomList from './pages/List';
 import Map from './pages/Map';
@@ -22,7 +21,6 @@ import AdminPanel from "./pages/admin/AdminPanel";
 import AdminRoomList from "./pages/admin/AdminRoomList";
 import AdminUserList from "./pages/admin/AdminUserList";
 import {createTheme, ThemeProvider} from "@mui/material";
-import AdminReservations from "./pages/admin/AdminReservations";
 
 
 function PageNotFound() {
@@ -81,7 +79,6 @@ function App() {
                             <Route path="admin/panel" element={<AdminPanel/>}/>
                             <Route path="admin/rooms" element={<AdminRoomList/>}/>
                             <Route path="admin/users" element={<AdminUserList/>}/>
-                            <Route path="admin/reservations" element={<AdminReservations />}/>
                         </Routes>
                         {/*<Footer />*/}
                     </Router>
