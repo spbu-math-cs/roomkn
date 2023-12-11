@@ -12,9 +12,9 @@ RooMKN is open-source room booking service
 
 To deploy from source
 
-  - create `.env` file with `.env-template` environment variables 
+-   create `.env` file with `.env-template` environment variables 
 
-  - run `docker compose up` to start service
+-   run `docker compose up` to start service
 
 To deploy latest release watch `/docker` directory or [/docker/README.md](https://github.com/spbu-math-cs/roomkn/blob/main/docker/README.md)
 
