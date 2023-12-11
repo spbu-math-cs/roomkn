@@ -24,12 +24,16 @@ function EditUserRow({user, refresh}) {
         "UsersAdmin": false,
         "GroupsAdmin": false
     }
+
     const [permissions, setPermissions] = useState(permissionsDefault)
+    const [permissionsBefore, setPermissionsBefore] = useState(permissionsDefault)
 
 
     const checked_perms = []
+    console.log('creating empty perms')
     for (var perm in permissions) {
         if (permissions[perm]) checked_perms.push(perm)
+        console.log('pushing perm to checked')
     }
 
     const {
@@ -64,33 +68,61 @@ function EditUserRow({user, refresh}) {
     }
 
     function permGetCallback(result, statusCode) {
-        console.log('callback entered')
+        // console.log('callback entered')
         if (statusCode === 200) {
             const tmp_perms = permissionsDefault
             for (let perm in result) {
                 tmp_perms[result[perm]] = true;
             }
-            console.log('setting perms')
-            setPermissions(tmp_perms)
+            // console.log('setting perms')
+            setPermissionsBefore(JSON.parse(JSON.stringify(tmp_perms)))
+            setPermissions(JSON.parse(JSON.stringify(tmp_perms)))
         } 
     }
 
+    function PermCheckbox({perm, label, was, on_change}) {
+
+        console.log('checkbox label: ' + label)
+        console.log('perm: ' + perm)
+        console.log('was: ' + was)
+
+        var boxColor
+        
+        if (perm) {
+            if (was) boxColor = 'primary'
+            else boxColor = 'success'
+        }
+        else {
+            if (was) boxColor = 'secondary'
+            else boxColor = 'error'
+        }
+
+        return (
+            <FormControlLabel
+        control={<Checkbox checked='true' color={boxColor} onChange={on_change}/>}
+        label={label}/>
+        )
+    }
+
+    console.log('rerendering user')
 
     const permissions_draw = []
     if (permissions != null) {
         for (let perm in permissions) {
-            console.log(user.id, permissions[perm])
-            const onchange = (e) => {
+            //console.log(user.id, permissions[perm])
+            function onchange(e) {
                 console.log("changed perm")
-                const tmp_perms2 = permissions
-                tmp_perms2[perm] = !permissions[perm];
+                const tmp_perms2 = JSON.parse(JSON.stringify(permissions))
+                tmp_perms2[perm] = !permissions[perm]
                 // console.log("sdsdsdfsdg", tmp_perms2)
-                setPermissions(tmp_perms2)
+                setPermissions(JSON.parse(JSON.stringify(tmp_perms2)))
             }
+            
             permissions_draw.push(
-                <FormControlLabel
-                    control={<Checkbox checked={permissions[perm]} onChange={onchange}/>}
-                    label={perm}/>
+                <PermCheckbox perm={permissions[perm]} was={permissionsBefore[perm]} on_change={onchange} label={perm}></PermCheckbox>
+                // <FormControlLabel
+                //     control={<Checkbox checked={permissions[perm]} onChange={onchange}/>}
+                //     label={perm}/>
             )
         }
     }
@@ -99,9 +131,8 @@ function EditUserRow({user, refresh}) {
     const {triggerFetch: triggerDelete} = useSomeAPI("/api/v0/users/" + user.id, null, "DELETE", putDeleteCallback)
 
     const reset = () => {
-        // setName(user.username)
-        // setEmail(user.email)
         infoTriggerFetch()
+        setPermissions(JSON.parse(JSON.stringify(permissionsBefore)))
     }
 
     const put_req = () => {
