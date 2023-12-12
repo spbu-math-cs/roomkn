@@ -14,7 +14,6 @@ import io.ktor.server.routing.patch
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
-import kotlin.math.min
 import org.tod87et.roomkn.server.auth.AuthenticationProvider
 import org.tod87et.roomkn.server.database.Database
 import org.tod87et.roomkn.server.database.MissingElementException
@@ -24,11 +23,13 @@ import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
 import org.tod87et.roomkn.server.util.defaultExceptionHandler
 import org.tod87et.roomkn.server.util.okResponse
+import kotlin.math.min
 
 fun Route.roomsRouting() {
     val database by injectDatabase()
     route("/rooms") {
         rooms(database)
+        roomsShort(database)
         roomById(database)
         roomReservationsRouting(database)
         authenticate(AuthenticationProvider.SESSION) {
@@ -117,6 +118,21 @@ private fun Route.rooms(database: Database) {
                 status = HttpStatusCode.InternalServerError
             )
         }
+    }
+}
+
+private fun Route.roomsShort(database: Database) {
+    get("/list-short") {
+        val ids = (call.request.queryParameters["ids"]?: return@get call.onMalformedIds()).split(",")
+            .map { it.toIntOrNull() ?: return@get call.onMalformedIds() }
+
+        database.getRoomsShort(ids)
+            .onSuccess {
+                call.respond(it)
+            }
+            .onFailure {
+                call.handleException(it)
+            }
     }
 }
 

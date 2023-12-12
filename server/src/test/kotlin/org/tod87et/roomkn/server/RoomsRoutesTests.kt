@@ -3,6 +3,7 @@ package org.tod87et.roomkn.server
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
+import io.ktor.client.request.parameter
 import io.ktor.client.request.patch
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
@@ -10,11 +11,9 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 import org.junit.jupiter.api.Test
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
+import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
 import org.tod87et.roomkn.server.models.rooms.RoomInfo
 import org.tod87et.roomkn.server.models.rooms.ShortRoomInfo
 import org.tod87et.roomkn.server.models.toCreated
@@ -22,11 +21,11 @@ import org.tod87et.roomkn.server.models.toShort
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
 
 class RoomsRoutesTests {
     private val apiPath = KtorTestEnv.API_PATH
     private val roomsPath = "$apiPath/rooms"
+    private val roomsShortPath = "$roomsPath/list-short"
     private fun roomPath(id: Int) = "$roomsPath/$id"
     private val mapPath = "$apiPath/map"
 
@@ -40,6 +39,23 @@ class RoomsRoutesTests {
         val rooms = client.get(roomsPath).body<List<ShortRoomInfo>>()
 
         assertEquals(setOf(room1.toShort(), room2.toShort()), rooms.toSet())
+    }
+
+    @Test
+    fun getRoomsShort() = KtorTestEnv.testJsonApplication { client ->
+        with(KtorTestEnv) {
+            client.createAndAuthAdmin()
+        }
+        val room1 = KtorTestEnv.createRoom("301", "Has a whiteboard")
+        val room2 = KtorTestEnv.createRoom("Study room", "Ideal place to study at")
+        KtorTestEnv.createRoom("302", "No way it can really have a number...")
+        val rooms = client.get(roomsShortPath) {
+            parameter("ids", listOf(room1.id, room2.id).joinToString(","))
+        }
+        assertEquals(HttpStatusCode.OK, rooms.status)
+
+
+        assertEquals(setOf(room1.toShort(), room2.toShort()), rooms.body<List<ShortRoomInfo>>().toSet())
     }
 
     @Test

@@ -10,6 +10,7 @@ import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
 import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.and
@@ -127,6 +128,14 @@ class DatabaseSession private constructor(private val database: Database) :
             Rooms.selectAll()
                 .orderBy(Rooms.name to SortOrder.ASC, Rooms.id to SortOrder.ASC)
                 .limit(limit, offset)
+                .map { ShortRoomInfo(it[Rooms.id], it[Rooms.name]) }
+        }
+    }
+
+    override fun getRoomsShort(ids: List<Int>): Result<List<ShortRoomInfo>> = queryWrapper {
+        transaction(database) {
+            Rooms.selectAll()
+                .adjustWhere { Rooms.id inList ids }
                 .map { ShortRoomInfo(it[Rooms.id], it[Rooms.name]) }
         }
     }
