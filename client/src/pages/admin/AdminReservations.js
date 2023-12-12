@@ -1,10 +1,11 @@
 import ContentWrapper from "../../components/Content";
-import React, {useEffect, useState} from "react";
+import React, {createContext, useContext, useEffect, useState} from "react";
 import AdminWrapper from "../../components/AdminWrapper";
 import {NavLink} from "react-router-dom";
 import useSomeAPI from "../../api/FakeAPI";
-import {fromAPITime} from "../../api/API";
+import {fromAPITime, toAPITime} from "../../api/API";
 import {
+    Box,
     Button,
     Checkbox,
     FormControl,
@@ -16,6 +17,7 @@ import {
     useTheme
 } from "@mui/material";
 
+const FiltersContext = createContext()
 
 function useGetUsersShortInfo() {
 
@@ -56,20 +58,48 @@ function Reservation({reservation}) {
     const from_obj = fromAPITime(reservation.from)
     const until_obj = fromAPITime(reservation.until)
     const room_id = reservation.room_id
+    const user_id = reservation.user_id
 
-    let {triggerFetch, result, finished, statusCode} = useSomeAPI('/api/v0/rooms/' + room_id)
+    return <Box >
+        Комната {room_id} зарезервирована
+        человком {user_id} на {from_obj.date} с {from_obj.time} по {until_obj.time}
+    </Box>
+}
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+function useGetReservations(orderBy, from, until, userList, roomList) {
+
+    let {triggerFetch} = useSomeAPI(
+        '/api/v0/reservations',
+        {
+            user_ids: userList,
+            room_ids: roomList,
+            from: toAPITime(from),
+            until: toAPITime(until)
+        },
+        'GET',
+        getReservationsCallback
+    )
+
+    function getReservationsCallback(result, statusCode) {
+        console.log("get reservations callback! result: " + result + " status code: " + statusCode)
+        if (result != null && statusCode === 200) {
+            //TODO: orderBy
+            setResult({
+                reservations: result,
+                triggerGetReservations: triggerFetch
+            })
+        }
+    }
+
+    const[result, setResult] = useState({
+        reservations: [],
+        triggerGetReservations: triggerFetch
+    })
+
     useEffect(() => triggerFetch(), [])
 
-    if (statusCode === 200 && result != null && finished) {
-        const room_name = result.name
-        return <label className='reservation-info-label'>
-            Комната {room_name} заразервирована
-            человком {reservation.user_id} на {from_obj.date} с {from_obj.time} по {until_obj.time}
-        </label>
-    }
-    return <div></div>
+    return result
+
 }
 
 function dateFormat(date, format = "yyyy-mm-dd") {
@@ -93,13 +123,15 @@ function getTodayDate(format = "yyyy-mm-dd") {
     return dateFormat(date, format)
 }
 
-function Filters() {
+function Filters({triggerGetReservations}) {
     const today = getTodayDate()
-    const [from, setFrom] = React.useState(today + "T09:30")
-    const [until, setUntil] = React.useState(today + "T23:00")
-    const [orderBy, setOrderBy] = useState("")
+    const [fromFilters, setFromFilters] = React.useState(today + "T09:30")
+    const [untilFilters, setUntilFilters] = React.useState(today + "T23:00")
+    const [orderByFilters, setOrderByFilters] = useState("")
     const [selectedUserIds, setSelectedUserIds] = useState([])
     const [selectedRoomsIds, setSelectedRoomsIds] = useState([])
+
+    const {setFrom, setUntil, setOrderBy, setUsers, setRooms} = useContext(FiltersContext)
 
     console.log((selectedRoomsIds.indexOf("1")))
 
@@ -141,6 +173,15 @@ function Filters() {
 
     const date = getTodayDate()
 
+    const onUpdate = () => {
+        setOrderBy(orderByFilters)
+        setUsers(selectedUserIds)
+        setRooms(selectedRoomsIds)
+        setFrom(fromFilters)
+        setUntil(untilFilters)
+        triggerGetReservations()
+    }
+
     return (
         <Stack direction="row" spacing = {theme.spacing()}>
             <FormControl sx={{ m: 1, width: 200 }}>
@@ -149,8 +190,8 @@ function Filters() {
                     label="Order by:"
                     labelId="order-by-label-id"
                     id="order-by-select"
-                    value = {orderBy}
-                    onChange = {(e) => {setOrderBy(e.target.value)}}
+                    value = {orderByFilters}
+                    onChange = {(e) => {setOrderByFilters(e.target.value)}}
                 >
                     <MenuItem value = "reservation-date">Reservation date</MenuItem>
                     <MenuItem value = "user-name">User name</MenuItem>
@@ -196,11 +237,22 @@ function Filters() {
                     ))}
                 </Select>
             </FormControl>
-            <TextField id="date" label="From" type="date" defaultValue={date} onChange={(e) => {setFrom(e.target.value)}}/>
-            <TextField id="date" label="Until" type="date" defaultValue={date} onChange={(e) => {setUntil(e.target.value)}}/>
-            <Button variant="contained" color="success" onClick={() => {}}>Update</Button>
+            <TextField id="date" label="From" type="date" defaultValue={date} onChange={(e) => {setFromFilters(e.target.value)}}/>
+            <TextField id="date" label="Until" type="date" defaultValue={date} onChange={(e) => {setUntilFilters(e.target.value)}}/>
+            <Button variant="contained" color="success" onClick={onUpdate}>Update</Button>
         </Stack>
     )
+}
+
+function Reservations({reservations}) {
+    const drawList = []
+    reservations.forEach((reservation) => {
+        drawList.push(<Reservation reservation={reservation}/> )
+    })
+
+    return <Stack direction = "column" spacing = {2}>
+        {drawList}
+    </Stack>
 }
 
 function AdminReservations() {
@@ -212,10 +264,30 @@ function AdminReservations() {
             /Admin Reservations
         </div>
     )
+
+
+    const today = getTodayDate()
+    const [from, setFrom] = React.useState(today + "T09:30")
+    const [until, setUntil] = React.useState(today + "T23:00")
+    const [orderBy, setOrderBy] = useState("")
+    const [users, setUsers] = useState([])
+    const [rooms, setRooms] = useState([])
+
+    const {reservations, triggerGetReservations} = useGetReservations(orderBy, from, until, users, rooms)
+
     return (
         <AdminWrapper>
             <ContentWrapper page_name={page_name}>
-                <Filters/>
+                <FiltersContext.Provider value = {{
+                    from, setFrom,
+                    until, setUntil,
+                    orderBy, setOrderBy,
+                    users, setUsers,
+                    rooms, setRooms
+                }}>
+                    <Filters triggerGetReservations={triggerGetReservations}/>
+                    <Reservations reservations={reservations}/>
+                </FiltersContext.Provider>
             </ContentWrapper>
         </AdminWrapper>)
 }
