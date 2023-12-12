@@ -11,12 +11,22 @@ const NavSignIn = () => {
     const {isAuthorized} = useContext(IsAuthorizedContext)
     const {currentUser} = useContext(CurrentUserContext)
 
+    const [userNickname, setUserNickname] = currentUser?.username
+
     const {triggerLogout, finished, statusCode} = useLogout()
 
     const logOut = () => {
         triggerLogout()
         // browser.cookies.remove('_xsrf');
     }
+
+    useEffect(() => {
+        if (userNickname == null) {
+            setUserNickname("Azat")
+        }
+        setUserNickname(currentUser?.username)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isAuthorized, currentUser])
 
     const {setNewMessageSnackbar} = useContext(SnackbarContext)
 
@@ -33,10 +43,10 @@ const NavSignIn = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [finished]);
 
-    let user_nickname = currentUser?.username
-    if (user_nickname == null) {
-        user_nickname = "Azat"
-    }
+    // let user_nickname = currentUser?.username
+    // if (user_nickname == null) {
+    //     user_nickname = "Azat"
+    // }
 
     if (isAuthorized) {
         return (
@@ -45,7 +55,7 @@ const NavSignIn = () => {
                     My reservations
                 </NavLink>
                 <NavLink to="/profile" className="navlink">
-                    {user_nickname}
+                    {userNickname}
                     <img className="navbar-profile-avatar" src="/azat.png" alt="avatar"/>
                 </NavLink>
                 <div onClick={logOut} className="navlink">
