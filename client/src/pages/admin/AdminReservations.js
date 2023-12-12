@@ -68,14 +68,21 @@ function Reservation({reservation}) {
 
 function useGetReservations(orderBy, from, until, userList, roomList) {
 
+    console.log("from in get reservations: " + from + "in api: " + toAPITime(from, "00:00"))
+
+    const params = new URLSearchParams()
+    params.append("user_ids", userList)
+    params.append("room_ids", roomList)
+    params.append("from", toAPITime(from, "00:00"))
+    params.append("until", toAPITime(until, "00:00"))
+
+    const url = "/api/v0/reservations?" + params.toString()
+
+    console.log("url: " + url)
+
     let {triggerFetch} = useSomeAPI(
-        '/api/v0/reservations',
-        {
-            user_ids: userList,
-            room_ids: roomList,
-            from: toAPITime(from),
-            until: toAPITime(until)
-        },
+        url,
+        null,
         'GET',
         getReservationsCallback
     )
@@ -86,14 +93,19 @@ function useGetReservations(orderBy, from, until, userList, roomList) {
             //TODO: orderBy
             setResult({
                 reservations: result,
-                triggerGetReservations: triggerFetch
+                triggerGetReservations: () => {
+                    console.log("trigger ger reservations!")
+                    triggerFetch()
+                }
             })
         }
     }
 
     const[result, setResult] = useState({
         reservations: [],
-        triggerGetReservations: triggerFetch
+        triggerGetReservations: () => {
+            triggerFetch()
+        }
     })
 
     useEffect(() => triggerFetch(), [])
@@ -125,15 +137,13 @@ function getTodayDate(format = "yyyy-mm-dd") {
 
 function Filters({triggerGetReservations}) {
     const today = getTodayDate()
-    const [fromFilters, setFromFilters] = React.useState(today + "T09:30")
-    const [untilFilters, setUntilFilters] = React.useState(today + "T23:00")
+    const [fromFilters, setFromFilters] = React.useState(today)
+    const [untilFilters, setUntilFilters] = React.useState(today)
     const [orderByFilters, setOrderByFilters] = useState("")
     const [selectedUserIds, setSelectedUserIds] = useState([])
     const [selectedRoomsIds, setSelectedRoomsIds] = useState([])
 
     const {setFrom, setUntil, setOrderBy, setUsers, setRooms} = useContext(FiltersContext)
-
-    console.log((selectedRoomsIds.indexOf("1")))
 
     const users = useGetUsersShortInfo()
 
@@ -174,6 +184,7 @@ function Filters({triggerGetReservations}) {
     const date = getTodayDate()
 
     const onUpdate = () => {
+        console.log("on update")
         setOrderBy(orderByFilters)
         setUsers(selectedUserIds)
         setRooms(selectedRoomsIds)
@@ -267,8 +278,8 @@ function AdminReservations() {
 
 
     const today = getTodayDate()
-    const [from, setFrom] = React.useState(today + "T09:30")
-    const [until, setUntil] = React.useState(today + "T23:00")
+    const [from, setFrom] = React.useState(today)
+    const [until, setUntil] = React.useState(today)
     const [orderBy, setOrderBy] = useState("")
     const [users, setUsers] = useState([])
     const [rooms, setRooms] = useState([])
