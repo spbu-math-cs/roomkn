@@ -1,5 +1,5 @@
 import './Navbar.css';
-import React, {useContext, useEffect} from "react";
+import React, {useContext, useEffect, useState} from "react";
 
 
 import {NavLink} from "react-router-dom";
@@ -11,7 +11,7 @@ const NavSignIn = () => {
     const {isAuthorized} = useContext(IsAuthorizedContext)
     const {currentUser} = useContext(CurrentUserContext)
 
-    const [userNickname, setUserNickname] = currentUser?.username
+    const [userNickname, setUserNickname] = React.useState(currentUser?.username)
 
     const {triggerLogout, finished, statusCode} = useLogout()
 
@@ -26,7 +26,7 @@ const NavSignIn = () => {
         }
         setUserNickname(currentUser?.username)
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isAuthorized, currentUser])
+    }, [isAuthorized, currentUser?.username])
 
     const {setNewMessageSnackbar} = useContext(SnackbarContext)
 
@@ -43,12 +43,13 @@ const NavSignIn = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [finished]);
 
-    // let user_nickname = currentUser?.username
-    // if (user_nickname == null) {
-    //     user_nickname = "Azat"
+    // let userNickname = currentUser?.username
+    // if (userNickname == null) {
+    //     userNickname = "Azat"
     // }
 
     if (isAuthorized) {
+        console.log("authorized, nickname = " + userNickname)
         return (
             <>
                 <NavLink to="/my-reservations" className="navlink">

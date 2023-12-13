@@ -1,11 +1,12 @@
 import ContentWrapper from "../../components/Content";
 import useSomeAPI from "../../api/FakeAPI";
-import React, {useEffect, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import {NavLink} from "react-router-dom";
 
 import "./AdminUserList.css"
 import AdminWrapper from "../../components/AdminWrapper";
 import {Button, Checkbox, FormControlLabel, Stack, TextField, Typography, useTheme} from "@mui/material";
+import { CurrentUserContext } from "../../components/Auth";
 
 function EditUserRow({user, refresh}) {
 
@@ -30,10 +31,8 @@ function EditUserRow({user, refresh}) {
 
 
     const checked_perms = []
-    console.log('creating empty perms')
     for (var perm in permissions) {
         if (permissions[perm]) checked_perms.push(perm)
-        console.log('pushing perm to checked')
     }
 
     const {
@@ -82,10 +81,6 @@ function EditUserRow({user, refresh}) {
 
     function PermCheckbox({perm, label, was, on_change}) {
 
-        console.log('checkbox label: ' + label)
-        console.log('perm: ' + perm)
-        console.log('was: ' + was)
-
         var boxColor
         
         if (perm) {
@@ -111,7 +106,6 @@ function EditUserRow({user, refresh}) {
         for (let perm in permissions) {
             //console.log(user.id, permissions[perm])
             function onchange(e) {
-                console.log("changed perm")
                 const tmp_perms2 = JSON.parse(JSON.stringify(permissions))
                 tmp_perms2[perm] = !permissions[perm]
                 // console.log("sdsdsdfsdg", tmp_perms2)
@@ -206,6 +200,8 @@ export function AdminUserList() {
 
     let [drawList, setDrawList] = useState([])
 
+    const {currentUser, setCurrentUser} = useContext(CurrentUserContext)
+
     let {triggerFetch} = useSomeAPI('/api/v0/users', null, 'GET', listCallback)
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -215,6 +211,15 @@ export function AdminUserList() {
         if (statusCode === 200) {
             const newList = []
             result.forEach((user) => {
+                if (user.id == currentUser?.user_id) {
+                    if (user.username != currentUser?.username) {
+                        console.log("changed context")
+                        setCurrentUser({
+                            user_id: user.id,
+                            username: user.username
+                        })
+                    }
+                }
                 newList.push(
                     <EditUserRow user={user} key={user.id} refresh={triggerFetch}/>
                 )
