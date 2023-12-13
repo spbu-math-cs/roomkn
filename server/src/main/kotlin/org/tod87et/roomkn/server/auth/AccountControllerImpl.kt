@@ -11,8 +11,10 @@ import org.tod87et.roomkn.server.database.ConstraintViolationException
 import org.tod87et.roomkn.server.database.MissingElementException
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.users.LoginUserInfo
+import org.tod87et.roomkn.server.models.users.PasswordUpdateInfo
 import org.tod87et.roomkn.server.models.users.RegistrationUserInfo
 import org.tod87et.roomkn.server.models.users.UnregisteredUserInfo
+import org.tod87et.roomkn.server.models.users.UserCredentialsInfo
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.Date
@@ -50,12 +52,7 @@ class AccountControllerImpl(
                 }
             }
 
-        digest.update(config.pepper)
-        digest.update(credentials.salt)
-        digest.update(loginUserInfo.password.encodeToByteArray())
-
-        val passwordHash = digest.digest()
-        return if (passwordHash.contentEquals(credentials.passwordHash)) {
+        return if (checkPassword(credentials, loginUserInfo.password)) {
             log.debug("Authentication successful for `${loginUserInfo.username}`")
             Result.success(AuthSession(createToken(credentials.id)))
         } else {
@@ -74,6 +71,30 @@ class AccountControllerImpl(
         }
         digest.update(session.token.encodeToByteArray())
         return config.credentialsDatabase.checkTokenValid(digest.digest())
+    }
+
+    override fun updateUserPassword(userId: Int, updateInfo: PasswordUpdateInfo): Result<Unit> {
+        val credentials =
+            config.credentialsDatabase.getCredentialsInfoById(userId).getOrElse { ex ->
+                return when (ex) {
+                    is MissingElementException -> {
+                        Result.failure(NoSuchUserException(userId.toString(), ex))
+                    }
+
+                    else -> {
+                        Result.failure(ex)
+                    }
+                }
+            }
+
+        return if (checkPassword(credentials, updateInfo.oldPassword)) {
+            log.debug("Changing password for `${credentials.id}`")
+            val (salt, passwordHash) = saltAndHash(updateInfo.newPassword)
+            config.credentialsDatabase.updateUserPassword(userId, passwordHash, salt)
+        } else {
+            log.debug("Authentication failed for `${credentials.id}}`")
+            Result.failure(AuthFailedException("Wrong id or password"))
+        }
     }
 
     override fun invalidateSession(session: AuthSession): Result<Unit> {
@@ -118,17 +139,13 @@ class AccountControllerImpl(
     }
 
     private fun registerUser(userInfo: UnregisteredUserInfo, permissions: List<UserPermission>): Result<AuthSession> {
-        val salt = ByteArray(config.saltSize).apply(secureRandom::nextBytes)
-
-        digest.update(config.pepper)
-        digest.update(salt)
-        digest.update(userInfo.password.encodeToByteArray())
+        val (salt, passwordHash) = saltAndHash(userInfo.password)
 
         val registrationInfo = RegistrationUserInfo(
             username = userInfo.username,
             email = userInfo.email,
             salt = salt,
-            passwordHash = digest.digest(),
+            passwordHash = passwordHash,
             permissions = permissions,
         )
         val res = config.credentialsDatabase.registerUser(registrationInfo)
@@ -158,6 +175,15 @@ class AccountControllerImpl(
         return Result.success(AuthSession(createToken(info.id)))
     }
 
+    private fun saltAndHash(password: String): Pair<ByteArray, ByteArray> {
+        val salt = ByteArray(config.saltSize).apply(secureRandom::nextBytes)
+
+        digest.update(config.pepper)
+        digest.update(salt)
+        digest.update(password.encodeToByteArray())
+        return salt to digest.digest()
+    }
+
     override suspend fun cleanerLoop() {
         while (true) {
             try {
@@ -170,6 +196,16 @@ class AccountControllerImpl(
                 log.error("Invalid tokens cleanup failed", e)
             }
         }
+    }
+
+
+    private fun checkPassword(credentials: UserCredentialsInfo, password: String): Boolean{
+        digest.update(config.pepper)
+        digest.update(credentials.salt)
+        digest.update(password.encodeToByteArray())
+
+        val passwordHash = digest.digest()
+        return passwordHash.contentEquals(credentials.passwordHash)
     }
 
     private fun createToken(userId: Int): String {

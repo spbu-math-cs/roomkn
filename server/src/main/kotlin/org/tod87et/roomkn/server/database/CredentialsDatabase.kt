@@ -10,6 +10,8 @@ interface CredentialsDatabase {
 
     fun getCredentialsInfoByUsername(username: String): Result<UserCredentialsInfo>
 
+    fun getCredentialsInfoById(userId: Int): Result<UserCredentialsInfo>
+
     fun getCredentialsInfoByEmail(email: String): Result<UserCredentialsInfo>
 
     fun updateUserPassword(userId: Int, passwordHash: ByteArray, salt: ByteArray): Result<Unit>
