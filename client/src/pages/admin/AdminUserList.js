@@ -5,7 +5,15 @@ import {NavLink} from "react-router-dom";
 
 import "./AdminUserList.css"
 import AdminWrapper from "../../components/AdminWrapper";
-import {Button, Checkbox, FormControlLabel, Stack, TextField, Typography, useTheme} from "@mui/material";
+import {
+    Button,
+    Checkbox,
+    FormControlLabel,
+    Stack,
+    TextField,
+    Typography,
+    useTheme
+} from "@mui/material";
 import { CurrentUserContext } from "../../components/Auth";
 
 function EditUserRow({user, refresh}) {
@@ -94,8 +102,13 @@ function EditUserRow({user, refresh}) {
 
         return (
             <FormControlLabel
-        control={<Checkbox checked='true' color={boxColor} onChange={on_change}/>}
-        label={label}/>
+                control={<Checkbox checked={perm} color={boxColor} onChange={on_change}/>}
+                label={
+                    <Typography color={boxColor}>
+                        {label}
+                    </Typography>
+                }
+            />
         )
     }
 
