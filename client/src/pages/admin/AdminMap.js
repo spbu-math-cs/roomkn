@@ -32,10 +32,14 @@ function MapUploader({setMap, setEditMap}) {
 
     function onUpload(event) {
         console.log("gggg", event.target.result);
-        var map = JSON.parse(event.target.result);
-        setMap(map)
-        setEditMap(event.target.result)
-        setNewMessageSnackbar("Map uploaded from file")
+        try {
+            var map = JSON.parse(event.target.result);
+            setMap(map)
+            setEditMap(event.target.result)
+            setNewMessageSnackbar("Map uploaded from file")
+        } catch (e) {
+            setNewMessageSnackbar("Unable to upload file: " + e)
+        }
     }
 
     function onChange(event) {
@@ -77,14 +81,19 @@ function MapPublish({map}) {
 }
 
 function MapUpdate({setMap, editMap}) {
+    const {setNewMessageSnackbar} = useContext(SnackbarContext)
 
     function update() {
-        setMap(JSON.parse(editMap))
+        try {
+            setMap(JSON.parse(editMap))
+        } catch (e) {
+            setNewMessageSnackbar("Unable to update preview: " + e)
+        }
     }
 
     return (
         <Button component="label" variant="contained" color="primary" startIcon={<Update />} onClick={update}>
-            Update map from editor
+            Update map from editor to preview
         </Button>
     )
 }
