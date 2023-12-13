@@ -382,3 +382,7 @@ export const first_floor_layer = {
 export const cheba_map = {
     layers: [first_floor_layer, third_floor_layer]
 }
+
+export const empty_map = {
+    layers: []
+}

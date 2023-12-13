@@ -7,12 +7,16 @@ import { Stage, Sprite, Text, Graphics, Container } from "@pixi/react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { cheba_map } from "./MapData";
+import {empty_map} from "./MapData";
+import useSomeAPI from "../api/FakeAPI";
 
-function Room({ room_id, navigate, mesh }) {
+import "./Map.css"
+import {MenuItem, Select} from "@mui/material";
+
+function Room({ room_id, navigate, mesh, window_scale }) {
     const [hover, setHover] = useState(false);
     const click = () => {
-        navigate('/room/' + room_id, {replace: false});
+        if (room_id != null) navigate('/room/' + room_id, {replace: false});
     };
 
     let height = 0;
@@ -76,10 +80,10 @@ function Room({ room_id, navigate, mesh }) {
         return (
             <Graphics
                 draw={draw}
-                x={mesh.x}
-                y={mesh.y}
+                x={mesh.x * window_scale}
+                y={mesh.y * window_scale}
                 zIndex={height}
-                scale={scale}
+                scale={scale * window_scale}
                 interactive={true}
                 click={click}
                 pointerover={() => setHover(true)}
@@ -92,20 +96,20 @@ function Room({ room_id, navigate, mesh }) {
 }
 
 
-function Layer({ layer, navigate }) {
+function Layer({ layer, navigate, scale }) {
 
     const rooms = []
 
     layer.objects.forEach(object => {
         rooms.push(
-            <Room room_id={1} navigate={navigate} mesh={object}/>
+            <Room room_id={object.room_id} navigate={navigate} mesh={object} window_scale={scale}/>
         )
     })
 
     return (
         <Container
-            x={layer.x}
-            y={layer.y}
+            x={layer.x * scale}
+            y={layer.y * scale}
             sortableChildren={true}
         >
             {rooms}
@@ -114,50 +118,73 @@ function Layer({ layer, navigate }) {
 
 }
 
-function MapField() {
-    const navigate = useNavigate()
-
-    const [map, setMap] = useState(cheba_map);
-
-    useEffect(() => {
-        setMap(cheba_map)
-    }, []);
+export function MapField({map, scale=1}) {
+    const navigate = useNavigate();
 
     const [selectedLayer, setSelectedLayer] = useState(1);
     // const [layersList, setLayersList] = useState([]);
 
-    const layers = []
-    const layer_options = []
+    const layers = [];
+    const layer_options = [];
 
     map.layers.forEach((layer) => {
         layer_options.push(
-            <option value={layer.id}>
+            <MenuItem value={layer.id}>
                 {layer.name}
-            </option>
+            </MenuItem>
         )
         if (selectedLayer.toString() === layer.id.toString()) {
             layers.push(
-                <Layer layer={layer} navigate={navigate}/>
+                <Layer layer={layer} navigate={navigate} scale={scale}/>
             )
         }
     })
 
+    const width = 1000*scale;
+    const height = 700*scale;
+
     return (
         <>
-            <select value={selectedLayer} onChange={e => setSelectedLayer(e.target.value)} >
+            <Select value={selectedLayer} onChange={e => setSelectedLayer(e.target.value)} >
                 {layer_options}
-            </select>
-            <Stage options={{ antialias: true, backgroundAlpha: 0 }} width={1000} height={700}>
+            </Select>
+            <Stage options={{ antialias: true, backgroundAlpha: 0 }} width={width} height={height} className="map-stage">
                 {layers}
             </Stage>
         </>
     );
 }
 
+export function GetMap() {
+
+    const {triggerFetch} = useSomeAPI('/api/v0/map', null, 'GET', getMapCallback);
+
+    const [map, setMap] = useState(empty_map);
+
+    function getMapCallback(result, statusCode) {
+        if (statusCode === 200) {
+            setMap(result)
+        }
+    }
+
+    // console.log(JSON.stringify(cheba_map))
+
+
+    return {map, triggerGetMap: triggerFetch};
+}
+
 export function Map() {
+
+    const {map, triggerGetMap} = GetMap()
+
+    useEffect(() => {
+        triggerGetMap()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
     return (
         <ContentWrapper page_name="Map">
-            <MapField/>
+            <MapField map={map}/>
         </ContentWrapper>
     )
 }

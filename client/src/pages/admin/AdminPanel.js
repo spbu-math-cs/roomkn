@@ -24,6 +24,12 @@ export function AdminPanel() {
                     Reservation list
                 </NavLink>
 
+                <br/>
+
+                <NavLink to="/admin/map">
+                    Map
+                </NavLink>
+
             </ContentWrapper>
         </AdminWrapper>
     )
