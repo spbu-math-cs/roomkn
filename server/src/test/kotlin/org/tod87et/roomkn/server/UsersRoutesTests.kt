@@ -5,6 +5,7 @@ import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.client.request.patch
+import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -14,6 +15,8 @@ import io.ktor.http.contentType
 import org.junit.jupiter.api.Test
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.users.FullUserInfo
+import org.tod87et.roomkn.server.models.users.LoginUserInfo
+import org.tod87et.roomkn.server.models.users.PasswordUpdateInfo
 import org.tod87et.roomkn.server.models.users.ShortUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfoWithNull
@@ -27,6 +30,7 @@ class UsersRoutesTests {
 
     private fun userPath(id: Int) = "$usersPath/$id"
     private fun userPermissionsPath(id: Int) = "$usersPath/$id/permissions"
+    private fun userPasswordPath(id: Int) = "$usersPath/$id/password"
 
     @Test
     fun getUsers() = KtorTestEnv.testJsonApplication { client ->
@@ -100,6 +104,26 @@ class UsersRoutesTests {
 
         val user = KtorTestEnv.database.getUser(id).getOrThrow()
         assertEquals(UserInfo(id, "bob-the-builder", "bob@bob.club"), user)
+    }
+
+    @Test
+    fun updateUserPassword() = KtorTestEnv.testJsonApplication { client ->
+        with(KtorTestEnv) {
+            client.createAndAuthAdmin()
+        }
+        val id = KtorTestEnv.createUser("Bob", password = "123")
+
+        val resp = client.put(userPasswordPath(id)) {
+            contentType(ContentType.Application.Json)
+            setBody(PasswordUpdateInfo("123", "ytrewq"))
+        }
+        assertEquals(HttpStatusCode.OK, resp.status)
+
+        val auth = client.post(KtorTestEnv.LOGIN_PATH) {
+            contentType(ContentType.Application.Json)
+            setBody(LoginUserInfo("Bob", "ytrewq"))
+        }
+        assertEquals(HttpStatusCode.OK, auth.status)
     }
 
     @Test

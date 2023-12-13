@@ -409,6 +409,19 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
+    override fun getCredentialsInfoById(userId: Int): Result<UserCredentialsInfo> = queryWrapper {
+        transaction(database) {
+            val userRow =
+                Users.select { Users.id eq userId }.firstOrNull() ?: throw MissingElementException()
+
+            UserCredentialsInfo(
+                userRow[Users.id],
+                userRow[Users.salt],
+                userRow[Users.passwordHash]
+            )
+        }
+    }
+
     override fun updateUserPassword(
         userId: Int,
         passwordHash: ByteArray,
