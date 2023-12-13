@@ -16,7 +16,7 @@ import {MenuItem, Select} from "@mui/material";
 function Room({ room_id, navigate, mesh, window_scale }) {
     const [hover, setHover] = useState(false);
     const click = () => {
-        navigate('/room/' + room_id, {replace: false});
+        if (room_id != null) navigate('/room/' + room_id, {replace: false});
     };
 
     let height = 0;
@@ -102,7 +102,7 @@ function Layer({ layer, navigate, scale }) {
 
     layer.objects.forEach(object => {
         rooms.push(
-            <Room room_id={1} navigate={navigate} mesh={object} window_scale={scale}/>
+            <Room room_id={object.room_id} navigate={navigate} mesh={object} window_scale={scale}/>
         )
     })
 
