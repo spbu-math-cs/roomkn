@@ -7,10 +7,13 @@ import {
     Grid,
     ListItemButton,
     Stack,
-    TextField,
 } from "@mui/material";
 import {fromAPITime} from "../api/API";
 import TimelineForRoomList from "../components/TimelineForRoomList";
+import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
+import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
+import {DatePicker} from "@mui/x-date-pickers";
+import dayjs from "dayjs";
 
 function dateFormat(date, format = "yyyy-mm-dd") {
     var mlz = ""
@@ -96,8 +99,20 @@ function DateSelect({setFromDate, setUntilDate}) {
             {/*<DateTimePicker>*/}
 
             {/*</DateTimePicker>*/}
-            <TextField id="date" label="From" type="date" defaultValue={date} onChange={(e) => {setFromDate(e.target.value)}}/>
-            <TextField id="date" label="Until" type="date" defaultValue={date} onChange={(e) => {setUntilDate(e.target.value)}}/>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker id="date" label="From" type="date" defaultValue={dayjs(date)}
+                            onChange={(v) => {
+                                setFromDate(dateFormat(v.toDate()));
+                            }}
+                            format="DD.MM.YYYY"
+                />
+                <DatePicker id="date" label="Until" type="date" defaultValue={dayjs(date)}
+                            onChange={(v) => {
+                                setUntilDate(dateFormat(v.toDate()));
+                            }}
+                            format="DD.MM.YYYY"
+                />
+            </LocalizationProvider>
         </Stack>
     )
 }
@@ -107,18 +122,18 @@ function RoomRow({room, from, until}) {
     const link = "/room/" + String(room.id)
 
     return (
-        <Grid item>
             <ListItemButton href={link} data-test-id={"link-" + room.id}>
-            <Grid container item alignItems="center">
-                <Grid item xs = {1}>
-                    <Box fontSize={20}> {room.name} </Box>
+                <Grid container item alignItems="center">
+                    <Grid item xs = {1}>
+
+                        <Box fontSize={20}> {room.name} </Box>
+                    </Grid>
+                    <Grid item xs = {3}>
+
+                        <TimelineForRoom room={room} fromDate={from} untilDate={until}/>
+                    </Grid>
                 </Grid>
-                <Grid item xs = {1}>
-                    <TimelineForRoom room={room} fromDate={from} untilDate={until}/>
-                </Grid>
-            </Grid>
             </ListItemButton>
-        </Grid>
 
     );
 }
@@ -159,9 +174,7 @@ function RoomList() {
         <ContentWrapper page_name="Classrooms">
             <Stack direction = "column">
                 <DateSelect setFromDate={setFrom} setUntilDate={setUntil}/>
-                <Grid container spacing = {3}>
                     {draw_list}
-                </Grid>
             </Stack>
 
         </ContentWrapper>

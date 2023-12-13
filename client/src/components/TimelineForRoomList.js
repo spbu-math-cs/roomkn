@@ -64,25 +64,49 @@ function updateDate(date, diff) {
 }
 
 function TimelineForRoomList({reservations, fromTimelineDate = null, untilTimelineDate = null}) {
-    if (reservations == null) return (
-        <label className='for-rooms-reservations-not-found-label'>
-            Can't get reservations list for this room.
-        </label>
-    )
+    let label = <></>
+
+    let can_draw = true
+
+    if (reservations == null) {
+        can_draw = false
+        label = (
+            <label className='for-rooms-reservations-not-found-label'>
+                Can't get reservations list for this room.
+            </label>
+        )
+    }
+
+    const days_count_to_request = (untilTimelineDate.getTime() - fromTimelineDate.getTime()) / (1000 * 3600 * 24);
+    const is_too_long_time_period = days_count_to_request > 14;
+
+    if (is_too_long_time_period) {
+        can_draw = false
+        label = (
+            <label className='for-rooms-reservations-too-long-time-period'>
+                Time period is too long to show
+            </label>
+        )
+    }
+
+
 
     console.log("timeline from: " + fromTimelineDate + "until: " + untilTimelineDate)
 
     const reservationsList = []
-    reservations.forEach((reservation) => {
-        reservationsList.push(
-            <Reservation
-                reservation={reservation}
-                fromTimelineDate={fromTimelineDate}
 
-                untilTimelineDate={untilTimelineDate}
-            />
-        )
-    })
+    if (can_draw) {
+        reservations.forEach((reservation) => {
+            reservationsList.push(
+                <Reservation
+                    reservation={reservation}
+                    fromTimelineDate={fromTimelineDate}
+
+                    untilTimelineDate={untilTimelineDate}
+                />
+            )
+        })
+    }
 
     function getStartDate(date) {
         let newDate = new Date(date)
@@ -92,13 +116,18 @@ function TimelineForRoomList({reservations, fromTimelineDate = null, untilTimeli
     }
 
     const dividersList = []
-    for (let dividerDate = getStartDate(fromTimelineDate); dividerDate < untilTimelineDate; dividerDate = new Date(updateDate(dividerDate, +1))) /*= new Date(updateDate(dividerDate, +1))*/ {
-        dividersList.push(<DividerTimeline dividerDate={dividerDate} fromTimelineDate={fromTimelineDate} untilTimelineDate={untilTimelineDate}/>)
+    if (can_draw) {
+        for (let dividerDate = getStartDate(fromTimelineDate); dividerDate < untilTimelineDate; dividerDate = new Date(updateDate(dividerDate, +1))) /*= new Date(updateDate(dividerDate, +1))*/ {
+            dividersList.push(<DividerTimeline dividerDate={dividerDate} fromTimelineDate={fromTimelineDate}
+                                               untilTimelineDate={untilTimelineDate}/>)
+        }
     }
 
     return (
         <div className="for-rooms-reservation-list-wrapper">
-            <div className="for-rooms-reservation-list-background"/>
+            <div className="for-rooms-reservation-list-background">
+                {label}
+            </div>
             {reservationsList}
             {dividersList}
         </div>
