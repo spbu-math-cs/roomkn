@@ -6,6 +6,8 @@ import {IsAuthorizedContext, CurrentUserContext, saveUserData} from "../componen
 import React, {useContext, useState} from "react";
 import useSomeAPI from "../api/FakeAPI";
 
+import { SnackbarContext } from "../components/SnackbarAlert";
+
 const IS_ADMIN_DEFAULT = true;
 export const IS_ADMIN_GUEST = true;
 
@@ -22,6 +24,8 @@ function SignInForm() {
     const {setCurrentUser} = useContext(CurrentUserContext)
 
     const {headers, triggerFetch} = useSomeAPI("/api/v0/login", user, "POST", authCallback)
+
+    const {setNewMessageSnackbar} = useContext(SnackbarContext)
 
     function authCallback(result, statusCode) {
         console.log('invoked auth callback')
@@ -41,8 +45,8 @@ function SignInForm() {
             } else {
                 setIsAuthorized(false)
                 setCurrentUser(null)
+                setNewMessageSnackbar("Incorrect username or password. Please try again.")
             }
-
         }
     }
 

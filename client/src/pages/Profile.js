@@ -104,7 +104,7 @@ const Profile = () => {
     let [presult, setPresult] = useState(null)
     let [pstatusCode, setPstatusCode] = useState(0)
 
-    const {currentUser} = useContext(CurrentUserContext)
+    const {currentUser, setCurrentUser} = useContext(CurrentUserContext)
     const {isAuthorized} = useContext(IsAuthorizedContext)
 
     let {triggerFetch} = useSomeAPI('/api/v0/users/' + currentUser?.user_id, null, 'GET', profileCallback)
@@ -127,6 +127,12 @@ const Profile = () => {
         if (statusCode === 200 && result != null) {
             setPresult(result)
             setPstatusCode(statusCode)
+            if (result.username !== currentUser?.username) {
+                setCurrentUser({
+                    username: result.username,
+                    user_id: result.id
+                })
+            } 
         }
         else {
             setPresult(null)
