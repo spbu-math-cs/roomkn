@@ -115,7 +115,6 @@ function BookingForm({room_id, triggerGetReservations}) {
         else if (statusCode === 201) setNewMessageSnackbar("Reservation succeeded!")
         else setNewMessageSnackbar("Status Code: " + statusCode)
 
-        setNewMessageSnackbar('before trigger')
         triggerGetReservations()
     }
 

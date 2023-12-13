@@ -31,8 +31,7 @@ services:
       - SERV_PORT=${SERVER_PORT}
       - SUPERUSER_NAME=${SUPERUSER_NAME}
       - SUPERUSER_PASSWORD=${SUPERUSER_PASSWORD}
-    depends_on:
-      - db
+      - SUPERUSER_EMAIL=${SUPERUSER_EMAIL}
 
   db:
     image: postgres:16.1

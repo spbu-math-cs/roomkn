@@ -1,11 +1,20 @@
 import ContentWrapper from "../../components/Content";
 import useSomeAPI from "../../api/FakeAPI";
-import React, {useEffect, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import {NavLink} from "react-router-dom";
 
 import "./AdminUserList.css"
 import AdminWrapper from "../../components/AdminWrapper";
-import {Button, Checkbox, FormControlLabel, Stack, TextField, Typography, useTheme} from "@mui/material";
+import {
+    Button,
+    Checkbox,
+    FormControlLabel,
+    Stack,
+    TextField,
+    Typography,
+    useTheme
+} from "@mui/material";
+import { CurrentUserContext } from "../../components/Auth";
 
 function EditUserRow({user, refresh}) {
 
@@ -24,7 +33,9 @@ function EditUserRow({user, refresh}) {
         "UsersAdmin": false,
         "GroupsAdmin": false
     }
+
     const [permissions, setPermissions] = useState(permissionsDefault)
+    const [permissionsBefore, setPermissionsBefore] = useState(permissionsDefault)
 
 
     const checked_perms = []
@@ -64,33 +75,61 @@ function EditUserRow({user, refresh}) {
     }
 
     function permGetCallback(result, statusCode) {
-        console.log('callback entered')
+        // console.log('callback entered')
         if (statusCode === 200) {
             const tmp_perms = permissionsDefault
             for (let perm in result) {
                 tmp_perms[result[perm]] = true;
             }
-            console.log('setting perms')
-            setPermissions(tmp_perms)
+            // console.log('setting perms')
+            setPermissionsBefore(JSON.parse(JSON.stringify(tmp_perms)))
+            setPermissions(JSON.parse(JSON.stringify(tmp_perms)))
         } 
     }
 
+    function PermCheckbox({perm, label, was, on_change}) {
+
+        var boxColor
+        
+        if (perm) {
+            if (was) boxColor = 'primary'
+            else boxColor = 'success'
+        }
+        else {
+            if (was) boxColor = 'secondary'
+            else boxColor = 'error'
+        }
+
+        return (
+            <FormControlLabel
+                control={<Checkbox checked={perm} color={boxColor} onChange={on_change}/>}
+                label={
+                    <Typography color={boxColor}>
+                        {label}
+                    </Typography>
+                }
+            />
+        )
+    }
+
+    console.log('rerendering user')
 
     const permissions_draw = []
     if (permissions != null) {
         for (let perm in permissions) {
-            console.log(user.id, permissions[perm])
-            const onchange = (e) => {
-                console.log("changed perm")
-                const tmp_perms2 = permissions
-                tmp_perms2[perm] = !permissions[perm];
+            //console.log(user.id, permissions[perm])
+            function onchange(e) {
+                const tmp_perms2 = JSON.parse(JSON.stringify(permissions))
+                tmp_perms2[perm] = !permissions[perm]
                 // console.log("sdsdsdfsdg", tmp_perms2)
-                setPermissions(tmp_perms2)
+                setPermissions(JSON.parse(JSON.stringify(tmp_perms2)))
             }
+            
             permissions_draw.push(
-                <FormControlLabel
-                    control={<Checkbox checked={permissions[perm]} onChange={onchange}/>}
-                    label={perm}/>
+                <PermCheckbox perm={permissions[perm]} was={permissionsBefore[perm]} on_change={onchange} label={perm}></PermCheckbox>
+                // <FormControlLabel
+                //     control={<Checkbox checked={permissions[perm]} onChange={onchange}/>}
+                //     label={perm}/>
             )
         }
     }
@@ -99,9 +138,8 @@ function EditUserRow({user, refresh}) {
     const {triggerFetch: triggerDelete} = useSomeAPI("/api/v0/users/" + user.id, null, "DELETE", putDeleteCallback)
 
     const reset = () => {
-        // setName(user.username)
-        // setEmail(user.email)
         infoTriggerFetch()
+        setPermissions(JSON.parse(JSON.stringify(permissionsBefore)))
     }
 
     const put_req = () => {
@@ -175,6 +213,8 @@ export function AdminUserList() {
 
     let [drawList, setDrawList] = useState([])
 
+    const {currentUser, setCurrentUser} = useContext(CurrentUserContext)
+
     let {triggerFetch} = useSomeAPI('/api/v0/users', null, 'GET', listCallback)
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -184,6 +224,15 @@ export function AdminUserList() {
         if (statusCode === 200) {
             const newList = []
             result.forEach((user) => {
+                if (user.id === currentUser?.user_id) {
+                    if (user.username !== currentUser?.username) {
+                        console.log("changed context")
+                        setCurrentUser({
+                            user_id: user.id,
+                            username: user.username
+                        })
+                    }
+                }
                 newList.push(
                     <EditUserRow user={user} key={user.id} refresh={triggerFetch}/>
                 )

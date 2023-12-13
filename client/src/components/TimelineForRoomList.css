@@ -1,0 +1,46 @@
+.for-rooms-reservation-list-wrapper {
+    height: 50px;
+    width: 1200px;
+    position: relative;
+}
+
+.for-rooms-reservations-not-found-label{
+    font-size: 30px;
+    margin-bottom: 20px;
+}
+
+.for-rooms-reservation-list-background {
+    position: relative;
+    height: 50px;
+    width: 100%;
+
+    border-top: 2px solid var(--idea-border-black, #1E1F22);
+    border-right: 2px solid var(--idea-border-black, #1E1F22);
+    border-left: 2px solid var(--idea-border-black, #1E1F22);
+    border-bottom: 2px solid var(--idea-border-black, #1E1F22);
+    /*height: 100px;*/
+}
+
+.for-rooms-reservation-row {
+    position: absolute;
+}
+
+.for-rooms-divider-row{
+    position: absolute;
+    background: #4f5258;
+    height: 52px;
+    width: 3px;
+    z-index: 1;
+}
+
+.for-rooms-reservation-wrapper {
+    color: black;
+    background: darkorchid;
+    border-top: 2px solid var(--idea-border-black, #1E1F22);
+    border-right: 2px solid var(--idea-border-black, #1E1F22);
+    border-left: 2px solid var(--idea-border-black, #1E1F22);
+    border-bottom: 2px solid var(--idea-border-black, #1E1F22);
+    border-radius: 2px;
+    height: 50px;
+    z-index: 1;
+}

@@ -1,5 +1,5 @@
 import './Navbar.css';
-import React, {useContext, useEffect} from "react";
+import React, {useContext, useEffect, useState} from "react";
 
 
 import {NavLink} from "react-router-dom";
@@ -11,12 +11,22 @@ const NavSignIn = () => {
     const {isAuthorized} = useContext(IsAuthorizedContext)
     const {currentUser} = useContext(CurrentUserContext)
 
+    const [userNickname, setUserNickname] = useState(currentUser?.username)
+
     const {triggerLogout, finished, statusCode} = useLogout()
 
     const logOut = () => {
         triggerLogout()
         // browser.cookies.remove('_xsrf');
     }
+
+    useEffect(() => {
+        if (userNickname == null) {
+            setUserNickname("Azat")
+        }
+        setUserNickname(currentUser?.username)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isAuthorized, currentUser?.username])
 
     const {setNewMessageSnackbar} = useContext(SnackbarContext)
 
@@ -33,19 +43,20 @@ const NavSignIn = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [finished]);
 
-    let user_nickname = currentUser?.username
-    if (user_nickname == null) {
-        user_nickname = "Azat"
-    }
+    // let userNickname = currentUser?.username
+    // if (userNickname == null) {
+    //     userNickname = "Azat"
+    // }
 
     if (isAuthorized) {
+        console.log("authorized, nickname = " + userNickname)
         return (
             <>
                 <NavLink to="/my-reservations" className="navlink">
                     My reservations
                 </NavLink>
                 <NavLink to="/profile" className="navlink">
-                    {user_nickname}
+                    {userNickname}
                     <img className="navbar-profile-avatar" src="/azat.png" alt="avatar"/>
                 </NavLink>
                 <div onClick={logOut} className="navlink">
