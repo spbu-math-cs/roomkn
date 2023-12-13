@@ -211,8 +211,8 @@ export function AdminUserList() {
         if (statusCode === 200) {
             const newList = []
             result.forEach((user) => {
-                if (user.id == currentUser?.user_id) {
-                    if (user.username != currentUser?.username) {
+                if (user.id === currentUser?.user_id) {
+                    if (user.username !== currentUser?.username) {
                         console.log("changed context")
                         setCurrentUser({
                             user_id: user.id,

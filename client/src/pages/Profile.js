@@ -127,7 +127,7 @@ const Profile = () => {
         if (statusCode === 200 && result != null) {
             setPresult(result)
             setPstatusCode(statusCode)
-            if (result.username != currentUser?.username) {
+            if (result.username !== currentUser?.username) {
                 setCurrentUser({
                     username: result.username,
                     user_id: result.id

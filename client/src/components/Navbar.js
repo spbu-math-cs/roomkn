@@ -11,7 +11,7 @@ const NavSignIn = () => {
     const {isAuthorized} = useContext(IsAuthorizedContext)
     const {currentUser} = useContext(CurrentUserContext)
 
-    const [userNickname, setUserNickname] = React.useState(currentUser?.username)
+    const [userNickname, setUserNickname] = useState(currentUser?.username)
 
     const {triggerLogout, finished, statusCode} = useLogout()
 
