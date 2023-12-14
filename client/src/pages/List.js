@@ -5,7 +5,7 @@ import React, {useEffect, useState} from "react";
 import {
     Box,
     ListItemButton,
-    Stack,
+    Stack, Typography,
 } from "@mui/material";
 import {fromAPITime} from "../api/API";
 import TimelineForRoomList from "../components/TimelineForRoomList";
@@ -122,7 +122,11 @@ function RoomRow({room, from, until, is_first_room_row}) {
                 <Stack direction="row" alignItems="center" width="100%" spacing={5}>
                     {/*<Grid item>*/}
 
-                        <Box fontSize={20}> {room.name} </Box>
+                        <Box fontSize={20} sx={{width: 5/100}}>
+                            <Typography align={"right"}>
+                                {room.name}
+                            </Typography>
+                        </Box>
                     {/*</Grid>*/}
                     {/*<Grid item>*/}
 
@@ -158,9 +162,8 @@ function RoomList() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [])
 
-    let is_first_room_row = true
-
     useEffect(() => {
+        let is_first_room_row = true
         const new_draw_list = []
         roomList.forEach((room) => {
             new_draw_list.push(<RoomRow room={room} from={from} until={until} is_first_room_row={is_first_room_row}/>)

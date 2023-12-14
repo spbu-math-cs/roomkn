@@ -201,7 +201,7 @@ function TimelineForRoomList({reservations, fromTimelineDate = null, untilTimeli
 
                 let show_divider_label = is_first_timeline
 
-                if (deltaHours == 12 && i === 12) {
+                if (deltaHours === 12 && i === 12) {
                     show_divider_label = false
                 }
 
