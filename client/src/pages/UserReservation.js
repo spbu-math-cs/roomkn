@@ -8,6 +8,7 @@ import useSomeAPI from '../api/FakeAPI';
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
 import {fromAPITime} from "../api/API";
 import {SnackbarContext} from "../components/SnackbarAlert";
+import {Button} from "@mui/material";
 
 
 function Reservation({reservation, onDelete}) {
@@ -35,7 +36,7 @@ function Reservation({reservation, onDelete}) {
 
     function deleteCallback(result, statusCode) {
         if (statusCode === 200) {
-            setNewMessageSnackbar('Удалено!')
+            setNewMessageSnackbar('Deleted!')
             onDelete()
         }
     }
@@ -62,14 +63,14 @@ function Reservation({reservation, onDelete}) {
         <tr>
             <td>
                 <label className='reservation-info-label'>
-                    Комната <NavLink to = {link}>{roomName} </NavLink>;
-                    занята на {from_obj.date} с {from_obj.time} по {until_obj.time}
+                    Room <NavLink to = {link}>{roomName} </NavLink>;
+                    reserved on {from_obj.date} from {from_obj.time} until {until_obj.time}
                 </label>
             </td>
             <td>
-                <button className='reservation-delete-button' onClick={deleteSubmit} >
-                    Удалить резервацию
-                </button>
+                <Button variant="outlined" color="error" onClick={deleteSubmit}>
+                    delete
+                </Button>
             </td>
         </tr>
     )
