@@ -54,7 +54,7 @@ function Reservation({reservation, onDelete}) {
     }
 
     if (roomName === null) {
-        return <tr/>
+        return <Grid item/>
     }
 
     const link = "/room/" + room_id
