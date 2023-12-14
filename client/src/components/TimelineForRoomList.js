@@ -1,6 +1,7 @@
 import {fromAPITime} from '../api/API';
 import "./TimelineForRoomList.css"
 import React from 'react';
+import {Box} from "@mui/material";
 
 function Reservation({reservation, fromTimelineDate, untilTimelineDate}) {
     const fromReservationObj = fromAPITime(reservation.from)
@@ -38,7 +39,7 @@ function Reservation({reservation, fromTimelineDate, untilTimelineDate}) {
     )
 }
 
-function DividerTimeline ({dividerDate, fromTimelineDate, untilTimelineDate}) {
+function getDividerRowStyle(dividerDate, fromTimelineDate, untilTimelineDate) {
     const dividerTime = dividerDate.getTime()
     const fromTimelineTime = fromTimelineDate.getTime()
     const untilTimelineTime = untilTimelineDate.getTime()
@@ -48,13 +49,35 @@ function DividerTimeline ({dividerDate, fromTimelineDate, untilTimelineDate}) {
 
     const leftOffset = (dividerSeconds / timelineDurationSeconds * 100) + "%"
 
-    const row_style = {
+    return {
         top: 0,
         left: leftOffset,
     }
+}
+
+function DividerTimeline ({dividerDate, fromTimelineDate, untilTimelineDate}) {
+    const row_style = getDividerRowStyle(dividerDate, fromTimelineDate, untilTimelineDate)
 
     return (
         <div className="for-rooms-divider-row" style={row_style}/>
+    )
+}
+
+function HourDividerTimeline({dividerDate, fromTimelineDate, untilTimelineDate}) {
+    const row_style = getDividerRowStyle(dividerDate, fromTimelineDate, untilTimelineDate)
+
+    const boxStyle = {
+        position: "relative",
+        top: "100%",
+        left: "-50%"
+    }
+
+    return (
+        <div className="for-rooms-divider-hour-row-wrapper" style={row_style}>
+            <Box style={boxStyle} fontSize={6}> {dividerDate.getHours() + ":" + dividerDate.getMinutes()} </Box>
+            <div className="for-rooms-divider-hour-row"/>
+
+        </div>
     )
 }
 
@@ -70,8 +93,6 @@ function TimelineForRoomList({reservations, fromTimelineDate = null, untilTimeli
         </label>
     )
 
-    console.log("timeline from: " + fromTimelineDate + "until: " + untilTimelineDate)
-
     const reservationsList = []
     reservations.forEach((reservation) => {
         reservationsList.push(
@@ -84,6 +105,7 @@ function TimelineForRoomList({reservations, fromTimelineDate = null, untilTimeli
         )
     })
 
+
     function getStartDate(date) {
         let newDate = new Date(date)
         newDate.setHours(0, 0)
@@ -92,8 +114,28 @@ function TimelineForRoomList({reservations, fromTimelineDate = null, untilTimeli
     }
 
     const dividersList = []
-    for (let dividerDate = getStartDate(fromTimelineDate); dividerDate < untilTimelineDate; dividerDate = new Date(updateDate(dividerDate, +1))) /*= new Date(updateDate(dividerDate, +1))*/ {
+    const hourDividers = []
+
+    const daysCount = Math.floor((untilTimelineDate.getTime() - getStartDate(fromTimelineDate).getTime()) / 1000 / 60 / 60 / 24)
+
+    let deltaHours = 1
+
+    if (daysCount > 4) deltaHours = 2
+    if (daysCount > 6) deltaHours = 3
+    if (daysCount > 8) deltaHours = 4
+    if (daysCount > 12) deltaHours = 6
+    if (daysCount > 16) deltaHours = 8
+    if (daysCount > 24) deltaHours = 12
+    if (daysCount > 48) deltaHours = 24
+
+    for (let dividerDate = getStartDate(fromTimelineDate); dividerDate < untilTimelineDate; dividerDate = new Date(updateDate(dividerDate, +1))) {
         dividersList.push(<DividerTimeline dividerDate={dividerDate} fromTimelineDate={fromTimelineDate} untilTimelineDate={untilTimelineDate}/>)
+
+        for (let i = 0; i < 24; i += deltaHours) {
+            const dividerHourDate = new Date(dividerDate)
+            dividerHourDate.setHours(i, 0)
+            hourDividers.push(<HourDividerTimeline dividerDate={dividerHourDate} fromTimelineDate={fromTimelineDate} untilTimelineDate={untilTimelineDate}/>)
+        }
     }
 
     return (
@@ -101,6 +143,7 @@ function TimelineForRoomList({reservations, fromTimelineDate = null, untilTimeli
             <div className="for-rooms-reservation-list-background"/>
             {reservationsList}
             {dividersList}
+            {hourDividers}
         </div>
     )
 }
