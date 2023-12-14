@@ -8,7 +8,7 @@ import useSomeAPI from '../api/FakeAPI';
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
 import {fromAPITime} from "../api/API";
 import {SnackbarContext} from "../components/SnackbarAlert";
-import {Button} from "@mui/material";
+import {Button, Grid} from "@mui/material";
 
 
 function Reservation({reservation, onDelete}) {
@@ -60,19 +60,19 @@ function Reservation({reservation, onDelete}) {
     const link = "/room/" + room_id
 
     return (
-        <tr>
-            <td>
+        <Grid container item>
+            <Grid item xs = {1000000}>
                 <label className='reservation-info-label'>
                     Room <NavLink to = {link}>{roomName} </NavLink>;
                     reserved on {from_obj.date} from {from_obj.time} until {until_obj.time}
                 </label>
-            </td>
-            <td>
+            </Grid>
+            <Grid item xs = {1000000}>
                 <Button variant="outlined" color="error" onClick={deleteSubmit}>
                     delete
                 </Button>
-            </td>
-        </tr>
+            </Grid>
+        </Grid>
     )
 }
 
@@ -140,9 +140,9 @@ function ReservationsList() {
     }
 
     return (
-        <table className="reservation-list">
-            <tbody>{reservationsList}</tbody>
-        </table>
+        <Grid container>
+            {reservationsList}
+        </Grid>
     )
 }
 
