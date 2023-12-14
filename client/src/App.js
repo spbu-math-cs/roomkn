@@ -51,6 +51,9 @@ const theme = createTheme({
             main: '#c700ff',
         },
     },
+    typography: {
+        fontFamily: "gg sans SemiBold"
+    }
 });
 
 

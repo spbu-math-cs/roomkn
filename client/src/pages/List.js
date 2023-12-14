@@ -4,9 +4,8 @@ import useSomeAPI from "../api/FakeAPI"
 import React, {useEffect, useState} from "react";
 import {
     Box,
-    Grid,
     ListItemButton,
-    Stack,
+    Stack, Typography,
 } from "@mui/material";
 import {fromAPITime} from "../api/API";
 import TimelineForRoomList from "../components/TimelineForRoomList";
@@ -75,7 +74,7 @@ function updateDate(date, diff) {
     return new_date
 }
 
-function TimelineForRoom({room, fromDate, untilDate}) {
+function TimelineForRoom({room, fromDate, untilDate, is_first_timeline}) {
     const {reservations} = GetReservationsInSegment(room.id, fromDate, untilDate)
 
     let realFromDate = new Date(fromDate)
@@ -86,7 +85,7 @@ function TimelineForRoom({room, fromDate, untilDate}) {
     realUntilDate = updateDate(realUntilDate, +1)
 
     return (
-        <TimelineForRoomList reservations = {reservations} fromTimelineDate={realFromDate} untilTimelineDate={realUntilDate}/>
+        <TimelineForRoomList reservations = {reservations} fromTimelineDate={realFromDate} untilTimelineDate={realUntilDate} is_first_timeline={is_first_timeline}/>
     )
 }
 
@@ -95,10 +94,7 @@ function DateSelect({setFromDate, setUntilDate}) {
     const date = getTodayDate()
 
     return (
-        <Stack direction="row" spacing={1}>
-            {/*<DateTimePicker>*/}
-
-            {/*</DateTimePicker>*/}
+        <Stack direction="row" spacing={1} className="room-list-time">
             <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker id="date" label="From" type="date" defaultValue={dayjs(date)}
                             onChange={(v) => {
@@ -117,22 +113,21 @@ function DateSelect({setFromDate, setUntilDate}) {
     )
 }
 
-function RoomRow({room, from, until}) {
+function RoomRow({room, from, until, is_first_room_row}) {
 
     const link = "/room/" + String(room.id)
 
     return (
             <ListItemButton href={link} data-test-id={"link-" + room.id}>
-                <Grid container item alignItems="center">
-                    <Grid item xs = {1}>
+                <Stack direction="row" alignItems="center" width="100%" spacing={5}>
+                    <Box fontSize={20} sx={{width: 5/100}}>
+                        <Typography align={"right"}>
+                            {room.name}
+                        </Typography>
+                    </Box>
 
-                        <Box fontSize={20}> {room.name} </Box>
-                    </Grid>
-                    <Grid item xs = {3}>
-
-                        <TimelineForRoom room={room} fromDate={from} untilDate={until}/>
-                    </Grid>
-                </Grid>
+                    <TimelineForRoom room={room} fromDate={from} untilDate={until} is_first_timeline={is_first_room_row}/>
+                </Stack>
             </ListItemButton>
 
     );
@@ -163,9 +158,11 @@ function RoomList() {
     useEffect(() => triggerFetch(), [])
 
     useEffect(() => {
+        let is_first_room_row = true
         const new_draw_list = []
         roomList.forEach((room) => {
-            new_draw_list.push(<RoomRow room={room} from={from} until={until}/>)
+            new_draw_list.push(<RoomRow room={room} from={from} until={until} is_first_room_row={is_first_room_row}/>)
+            is_first_room_row = false
         })
         setDrawList(new_draw_list)
     }, [from, until, roomList]);
@@ -174,7 +171,7 @@ function RoomList() {
         <ContentWrapper page_name="Classrooms">
             <Stack direction = "column">
                 <DateSelect setFromDate={setFrom} setUntilDate={setUntil}/>
-                    {draw_list}
+                {draw_list}
             </Stack>
 
         </ContentWrapper>

@@ -1,6 +1,6 @@
 .for-rooms-reservation-list-wrapper {
     height: 50px;
-    width: 1200px;
+    width: 100%;
     position: relative;
 }
 
@@ -38,14 +38,24 @@
     z-index: 1;
 }
 
+.for-rooms-divider-hour-row-wrapper {
+    position: absolute;
+    height: 52px;
+}
+
+.for-rooms-divider-hour-row{
+    position: absolute;
+    background: #4f5258;
+    top: 0;
+    height: 52px;
+    width: 1px;
+    z-index: 1;
+}
+
 .for-rooms-reservation-wrapper {
     color: black;
     background: darkorchid;
-    border-top: 2px solid var(--idea-border-black, #1E1F22);
-    border-right: 2px solid var(--idea-border-black, #1E1F22);
-    border-left: 2px solid var(--idea-border-black, #1E1F22);
-    border-bottom: 2px solid var(--idea-border-black, #1E1F22);
     border-radius: 2px;
-    height: 50px;
+    height: 52px;
     z-index: 1;
 }
