@@ -1,6 +1,6 @@
 import ContentWrapper from "../components/Content";
 
-import React from "react";
+import React, {useContext} from "react";
 
 import "@pixi/events";
 import { Stage, Sprite, Text, Graphics, Container } from "@pixi/react";
@@ -12,6 +12,7 @@ import useSomeAPI from "../api/FakeAPI";
 
 import "./Map.css"
 import {MenuItem, Select} from "@mui/material";
+import {SnackbarContext} from "../components/SnackbarAlert";
 
 function Room({ room_id, navigate, mesh, window_scale }) {
     const [hover, setHover] = useState(false);
@@ -119,40 +120,52 @@ function Layer({ layer, navigate, scale }) {
 }
 
 export function MapField({map, scale=1}) {
+    const {setNewMessageSnackbar} = useContext(SnackbarContext)
+
     const navigate = useNavigate();
 
     const [selectedLayer, setSelectedLayer] = useState(1);
     // const [layersList, setLayersList] = useState([]);
 
-    const layers = [];
-    const layer_options = [];
+    try {
 
-    map.layers.forEach((layer) => {
-        layer_options.push(
-            <MenuItem value={layer.id}>
-                {layer.name}
-            </MenuItem>
-        )
-        if (selectedLayer.toString() === layer.id.toString()) {
-            layers.push(
-                <Layer layer={layer} navigate={navigate} scale={scale}/>
+        const layers = [];
+        const layer_options = [];
+
+        map.layers.forEach((layer) => {
+            layer_options.push(
+                <MenuItem value={layer.id}>
+                    {layer.name}
+                </MenuItem>
             )
-        }
-    })
+            if (selectedLayer.toString() === layer.id.toString()) {
+                layers.push(
+                    <Layer layer={layer} navigate={navigate} scale={scale}/>
+                )
+            }
+        })
 
-    const width = 1000*scale;
-    const height = 700*scale;
+        const width = 1000 * scale;
+        const height = 700 * scale;
 
-    return (
-        <>
-            <Select value={selectedLayer} onChange={e => setSelectedLayer(e.target.value)} >
-                {layer_options}
-            </Select>
-            <Stage options={{ antialias: true, backgroundAlpha: 0 }} width={width} height={height} className="map-stage">
-                {layers}
-            </Stage>
-        </>
-    );
+        return (
+            <>
+                <Select value={selectedLayer} onChange={e => setSelectedLayer(e.target.value)}>
+                    {layer_options}
+                </Select>
+                <Stage options={{antialias: true, backgroundAlpha: 0}} width={width} height={height}
+                       className="map-stage">
+                    {layers}
+                </Stage>
+            </>
+        );
+    } catch (e) {
+        setNewMessageSnackbar("Map configuration is corrupted");
+
+        return (
+            <MapField map={empty_map}/>
+        )
+    }
 }
 
 export function GetMap() {
