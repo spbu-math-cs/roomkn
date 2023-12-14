@@ -9,6 +9,10 @@ import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
 import {Box, Button, Slider, Stack, Typography} from "@mui/material";
 import {SnackbarContext} from '../components/SnackbarAlert'
 import TimelineWithUsers from "../components/Timeline";
+import {DatePicker} from "@mui/x-date-pickers";
+import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import dayjs from "dayjs";
 
 const CurrentReservationContext = createContext()
 
@@ -115,7 +119,6 @@ function BookingForm({room_id, triggerGetReservations}) {
         else if (statusCode === 201) setNewMessageSnackbar("Reservation succeeded!")
         else setNewMessageSnackbar("Status Code: " + statusCode)
 
-        setNewMessageSnackbar('before trigger')
         triggerGetReservations()
     }
 
@@ -213,7 +216,14 @@ function RoomDate({date, setDate}) {
                     </label>
                 </div>
                 <div className="room-date-value">
-                    <input className="form-input" type="date" value={date} onChange={(e) => setDate(e.target.value)}/>
+                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                        <DatePicker className="form-input" type="date" value={dayjs(date)}
+                                    onChange={(v) => {
+                                        setDate(dateFormat(v.toDate()));
+                                    }}
+                                    format="DD.MM.YYYY"
+                        />
+                    </LocalizationProvider>
                 </div>
                 <div className="room-date-buttons">
                     <div className="room-date-button-wrapper">
@@ -267,7 +277,7 @@ function Room() {
                         </div>
                         <div className='reservations-info'>
                             <div>
-                                <div className='reservations-label'>Reservations on {date}:</div>
+                                <div className='reservations-label'>Reservations:</div>
                             </div>
                             <TimelineWithUsers reservations={reservations} currentReservation={currentReservation}/>
                         </div>

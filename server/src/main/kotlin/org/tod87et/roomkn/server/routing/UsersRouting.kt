@@ -12,11 +12,14 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.patch
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
+import org.koin.ktor.ext.inject
+import org.tod87et.roomkn.server.auth.AccountController
 import org.tod87et.roomkn.server.auth.AuthenticationProvider
 import org.tod87et.roomkn.server.auth.NoSuchUserException
 import org.tod87et.roomkn.server.database.Database
 import org.tod87et.roomkn.server.di.injectDatabase
 import org.tod87et.roomkn.server.models.permissions.UserPermission
+import org.tod87et.roomkn.server.models.users.PasswordUpdateInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfoWithNull
 import org.tod87et.roomkn.server.util.defaultExceptionHandler
@@ -32,6 +35,7 @@ fun Route.usersRouting() {
             getUser(database)
             listUserPermissions(database)
             setUserPermissions(database)
+            updateUserCredentials(database)
         }
     }
 }
@@ -80,6 +84,16 @@ private fun Route.updateUser(database: Database) {
 
             database.updateUserInfoPartially(id, body).okResponseWithHandleException(call)
         }
+    }
+}
+
+private fun Route.updateUserCredentials(database: Database) {
+    val accountController: AccountController by inject()
+    put("/{id}/password") { body: PasswordUpdateInfo ->
+        val id = call.parameters["id"]?.toInt() ?: return@put call.onMissingId()
+        call.requirePermissionOrSelf(id, database) { return@put call.onMissingPermission() }
+
+        accountController.updateUserPassword(id, body).okResponseWithHandleException(call)
     }
 }
 

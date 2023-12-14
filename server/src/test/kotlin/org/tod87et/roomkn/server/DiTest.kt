@@ -85,6 +85,8 @@ private class CredentialsDatabaseMock : CredentialsDatabase {
     override fun getCredentialsInfoByUsername(username: String): Result<UserCredentialsInfo> =
         fail()
 
+    override fun getCredentialsInfoById(userId: Int): Result<UserCredentialsInfo> = fail()
+
     override fun getCredentialsInfoByEmail(email: String): Result<UserCredentialsInfo> = fail()
 
     override fun updateUserPassword(

@@ -20,6 +20,8 @@ import {SnackbarContextProvider} from './components/SnackbarAlert'
 import AdminPanel from "./pages/admin/AdminPanel";
 import AdminRoomList from "./pages/admin/AdminRoomList";
 import AdminUserList from "./pages/admin/AdminUserList";
+import AdminMap from "./pages/admin/AdminMap";
+
 import {createTheme, ThemeProvider} from "@mui/material";
 import AdminReservations from "./pages/admin/AdminReservations";
 
@@ -50,6 +52,9 @@ const theme = createTheme({
             main: '#c700ff',
         },
     },
+    typography: {
+        fontFamily: "gg sans SemiBold"
+    }
 });
 
 
@@ -81,6 +86,7 @@ function App() {
                             <Route path="admin/rooms" element={<AdminRoomList/>}/>
                             <Route path="admin/users" element={<AdminUserList/>}/>
                             <Route path="admin/reservations" element={<AdminReservations/>}/>
+                            <Route path='admin/map' element={<AdminMap/>}/>
                         </Routes>
                         {/*<Footer />*/}
                     </Router>
