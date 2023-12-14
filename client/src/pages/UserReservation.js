@@ -8,6 +8,7 @@ import useSomeAPI from '../api/FakeAPI';
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
 import {fromAPITime} from "../api/API";
 import {SnackbarContext} from "../components/SnackbarAlert";
+import {Button, Grid} from "@mui/material";
 
 
 function Reservation({reservation, onDelete}) {
@@ -35,7 +36,7 @@ function Reservation({reservation, onDelete}) {
 
     function deleteCallback(result, statusCode) {
         if (statusCode === 200) {
-            setNewMessageSnackbar('Удалено!')
+            setNewMessageSnackbar('Deleted!')
             onDelete()
         }
     }
@@ -53,25 +54,25 @@ function Reservation({reservation, onDelete}) {
     }
 
     if (roomName === null) {
-        return <tr/>
+        return <Grid item/>
     }
 
     const link = "/room/" + room_id
 
     return (
-        <tr>
-            <td>
+        <Grid container item>
+            <Grid item xs = {6}>
                 <label className='reservation-info-label'>
-                    Комната <NavLink to = {link}>{roomName} </NavLink>;
-                    занята на {from_obj.date} с {from_obj.time} по {until_obj.time}
+                    Room <NavLink to = {link}>{roomName} </NavLink>;
+                    reserved on {from_obj.date} from {from_obj.time} until {until_obj.time}
                 </label>
-            </td>
-            <td>
-                <button className='reservation-delete-button' onClick={deleteSubmit} >
-                    Удалить резервацию
-                </button>
-            </td>
-        </tr>
+            </Grid>
+            <Grid item xs = {1}>
+                <Button variant="outlined" color="error" onClick={deleteSubmit}>
+                    delete
+                </Button>
+            </Grid>
+        </Grid>
     )
 }
 
@@ -139,9 +140,9 @@ function ReservationsList() {
     }
 
     return (
-        <table className="reservation-list">
-            <tbody>{reservationsList}</tbody>
-        </table>
+        <Grid container>
+            {reservationsList}
+        </Grid>
     )
 }
 
