@@ -34,7 +34,7 @@ function useGetUsersShortInfo() {
     let {triggerFetch} = useSomeAPI('/api/v0/users', null, 'GET', usersCallback)
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => {triggerFetch()}, []);
+    useEffect(() => triggerFetch(), []);
     return users
 }
 
@@ -50,6 +50,7 @@ function useGetRooms() {
 
     let {triggerFetch} = useSomeAPI('/api/v0/rooms', null, 'GET', roomsCallback)
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), []);
     return rooms
 }
@@ -65,9 +66,8 @@ function useGetUserName(user_id) {
 
     const {triggerFetch} = useSomeAPI("/api/v0/users/" + user_id, null, 'GET', getUserCallback)
 
-    useEffect(() => {
-        triggerFetch()
-    }, [user_id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => {triggerFetch()}, [user_id]);
 
     return user_name
 }
@@ -83,9 +83,8 @@ function useGetRoomName(room_id) {
 
     const {triggerFetch} = useSomeAPI("/api/v0/rooms/" + room_id, null, 'GET', getRoomCallback)
 
-    useEffect(() => {
-        triggerFetch()
-    }, [room_id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => {triggerFetch()}, [room_id]);
 
     return room_name
 }
@@ -175,6 +174,7 @@ function useGetReservations(orderBy, from, until, userList, roomList) {
         }
     })
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [])
 
     return result
