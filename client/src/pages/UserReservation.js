@@ -61,13 +61,13 @@ function Reservation({reservation, onDelete}) {
 
     return (
         <Grid container item>
-            <Grid item xs = {1000000}>
+            <Grid item xs = {6}>
                 <label className='reservation-info-label'>
                     Room <NavLink to = {link}>{roomName} </NavLink>;
                     reserved on {from_obj.date} from {from_obj.time} until {until_obj.time}
                 </label>
             </Grid>
-            <Grid item xs = {1000000}>
+            <Grid item xs = {1}>
                 <Button variant="outlined" color="error" onClick={deleteSubmit}>
                     delete
                 </Button>
