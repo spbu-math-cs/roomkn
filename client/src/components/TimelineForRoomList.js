@@ -63,18 +63,52 @@ function DividerTimeline ({dividerDate, fromTimelineDate, untilTimelineDate}) {
     )
 }
 
-function HourDividerTimeline({dividerDate, fromTimelineDate, untilTimelineDate}) {
+function HourDividerTimeline({dividerDate, fromTimelineDate, untilTimelineDate, is_first_timeline}) {
     const row_style = getDividerRowStyle(dividerDate, fromTimelineDate, untilTimelineDate)
+
+    let fontSize = 10
+    const margin_bottom = 5;
+
+    const hours = dividerDate.getHours()
+    let minutes = dividerDate.getMinutes()
+    if (minutes < 10) {
+        minutes = "0" + minutes
+    }
+
+
+    let show = hours + ":" + minutes;
+
+    if (dividerDate.getHours() === 0) {
+        let day = dividerDate.getDate()
+        let month = dividerDate.getMonth() + 1
+        if (day < 10) {
+            day = "0" + day
+        }
+        if (month < 10) {
+            month = "0" + month
+        }
+        show = day + "." + month
+
+        fontSize = 12
+    }
 
     const boxStyle = {
         position: "relative",
-        top: "100%",
-        left: "-50%"
+        top: "-" + (fontSize + margin_bottom) + "px",
+        // left: "-50%"
+    }
+
+    let hour_label = <></>
+
+    if (is_first_timeline) {
+        hour_label = (
+            <Box style={boxStyle} fontSize={fontSize}> {show} </Box>
+        )
     }
 
     return (
         <div className="for-rooms-divider-hour-row-wrapper" style={row_style}>
-            <Box style={boxStyle} fontSize={6}> {dividerDate.getHours() + ":" + dividerDate.getMinutes()} </Box>
+            {hour_label}
             <div className="for-rooms-divider-hour-row"/>
 
         </div>
@@ -86,7 +120,7 @@ function updateDate(date, diff) {
     return date
 }
 
-function TimelineForRoomList({reservations, fromTimelineDate = null, untilTimelineDate = null}) {
+function TimelineForRoomList({reservations, fromTimelineDate = null, untilTimelineDate = null, is_first_timeline=false}) {
     let label = <></>
 
     let can_draw = true
@@ -144,13 +178,17 @@ function TimelineForRoomList({reservations, fromTimelineDate = null, untilTimeli
 
     let deltaHours = 1
 
-    if (daysCount > 4) deltaHours = 2
-    if (daysCount > 6) deltaHours = 3
-    if (daysCount > 8) deltaHours = 4
-    if (daysCount > 12) deltaHours = 6
-    if (daysCount > 16) deltaHours = 8
-    if (daysCount > 24) deltaHours = 12
-    if (daysCount > 48) deltaHours = 24
+    if (daysCount >= 2) deltaHours = 2
+    if (daysCount >= 3) deltaHours = 3
+    if (daysCount >= 4) deltaHours = 4
+    if (daysCount >= 6) deltaHours = 6
+    if (daysCount >= 8) deltaHours = 4
+    if (daysCount >= 12) deltaHours = 12
+    // if (daysCount >= 16) deltaHours = 1
+    if (daysCount >= 24) deltaHours = 24
+    // if (daysCount >= 48) deltaHours = 24
+
+    // deltaHours = daysCount
 
     if (can_draw) {
         for (let dividerDate = getStartDate(fromTimelineDate); dividerDate < untilTimelineDate; dividerDate = new Date(updateDate(dividerDate, +1))) {
@@ -161,7 +199,7 @@ function TimelineForRoomList({reservations, fromTimelineDate = null, untilTimeli
                 const dividerHourDate = new Date(dividerDate)
                 dividerHourDate.setHours(i, 0)
                 hourDividers.push(<HourDividerTimeline dividerDate={dividerHourDate} fromTimelineDate={fromTimelineDate}
-                                                       untilTimelineDate={untilTimelineDate}/>)
+                                                       untilTimelineDate={untilTimelineDate} is_first_timeline={is_first_timeline}/>)
             }
         }
     }
