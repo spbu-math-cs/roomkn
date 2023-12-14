@@ -94,7 +94,7 @@ function Reservation({reservation, is_current_reservation = false}) {
 function TimelineWithUsers({reservations, currentReservation = null}) {
     if (reservations == null) return (
         <label className='reservations-not-found-label'>
-            Не удалось получить список бронирований для этого кабинета.
+            Can't get reservations list for this room.
         </label>
     )
 
