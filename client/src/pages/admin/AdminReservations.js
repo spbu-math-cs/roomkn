@@ -98,12 +98,8 @@ function Reservation({reservation}) {
 
     let [deleted, setDeleted] = useState(false)
 
-    console.log("print reservations before" + reservation.room_id)
-
     let room_name = useGetRoomName(room_id)
     let user_name = useGetUserName(user_id)
-
-    console.log("print reservation room id is " + room_id + " use: " + useGetRoomName(room_id) + " name " + "room_name: " + room_name)
 
     const {setNewMessageSnackbar} = useContext(SnackbarContext)
 
