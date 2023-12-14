@@ -34,7 +34,7 @@ function useGetUsersShortInfo() {
     let {triggerFetch} = useSomeAPI('/api/v0/users', null, 'GET', usersCallback)
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => triggerFetch(), []);
+    useEffect(() => {triggerFetch()}, []);
     return users
 }
 
@@ -67,7 +67,7 @@ function useGetUserName(user_id) {
 
     useEffect(() => {
         triggerFetch()
-    }, []);
+    }, [user_id]);
 
     return user_name
 }
@@ -85,7 +85,7 @@ function useGetRoomName(room_id) {
 
     useEffect(() => {
         triggerFetch()
-    }, []);
+    }, [room_id]);
 
     return room_name
 }
@@ -162,7 +162,6 @@ function useGetReservations(orderBy, from, until, userList, roomList) {
             setResult({
                 reservations: result,
                 triggerGetReservations: () => {
-                    console.log("trigger get reservations!")
                     triggerFetch()
                 }
             })
@@ -315,7 +314,9 @@ function Filters({triggerGetReservations}) {
 
 function Reservations({reservations, orderBy}) {
 
-    if (reservations.length === 0) return <Box> No reservations found</Box>
+    if (reservations.length === 0) return (
+        <ContentWrapper page_name="No reservations found"/>
+    )
     const drawList = []
 
     reservations.sort((a, b) => {
@@ -336,7 +337,7 @@ function Reservations({reservations, orderBy}) {
         drawList.push(<Reservation reservation={reservation}/> )
     })
 
-    return <Stack direction = "column" spacing = {2}>
+    return <Stack direction = "column">
         {drawList}
     </Stack>
 }
@@ -361,6 +362,14 @@ function AdminReservations() {
 
     const {reservations, triggerGetReservations} = useGetReservations(orderBy, from, until, users, rooms)
 
+
+    const {setNewMessageSnackbar} = useContext(SnackbarContext)
+
+    function onUpdate() {
+        setNewMessageSnackbar("Got reservations!")
+        triggerGetReservations()
+    }
+
     return (
         <AdminWrapper>
             <ContentWrapper page_name={page_name}>
@@ -374,7 +383,7 @@ function AdminReservations() {
                 }}>
                 <Stack spacing = {2} direction = "column">
                     <ContentWrapper page_name={"Filters"}>
-                        <Filters triggerGetReservations={triggerGetReservations}/>
+                        <Filters triggerGetReservations={onUpdate}/>
                     </ContentWrapper>
                     <Reservations reservations={reservations} orderBy={orderBy}/>
                 </Stack>
