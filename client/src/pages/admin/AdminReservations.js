@@ -16,6 +16,7 @@ import {
     Stack, TextField,
     useTheme
 } from "@mui/material";
+import {SnackbarContext} from "../../components/SnackbarAlert";
 
 const FiltersContext = createContext()
 
@@ -53,6 +54,42 @@ function useGetRooms() {
     return rooms
 }
 
+function useGetUserName(user_id) {
+    const [user_name, setUserName] = useState("")
+
+    function getUserCallback(result, statusCode) {
+        if (result != null && statusCode === 200) {
+            setUserName(result.username)
+        }
+    }
+
+    const {triggerFetch} = useSomeAPI("/api/v0/users/" + user_id, null, 'GET', getUserCallback)
+
+    useEffect(() => {
+        triggerFetch()
+    }, []);
+
+    return user_name
+}
+
+function useGetRoomName(room_id) {
+    const [room_name, setRoomName] = useState("")
+
+    function getRoomCallback(result, statusCode) {
+        if (result != null && statusCode === 200) {
+            setRoomName(result.name)
+        }
+    }
+
+    const {triggerFetch} = useSomeAPI("/api/v0/rooms/" + room_id, null, 'GET', getRoomCallback)
+
+    useEffect(() => {
+        triggerFetch()
+    }, []);
+
+    return room_name
+}
+
 function Reservation({reservation}) {
 
     const from_obj = fromAPITime(reservation.from)
@@ -60,21 +97,52 @@ function Reservation({reservation}) {
     const room_id = reservation.room_id
     const user_id = reservation.user_id
 
-    return <Box >
-        Комната {room_id} зарезервирована
-        человком {user_id} на {from_obj.date} с {from_obj.time} по {until_obj.time}
-    </Box>
+    let [deleted, setDeleted] = useState(false)
+
+    console.log("print reservations before" + reservation.room_id)
+
+    let room_name = useGetRoomName(room_id)
+    let user_name = useGetUserName(user_id)
+
+    console.log("print reservation room id is " + room_id + " use: " + useGetRoomName(room_id) + " name " + "room_name: " + room_name)
+
+    const {setNewMessageSnackbar} = useContext(SnackbarContext)
+
+    function deleteCallback(result, statusCode) {
+        if (statusCode === 200 && result != null) {
+            setDeleted(true)
+            setNewMessageSnackbar("reservation deleted!")
+        }
+    }
+
+    let {triggerFetch} = useSomeAPI("/api/v0/reservations/" + reservation.id, null, 'DELETE', deleteCallback)
+
+    function deleteReservation () {
+        triggerFetch()
+    }
+
+    if (deleted) return (<></>)
+
+    return (
+        <ContentWrapper page_name={reservation.id}>
+            <Stack direction = "column">
+                <Box>Room: {room_name}</Box>
+                <Box>User: {user_name}</Box>
+                <Box>Date: {from_obj.date}</Box>
+                <Box>From: {from_obj.time}</Box>
+                <Box>Until: {until_obj.time}</Box>
+                <Button variant="outlined" color="error" onClick={deleteReservation} sx={{maxWidth: "40pt"}}>delete</Button>
+            </Stack>
+        </ContentWrapper>
+    )
 }
 
 function useGetReservations(orderBy, from, until, userList, roomList) {
-
-    console.log("from in get reservations: " + from + "in api: " + toAPITime(from, "00:00"))
-
     const params = new URLSearchParams()
-    params.append("user_ids", userList)
-    params.append("room_ids", roomList)
+    if (userList.length > 0) params.append("user_ids", userList)
+    if (roomList.length > 0)  params.append("room_ids", roomList)
     params.append("from", toAPITime(from, "00:00"))
-    params.append("until", toAPITime(until, "00:00"))
+    params.append("until", toAPITime(until, "23:59"))
 
     const url = "/api/v0/reservations?" + params.toString()
 
@@ -89,12 +157,12 @@ function useGetReservations(orderBy, from, until, userList, roomList) {
 
     function getReservationsCallback(result, statusCode) {
         console.log("get reservations callback! result: " + result + " status code: " + statusCode)
-        if (result != null && statusCode === 200) {
+        if (result != null && statusCode === 201) {
             //TODO: orderBy
             setResult({
                 reservations: result,
                 triggerGetReservations: () => {
-                    console.log("trigger ger reservations!")
+                    console.log("trigger get reservations!")
                     triggerFetch()
                 }
             })
@@ -136,25 +204,23 @@ function getTodayDate(format = "yyyy-mm-dd") {
 }
 
 function Filters({triggerGetReservations}) {
-    const today = getTodayDate()
-    const [fromFilters, setFromFilters] = React.useState(today)
-    const [untilFilters, setUntilFilters] = React.useState(today)
-    const [orderByFilters, setOrderByFilters] = useState("")
-    const [selectedUserIds, setSelectedUserIds] = useState([])
-    const [selectedRoomsIds, setSelectedRoomsIds] = useState([])
 
-    const {setFrom, setUntil, setOrderBy, setUsers, setRooms} = useContext(FiltersContext)
+    const {from, setFrom,
+        until, setUntil,
+        orderBy, setOrderBy,
+        users, setUsers,
+        rooms, setRooms} = useContext(FiltersContext)
 
-    const users = useGetUsersShortInfo()
+    const allUsers = useGetUsersShortInfo()
 
-    const rooms = useGetRooms()
+    const allRooms = useGetRooms()
 
     const handleChangeUsers = (event) => {
         const {
             target: { value },
         } = event;
 
-        setSelectedUserIds(
+        setUsers(
             typeof value === 'string' ? value.split(',') : value,
         )
     }
@@ -166,30 +232,22 @@ function Filters({triggerGetReservations}) {
 
         console.log("value: " + value + " " + typeof value)
 
-        setSelectedRoomsIds(
+        setRooms(
             typeof value === 'string' ? value.split(',') : value,
         );
 
-        console.log("selected rooms: " + selectedRoomsIds)
+        console.log("selected rooms: " + rooms)
     };
 
     const userMap = new Map()
-    users.forEach((user) => {userMap.set(user.id, user.username)})
+    allUsers.forEach((user) => {userMap.set(user.id, user.username)})
 
     const roomMap = new Map()
-    rooms.forEach((room) => {roomMap.set(room.id, room.name)})
+    allRooms.forEach((room) => {roomMap.set(room.id, room.name)})
 
     const theme = useTheme()
 
-    const date = getTodayDate()
-
     const onUpdate = () => {
-        console.log("on update")
-        setOrderBy(orderByFilters)
-        setUsers(selectedUserIds)
-        setRooms(selectedRoomsIds)
-        setFrom(fromFilters)
-        setUntil(untilFilters)
         triggerGetReservations()
     }
 
@@ -201,8 +259,8 @@ function Filters({triggerGetReservations}) {
                     label="Order by:"
                     labelId="order-by-label-id"
                     id="order-by-select"
-                    value = {orderByFilters}
-                    onChange = {(e) => {setOrderByFilters(e.target.value)}}
+                    value = {orderBy}
+                    onChange = {(e) => {setOrderBy(e.target.value)}}
                 >
                     <MenuItem value = "reservation-date">Reservation date</MenuItem>
                     <MenuItem value = "user-name">User name</MenuItem>
@@ -216,13 +274,13 @@ function Filters({triggerGetReservations}) {
                     label="Users:"
                     labelId="select-users-label-id"
                     id="users-select"
-                    value={selectedUserIds}
+                    value={users}
                     onChange={handleChangeUsers}
                     renderValue={(selected) => selected.map((id) => userMap.get(id)).join(', ')}
                 >
-                    {users.map((user) => (
+                    {allUsers.map((user) => (
                         <MenuItem value={user.id}>
-                            <Checkbox checked={(selectedUserIds.indexOf(user.id) > -1)}/>
+                            <Checkbox checked={(users.indexOf(user.id) > -1)}/>
                             <ListItemText primary={user.username} />
                         </MenuItem>
                     ))}
@@ -236,27 +294,44 @@ function Filters({triggerGetReservations}) {
                     label="Rooms:"
                     labelId="select-rooms-label-id"
                     id="rooms-select"
-                    value={selectedRoomsIds}
+                    value={rooms}
                     onChange={handleChangeRooms}
                     renderValue={(selected) => selected.map((id) => roomMap.get(id)).join(', ')}
                 >
-                    {rooms.map((room) => (
+                    {allRooms.map((room) => (
                         <MenuItem value={room.id}>
-                            <Checkbox checked={(selectedRoomsIds.indexOf(room.id) > -1)}/>
+                            <Checkbox checked={(rooms.indexOf(room.id) > -1)}/>
                             <ListItemText primary={room.name} />
                         </MenuItem>
                     ))}
                 </Select>
             </FormControl>
-            <TextField id="date" label="From" type="date" defaultValue={date} onChange={(e) => {setFromFilters(e.target.value)}}/>
-            <TextField id="date" label="Until" type="date" defaultValue={date} onChange={(e) => {setUntilFilters(e.target.value)}}/>
+            <TextField id="date" label="From" type="date" defaultValue={from} onChange={(e) => {setFrom(e.target.value)}}/>
+            <TextField id="date" label="Until" type="date" defaultValue={until} onChange={(e) => {setUntil(e.target.value)}}/>
             <Button variant="contained" color="success" onClick={onUpdate}>Update</Button>
         </Stack>
     )
 }
 
-function Reservations({reservations}) {
+function Reservations({reservations, orderBy}) {
+
+    if (reservations.length === 0) return <Box> No reservations found</Box>
     const drawList = []
+
+    reservations.sort((a, b) => {
+        if (orderBy === "reservation-date") {
+            const a_from_obj = fromAPITime(a.from)
+            const b_from_obj = fromAPITime(b.from)
+            const aFromDate = new Date(a_from_obj.date, a_from_obj.time)
+            const bFromDate = new Date(b_from_obj.date, b_from_obj.time)
+            return aFromDate.getTime() < bFromDate.getTime()
+        }
+        else if (orderBy === "user-name") {
+            return a.user_id < b.user_id
+        }
+        return a.room_id < b.room_id
+    })
+
     reservations.forEach((reservation) => {
         drawList.push(<Reservation reservation={reservation}/> )
     })
@@ -280,7 +355,7 @@ function AdminReservations() {
     const today = getTodayDate()
     const [from, setFrom] = React.useState(today)
     const [until, setUntil] = React.useState(today)
-    const [orderBy, setOrderBy] = useState("")
+    const [orderBy, setOrderBy] = useState("reservation-date")
     const [users, setUsers] = useState([])
     const [rooms, setRooms] = useState([])
 
@@ -289,6 +364,7 @@ function AdminReservations() {
     return (
         <AdminWrapper>
             <ContentWrapper page_name={page_name}>
+            </ContentWrapper>
                 <FiltersContext.Provider value = {{
                     from, setFrom,
                     until, setUntil,
@@ -296,10 +372,13 @@ function AdminReservations() {
                     users, setUsers,
                     rooms, setRooms
                 }}>
-                    <Filters triggerGetReservations={triggerGetReservations}/>
-                    <Reservations reservations={reservations}/>
-                </FiltersContext.Provider>
-            </ContentWrapper>
+                <Stack spacing = {2} direction = "column">
+                    <ContentWrapper page_name={"Filters"}>
+                        <Filters triggerGetReservations={triggerGetReservations}/>
+                    </ContentWrapper>
+                    <Reservations reservations={reservations} orderBy={orderBy}/>
+                </Stack>
+            </FiltersContext.Provider>
         </AdminWrapper>)
 }
 
