@@ -21,7 +21,7 @@ export function AdminPanel() {
 
                 <br/>
 
-                <NavLink to="/admin/map">
+                <NavLink to="/admin/map" className="navlink">
                     Map
                 </NavLink>
 
