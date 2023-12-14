@@ -4,7 +4,6 @@ import useSomeAPI from "../api/FakeAPI"
 import React, {useEffect, useState} from "react";
 import {
     Box,
-    Grid,
     ListItemButton,
     Stack,
 } from "@mui/material";
@@ -120,16 +119,16 @@ function RoomRow({room, from, until, is_first_room_row}) {
 
     return (
             <ListItemButton href={link} data-test-id={"link-" + room.id}>
-                <Grid container item alignItems="center">
-                    <Grid item xs = {1}>
+                <Stack direction="row" alignItems="center" width="100%" spacing={5}>
+                    {/*<Grid item>*/}
 
                         <Box fontSize={20}> {room.name} </Box>
-                    </Grid>
-                    <Grid item xs = {2}>
+                    {/*</Grid>*/}
+                    {/*<Grid item>*/}
 
                         <TimelineForRoom room={room} fromDate={from} untilDate={until} is_first_timeline={is_first_room_row}/>
-                    </Grid>
-                </Grid>
+                    {/*</Grid>*/}
+                </Stack>
             </ListItemButton>
 
     );

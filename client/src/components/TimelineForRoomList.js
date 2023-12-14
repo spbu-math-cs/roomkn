@@ -63,10 +63,10 @@ function DividerTimeline ({dividerDate, fromTimelineDate, untilTimelineDate}) {
     )
 }
 
-function HourDividerTimeline({dividerDate, fromTimelineDate, untilTimelineDate, is_first_timeline}) {
+function HourDividerTimeline({dividerDate, fromTimelineDate, untilTimelineDate, show_divider_label}) {
     const row_style = getDividerRowStyle(dividerDate, fromTimelineDate, untilTimelineDate)
 
-    let fontSize = 10
+    let fontSize = 18
     const margin_bottom = 5;
 
     const hours = dividerDate.getHours()
@@ -89,7 +89,7 @@ function HourDividerTimeline({dividerDate, fromTimelineDate, untilTimelineDate, 
         }
         show = day + "." + month
 
-        fontSize = 12
+        fontSize = fontSize + 5
     }
 
     const boxStyle = {
@@ -100,7 +100,7 @@ function HourDividerTimeline({dividerDate, fromTimelineDate, untilTimelineDate, 
 
     let hour_label = <></>
 
-    if (is_first_timeline) {
+    if (show_divider_label) {
         hour_label = (
             <Box style={boxStyle} fontSize={fontSize}> {show} </Box>
         )
@@ -181,9 +181,9 @@ function TimelineForRoomList({reservations, fromTimelineDate = null, untilTimeli
     if (daysCount >= 2) deltaHours = 2
     if (daysCount >= 3) deltaHours = 3
     if (daysCount >= 4) deltaHours = 4
-    if (daysCount >= 6) deltaHours = 6
-    if (daysCount >= 8) deltaHours = 4
-    if (daysCount >= 12) deltaHours = 12
+    if (daysCount >= 5) deltaHours = 6
+    if (daysCount >= 8) deltaHours = 8
+    if (daysCount >= 10) deltaHours = 12
     // if (daysCount >= 16) deltaHours = 1
     if (daysCount >= 24) deltaHours = 24
     // if (daysCount >= 48) deltaHours = 24
@@ -198,8 +198,15 @@ function TimelineForRoomList({reservations, fromTimelineDate = null, untilTimeli
             for (let i = 0; i < 24; i += deltaHours) {
                 const dividerHourDate = new Date(dividerDate)
                 dividerHourDate.setHours(i, 0)
+
+                let show_divider_label = is_first_timeline
+
+                if (deltaHours && i === 12) {
+                    show_divider_label = false
+                }
+
                 hourDividers.push(<HourDividerTimeline dividerDate={dividerHourDate} fromTimelineDate={fromTimelineDate}
-                                                       untilTimelineDate={untilTimelineDate} is_first_timeline={is_first_timeline}/>)
+                                                       untilTimelineDate={untilTimelineDate} show_divider_label={show_divider_label}/>)
             }
         }
     }
