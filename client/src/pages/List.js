@@ -106,10 +106,11 @@ function RoomRow({room, from, until}) {
 
     const link = "/room/" + String(room.id)
 
+    //TODO: fix xs
     return (
-        <Grid item>
+        <Grid item xs = {100000}>
             <ListItemButton href={link} data-test-id={"link-" + room.id}>
-            <Grid container item alignItems="center">
+            <Grid container item alignItems="center" xs = {100000}>
                 <Grid item xs = {1}>
                     <Box fontSize={20}> {room.name} </Box>
                 </Grid>
@@ -159,7 +160,7 @@ function RoomList() {
         <ContentWrapper page_name="Classrooms">
             <Stack direction = "column">
                 <DateSelect setFromDate={setFrom} setUntilDate={setUntil}/>
-                <Grid container spacing = {3}>
+                <Grid container>
                     {draw_list}
                 </Grid>
             </Stack>
