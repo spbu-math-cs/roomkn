@@ -120,18 +120,13 @@ function RoomRow({room, from, until, is_first_room_row}) {
     return (
             <ListItemButton href={link} data-test-id={"link-" + room.id}>
                 <Stack direction="row" alignItems="center" width="100%" spacing={5}>
-                    {/*<Grid item>*/}
+                    <Box fontSize={20} sx={{width: 5/100}}>
+                        <Typography align={"right"}>
+                            {room.name}
+                        </Typography>
+                    </Box>
 
-                        <Box fontSize={20} sx={{width: 5/100}}>
-                            <Typography align={"right"}>
-                                {room.name}
-                            </Typography>
-                        </Box>
-                    {/*</Grid>*/}
-                    {/*<Grid item>*/}
-
-                        <TimelineForRoom room={room} fromDate={from} untilDate={until} is_first_timeline={is_first_room_row}/>
-                    {/*</Grid>*/}
+                    <TimelineForRoom room={room} fromDate={from} untilDate={until} is_first_timeline={is_first_room_row}/>
                 </Stack>
             </ListItemButton>
 

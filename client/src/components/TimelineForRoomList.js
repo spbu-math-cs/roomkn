@@ -66,7 +66,7 @@ function DividerTimeline ({dividerDate, fromTimelineDate, untilTimelineDate}) {
 function HourDividerTimeline({dividerDate, fromTimelineDate, untilTimelineDate, show_divider_label}) {
     const row_style = getDividerRowStyle(dividerDate, fromTimelineDate, untilTimelineDate)
 
-    let fontSize = 18
+    let fontSize = 10
     const margin_bottom = 5;
 
     const hours = dividerDate.getHours()
@@ -95,7 +95,6 @@ function HourDividerTimeline({dividerDate, fromTimelineDate, untilTimelineDate, 
     const boxStyle = {
         position: "relative",
         top: "-" + (fontSize + margin_bottom) + "px",
-        // left: "-50%"
     }
 
     let hour_label = <></>
@@ -184,11 +183,7 @@ function TimelineForRoomList({reservations, fromTimelineDate = null, untilTimeli
     if (daysCount >= 5) deltaHours = 6
     if (daysCount >= 8) deltaHours = 8
     if (daysCount >= 10) deltaHours = 12
-    // if (daysCount >= 16) deltaHours = 1
     if (daysCount >= 24) deltaHours = 24
-    // if (daysCount >= 48) deltaHours = 24
-
-    // deltaHours = daysCount
 
     if (can_draw) {
         for (let dividerDate = getStartDate(fromTimelineDate); dividerDate < untilTimelineDate; dividerDate = new Date(updateDate(dividerDate, +1))) {
