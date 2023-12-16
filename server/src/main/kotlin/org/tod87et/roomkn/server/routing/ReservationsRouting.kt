@@ -173,6 +173,7 @@ private fun Route.reserveRouting(database: Database) {
     }
     post { body: ReservationRequest ->
         val userId = call.principal<AuthSession>()!!.userId
+        call.requireReservationCreatePermission(database) { return@post call.onMissingPermission() }
 
         val result = database.createReservation(body.toUnregisteredReservation(userId))
         result
@@ -183,6 +184,13 @@ private fun Route.reserveRouting(database: Database) {
                 call.handleReservationException(it)
             }
     }
+}
+
+private inline fun ApplicationCall.requireReservationCreatePermission(
+    database: Database,
+    onPermissionMissing: () -> Nothing
+) {
+    requirePermissionOrSelfImpl(null, database, UserPermission.ReservationsCreate, onPermissionMissing)
 }
 
 private inline fun ApplicationCall.requirePermissionOrSelf(
