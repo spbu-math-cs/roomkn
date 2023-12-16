@@ -143,10 +143,10 @@ const UserAvatar = () => {
     )
 }
 
-const Logo = ({open}) => {
+const Logo = () => {
     return (
         // <img src="/logo512.png" alt="MKN logo dark" className="nav-logo"/>
-        <Avatar open={Boolean(open)} alt="LogoDark" src="/logo512.png"  variant="square"/>
+        <Avatar alt="LogoDark" src="/logo512.png"  variant="square" sx={{mr: 2}}/>
     )
 }
 
@@ -187,7 +187,6 @@ const Navbar = () => {
         <AppBar position="static">
             <Container maxWidth="xl">
                 <Toolbar className={"nav"}>
-                    <Logo open={anchorElNav}/>
                     {/*<div className='nav-logo-wrapper'>*/}
                     {/*    <img src="/logo512.png" alt="MKN logo dark" className="nav-logo"/>*/}
                     {/*</div>*/}
@@ -243,10 +242,12 @@ const Navbar = () => {
                         }}
                     >
                         <NavLink to="/" className="navlink">
-                        RooMKN
+                            <Logo/>
+                            RooMKN
                         </NavLink>
                     </Typography>
                     <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
+                        <Logo open={anchorElNav}/>
                         <NavBarPages/>
                     </Box>
 

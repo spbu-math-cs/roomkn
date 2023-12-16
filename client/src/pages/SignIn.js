@@ -9,7 +9,7 @@ import useSomeAPI from "../api/FakeAPI";
 import { SnackbarContext } from "../components/SnackbarAlert";
 import {Container} from "@pixi/react";
 import {Avatar, Box, Button, Grid, TextField, Typography} from "@mui/material";
-import {NavLink} from "react-router-dom";
+import {NavLink, useNavigate} from "react-router-dom";
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Copyright from "../components/Copyright";
 
@@ -32,6 +32,8 @@ function SignInForm() {
 
     const {setNewMessageSnackbar} = useContext(SnackbarContext)
 
+    const navigate = useNavigate()
+
     function authCallback(result, statusCode) {
         console.log('invoked auth callback')
         if (result != null) {
@@ -47,6 +49,8 @@ function SignInForm() {
                 setCurrentUser(userData)
                 saveUserData(userData)
                 setIsAuthorized(true)
+
+                navigate(`/`)
             } else {
                 setIsAuthorized(false)
                 setCurrentUser(null)
