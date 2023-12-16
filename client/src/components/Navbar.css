@@ -1,4 +1,5 @@
 .nav {
+    color: #9999ff;
     background: #ffffff;
     height: 85px;
     display: flex;
@@ -30,7 +31,7 @@
 }
 
 .navlink {
-    color: #9999ff;
+    /*color: #9999ff;*/
     display: flex;
     align-items: center;
     text-decoration: none;

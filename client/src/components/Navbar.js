@@ -4,18 +4,30 @@ import React, {useContext, useEffect, useState} from "react";
 
 import {NavLink} from "react-router-dom";
 import {CurrentUserContext, IsAuthorizedContext, useLogout} from "./Auth";
-import {Paper} from "@mui/material";
+import {AppBar, Avatar, Box, Button, IconButton, Menu, Toolbar, Tooltip, Typography} from "@mui/material";
 import {SnackbarContext} from "./SnackbarAlert";
+import {Container} from "@pixi/react";
+import MenuItem from '@mui/material/MenuItem';
+import MenuIcon from '@mui/icons-material/Menu';
 
-const NavSignIn = () => {
+
+const NavBarUserMenu = () => {
     const {isAuthorized} = useContext(IsAuthorizedContext)
     const {currentUser} = useContext(CurrentUserContext)
 
     const [userNickname, setUserNickname] = useState(currentUser?.username)
+    const [anchorElUser, setAnchorElUser] = React.useState(null);
 
     const {triggerLogout, finished, statusCode} = useLogout()
 
+    const handleOpenUserMenu = (event) => {
+        setAnchorElUser(event.currentTarget);
+    };
+    const handleCloseUserMenu = () => {
+        setAnchorElUser(null);
+    };
     const logOut = () => {
+        handleCloseUserMenu()
         triggerLogout()
         // browser.cookies.remove('_xsrf');
     }
@@ -51,65 +63,185 @@ const NavSignIn = () => {
     if (isAuthorized) {
         console.log("authorized, nickname = " + userNickname)
         return (
-            <>
-                <NavLink to="/my-reservations" className="navlink">
-                    My reservations
-                </NavLink>
-                <NavLink to="/profile" className="navlink">
-                    {userNickname}
-                    <img className="navbar-profile-avatar" src="/azat.png" alt="avatar"/>
-                </NavLink>
-                <div onClick={logOut} className="navlink">
-                    Logout
-                </div>
-            </>
+            <Box sx={{ flexGrow: 0 }}>
+                <Tooltip title="Open user menu">
+                    <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                        <UserAvatar  sx={{ width: 56, height: 56 }}/>
+                    </IconButton>
+                </Tooltip>
+                <Menu
+                    sx={{ mt: '45px' }}
+                    id="menu-appbar"
+                    anchorEl={anchorElUser}
+                    anchorOrigin={{
+                        vertical: 'top',
+                        horizontal: 'right',
+                    }}
+                    keepMounted
+                    transformOrigin={{
+                        vertical: 'top{page[0]}',
+                        horizontal: 'right',
+                    }}
+                    open={Boolean(anchorElUser)}
+                    onClose={handleCloseUserMenu}
+                >
+                    <MenuItem>
+                        <NavLink to="/profile" className="navlink">
+                            Profile
+                        </NavLink>
+                    </MenuItem>
+                    <MenuItem>
+                        <NavLink to="/my-reservations" className="navlink">
+                            Reservations
+                        </NavLink>
+                    </MenuItem>
+                    <MenuItem>
+                        <div onClick={logOut} className="navlink">
+                            Logout
+                        </div>
+                    </MenuItem>
+                </Menu>
+            </Box>
         )
     } else {
         return (
             <>
-                <NavLink to="/sign-in" className="navlink">
-                    Sign In
+                <NavLink to="/sign-in">
+                    <Button variant="outlined" color="primary">
+                        Sign In
+                    </Button>
                 </NavLink>
-                <NavLink to="/sign-up" className="navlink">
-                    Sign Up
-                </NavLink>
+                {/*<MenuItem></MenuItem>*/}
+                {/*<NavLink to="/sign-up" className="navlink">*/}
+                {/*    Sign Up*/}
+                {/*</NavLink>*/}
             </>
         )
     }
 }
 
-const Navbar = () => {
+const UserAvatar = () => {
     return (
-        <Paper elevation={15}>
-            <nav className='nav'>
-                <div className='nav-logo-wrapper'>
-                    <img src="/logo512.png" alt="MKN logo dark" className="nav-logo"/>
-                </div>
+        <Avatar alt="Azat" src="/azat.png" />
+        // <img className="navbar-profile-avatar" src="/azat.png" alt="avatar"/>
+    )
+}
 
-                <div className='nav-link-wrapper'>
-                    <div className="navdiv">
-                        <div className="navbar-left">
-                            <NavLink to="/" className="navlink">
-                                Classrooms
-                            </NavLink>
-                            <NavLink to="/map" className="navlink">
-                                Map
-                            </NavLink>
-                            <NavLink to="/about" className="navlink">
-                                About
-                            </NavLink>
-                            <NavLink to="/admin/panel" className="navlink">
-                                Admin panel
-                            </NavLink>
-                        </div>
-                        <div className="navbar-right">
-                            <NavSignIn/>
-                        </div>
-                    </div>
-                </div>
+const Logo = () => {
+    return (
+        <img src="/logo512.png" alt="MKN logo dark" className="nav-logo"/>
+    )
+}
 
-            </nav>
-        </Paper>
+const NavBarPages = () => {
+    return (
+        <>
+            <MenuItem>
+                <NavLink to="/" className="navlink">
+                    Classrooms
+                </NavLink>
+            </MenuItem>
+            <MenuItem>
+                <NavLink to="/map" className="navlink">
+                    Map
+                </NavLink>
+            </MenuItem>
+            <MenuItem>
+                <NavLink to="/about" className="navlink">
+                    About
+                </NavLink>
+            </MenuItem>
+            <MenuItem>
+                <NavLink to="/admin/panel" className="navlink">
+                    Admin panel
+                </NavLink>
+            </MenuItem>
+        </>
+    )
+}
+
+const Navbar = () => {
+    const [anchorElNav, setAnchorElNav] = React.useState(null);
+
+    const handleOpenNavMenu = (event) => {
+        setAnchorElNav(event.currentTarget);
+    };
+
+    const handleCloseNavMenu = () => {
+        setAnchorElNav(null);
+    };
+
+    return (
+        <AppBar position="static">
+            <Container maxWidth="xl">
+                <Toolbar className={"nav"}>
+                    <Logo/>
+                    {/*<div className='nav-logo-wrapper'>*/}
+                    {/*    <img src="/logo512.png" alt="MKN logo dark" className="nav-logo"/>*/}
+                    {/*</div>*/}
+
+                    <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
+
+                        <IconButton
+                            size="Large"
+                            aria-label="account of current user"
+                            aria-controls="menu-appbar"
+                            aria-haspopup="true"
+                            onClick={handleOpenNavMenu}
+                            color="inherit"
+                        >
+                            <MenuIcon />
+                        </IconButton>
+                        <Menu
+                            id="menu-appbar"
+                            anchorEl={anchorElNav}
+                            anchorOrigin={{
+                                vertical: 'bottom',
+                                horizontal: 'left',
+                            }}
+                            keepMounted
+                            transformOrigin={{
+                                vertical: 'top',
+                                horizontal: 'left',
+                            }}
+                            open={Boolean(anchorElNav)}
+                            onClose={handleCloseNavMenu}
+                            sx={{
+                                display: { xs: 'block', md: 'none' },
+                            }}
+                        >
+                            <NavBarPages/>
+                        </Menu>
+                    </Box>
+
+                    <Typography
+                        variant="h5"
+                        noWrap
+                        component="a"
+                        // href="#app-bar-with-responsive-menu"
+                        sx={{
+                            mr: 2,
+                            display: { xs: 'flex', md: 'none' },
+                            flexGrow: 1,
+                            fontFamily: 'monospace',
+                            fontWeight: 700,
+                            letterSpacing: '.3rem',
+                            color: 'inherit',
+                            textDecoration: 'none',
+                        }}
+                    >
+                        <NavLink to="/" className="navlink">
+                        RooMKN
+                        </NavLink>
+                    </Typography>
+                    <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
+                        <NavBarPages/>
+                    </Box>
+
+                    <NavBarUserMenu/>
+                </Toolbar>
+            </Container>
+        </AppBar>
     );
 };
 
