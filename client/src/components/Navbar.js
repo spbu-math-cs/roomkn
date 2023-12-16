@@ -66,7 +66,7 @@ const NavBarUserMenu = () => {
             <Box sx={{ flexGrow: 0 }}>
                 <Tooltip title="Open user menu">
                     <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                        <UserAvatar  sx={{ width: 56, height: 56 }}/>
+                        <UserAvatar/>
                     </IconButton>
                 </Tooltip>
                 <Menu
@@ -88,6 +88,11 @@ const NavBarUserMenu = () => {
                     <MenuItem>
                         <NavLink to="/profile" className="navlink">
                             Profile
+                        </NavLink>
+                    </MenuItem>
+                    <MenuItem>
+                        <NavLink to="/admin/panel" className="navlink">
+                            Admin panel
                         </NavLink>
                     </MenuItem>
                     <MenuItem>
@@ -122,7 +127,7 @@ const NavBarUserMenu = () => {
 
 const UserAvatar = () => {
     return (
-        <Avatar alt="Azat" src="/azat.png" />
+        <Avatar alt="Azat" src="/azat.png" variant="rounded" sx={{ width: 56, height: 56 }}/>
         // <img className="navbar-profile-avatar" src="/azat.png" alt="avatar"/>
     )
 }
@@ -149,11 +154,6 @@ const NavBarPages = () => {
             <MenuItem>
                 <NavLink to="/about" className="navlink">
                     About
-                </NavLink>
-            </MenuItem>
-            <MenuItem>
-                <NavLink to="/admin/panel" className="navlink">
-                    Admin panel
                 </NavLink>
             </MenuItem>
         </>
