@@ -162,7 +162,7 @@ private fun Route.updateMap(database: Database) {
 private suspend fun ApplicationCall.handleException(ex: Throwable) {
     when (ex) {
         is MissingElementException -> {
-            respondText("No such room", status = HttpStatusCode.BadRequest)
+            respondText("No such element", status = HttpStatusCode.NotFound)
         }
 
         else -> {
