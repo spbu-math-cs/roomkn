@@ -4,11 +4,12 @@ import React, {useContext, useEffect, useState} from "react";
 
 import {NavLink} from "react-router-dom";
 import {CurrentUserContext, IsAuthorizedContext, useLogout} from "./Auth";
-import {AppBar, Avatar, Box, Button, IconButton, Menu, Toolbar, Tooltip, Typography} from "@mui/material";
+import {AppBar, Avatar, Box, Button, IconButton, ListItemIcon, Menu, Toolbar, Tooltip, Typography} from "@mui/material";
 import {SnackbarContext} from "./SnackbarAlert";
 import {Container} from "@pixi/react";
 import MenuItem from '@mui/material/MenuItem';
 import MenuIcon from '@mui/icons-material/Menu';
+import {Logout} from "@mui/icons-material";
 
 
 const NavBarUserMenu = () => {
@@ -70,7 +71,7 @@ const NavBarUserMenu = () => {
                     </IconButton>
                 </Tooltip>
                 <Menu
-                    sx={{ mt: '45px' }}
+                    sx={{ mt: '50px' }}
                     id="menu-appbar"
                     anchorEl={anchorElUser}
                     anchorOrigin={{
@@ -85,6 +86,11 @@ const NavBarUserMenu = () => {
                     open={Boolean(anchorElUser)}
                     onClose={handleCloseUserMenu}
                 >
+                    <MenuItem disabled>
+                    <Typography>
+                        {userNickname}
+                    </Typography>
+                    </MenuItem>
                     <MenuItem>
                         <NavLink to="/profile" className="navlink">
                             Profile
@@ -101,9 +107,12 @@ const NavBarUserMenu = () => {
                         </NavLink>
                     </MenuItem>
                     <MenuItem>
-                        <div onClick={logOut} className="navlink">
+                        <NavLink to="/" onClick={logOut} className="navlink">
+                            <ListItemIcon>
+                                <Logout fontSize="small" />
+                            </ListItemIcon>
                             Logout
-                        </div>
+                        </NavLink>
                     </MenuItem>
                 </Menu>
             </Box>
@@ -127,16 +136,17 @@ const NavBarUserMenu = () => {
 
 const UserAvatar = () => {
     return (
-        <Avatar alt="Azat" src="/azat.png" sx={{ width: 56, height: 56 }}  style={{
+        <Avatar alt="Azat" src="/azat.png" sx={{ width: 45, height: 45 }}  style={{
             border: '0.1px solid lightgray'
         }}/>
         // <img className="navbar-profile-avatar" src="/azat.png" alt="avatar"/>
     )
 }
 
-const Logo = () => {
+const Logo = ({open}) => {
     return (
-        <img src="/logo512.png" alt="MKN logo dark" className="nav-logo"/>
+        // <img src="/logo512.png" alt="MKN logo dark" className="nav-logo"/>
+        <Avatar open={Boolean(open)} alt="LogoDark" src="/logo512.png"  variant="square"/>
     )
 }
 
@@ -176,8 +186,8 @@ const Navbar = () => {
     return (
         <AppBar position="static">
             <Container maxWidth="xl">
-                <Toolbar disableGutters className={"nav"}>
-                    <Logo/>
+                <Toolbar className={"nav"}>
+                    <Logo open={anchorElNav}/>
                     {/*<div className='nav-logo-wrapper'>*/}
                     {/*    <img src="/logo512.png" alt="MKN logo dark" className="nav-logo"/>*/}
                     {/*</div>*/}
