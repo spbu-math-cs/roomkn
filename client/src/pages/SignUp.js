@@ -8,21 +8,9 @@ import {Avatar, Box, Button, CssBaseline, Grid, TextField, Typography} from "@mu
 import {NavLink} from "react-router-dom";
 import {Container} from "@pixi/react";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import Copyright from "../components/Copyright";
 
 const IS_ADMIN_DEFAULT = true;
-
-function Copyright(props) {
-    return (
-        <Typography variant="body2" color="text.secondary" align="center" {...props}>
-            {'Copyright © '}
-            <NavLink color="inherit" to="https://roomkn.kpnn.ru/">
-                Tod87et team
-            </NavLink>{' '}
-            {new Date().getFullYear()}
-            {'.'}
-        </Typography>
-    );
-}
 
 function SignUpForm() {
     const [username, setUsername] = React.useState(null)
@@ -84,7 +72,7 @@ function SignUpForm() {
 
     return (
         <div>
-            <ContentWrapper page_name="Sign Up">
+            <ContentWrapper page_name="">
                 <Container component="main" maxWidth="xs">
                     <CssBaseline />
                     <Box
@@ -165,54 +153,6 @@ function SignUpForm() {
                     </Box>
                     <Copyright sx={{ mt: 8, mb: 4 }} />
                 </Container>
-                {/*<form className="sign-up-form" onSubmit={handleSubmit}>*/}
-                {/*        <div className="sign-up-form-name">*/}
-                {/*                Registration in system*/}
-                {/*        </div>*/}
-                {/*        <div className="sign-up-form-field">*/}
-                {/*                <label className="sign-up-form-label">*/}
-                {/*                        Username*/}
-                {/*                </label>*/}
-                {/*                <input className="sign-up-form-input"*/}
-                {/*                       placeholder="ivanov"*/}
-                {/*                       onChange={(e) => setUsername(e.target.value)}>*/}
-
-                {/*                </input>*/}
-                {/*        </div>*/}
-                {/*        <div className="sign-up-form-field">*/}
-                {/*                <label className="sign-up-form-label">*/}
-                {/*                        Email*/}
-                {/*                </label>*/}
-                {/*                <input className="sign-up-form-input"*/}
-                {/*                       placeholder="ivanov@example.com"*/}
-                {/*                       type="email"*/}
-                {/*                       onChange={(e) => setEmail(e.target.value)}>*/}
-
-                {/*                </input>*/}
-                {/*        </div>*/}
-                {/*        <div className="sign-up-form-field">*/}
-                {/*                <label className="sign-up-form-label">*/}
-                {/*                        Password*/}
-                {/*                </label>*/}
-                {/*                <input className="sign-up-form-input"*/}
-                {/*                       placeholder="********"*/}
-                {/*                       type="password"*/}
-                {/*                       onChange={(e) => setPassword(e.target.value)}>*/}
-                {/*                </input>*/}
-                {/*        </div>*/}
-                {/*        <div className="sign-up-form-field">*/}
-                {/*                <label className="sign-up-form-label">*/}
-                {/*                        Repeat password*/}
-                {/*                </label>*/}
-                {/*                <input className="sign-up-form-input"*/}
-                {/*                       placeholder="********"*/}
-                {/*                       type="password"*/}
-                {/*                       onChange={(e) => setPassword2(e.target.value)}>*/}
-                {/*                </input>*/}
-                {/*        </div>*/}
-                {/*        <div></div>*/}
-                {/*        <input className="sign-up-form-submit" type="submit" value="Register"></input>*/}
-                {/*</form>*/}
             </ContentWrapper>
         </div>
     );

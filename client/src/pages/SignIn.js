@@ -11,22 +11,10 @@ import {Container} from "@pixi/react";
 import {Avatar, Box, Button, Grid, TextField, Typography} from "@mui/material";
 import {NavLink} from "react-router-dom";
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import Copyright from "../components/Copyright";
 
 const IS_ADMIN_DEFAULT = true;
 export const IS_ADMIN_GUEST = true;
-
-function Copyright(props) {
-    return (
-        <Typography variant="body2" color="text.secondary" align="center" {...props}>
-            {'Copyright © '}
-            <NavLink color="inherit" to="https://roomkn.kpnn.ru/">
-                Tod87et team
-            </NavLink>{' '}
-            {new Date().getFullYear()}
-            {'.'}
-        </Typography>
-    );
-}
 
 function SignInForm() {
     const [username, setUsername] = useState(null)
@@ -78,34 +66,7 @@ function SignInForm() {
 
     return (
         <div>
-            <ContentWrapper page_name="Sign In">
-                {/*<form className="sign-in-form" onSubmit={handleSubmit}>*/}
-                {/*    <div className="sign-in-form-name">*/}
-                {/*        Enter the system*/}
-                {/*    </div>*/}
-                {/*    <div className="sign-in-form-field">*/}
-                {/*        <label className="sign-in-form-label">*/}
-                {/*            Username*/}
-                {/*        </label>*/}
-                {/*        <input className="sign-in-form-input"*/}
-                {/*               placeholder="ivanov"*/}
-                {/*               onChange={(e) => setUsername(e.target.value)}>*/}
-
-                {/*        </input>*/}
-                {/*    </div>*/}
-                {/*    <div className="sign-in-form-field">*/}
-                {/*        <label className="sign-in-form-label">*/}
-                {/*            Password*/}
-                {/*        </label>*/}
-                {/*        <input className="sign-in-form-input"*/}
-                {/*               placeholder="********"*/}
-                {/*               type="password"*/}
-                {/*               onChange={(e) => setPassword(e.target.value)}>*/}
-                {/*        </input>*/}
-                {/*    </div>*/}
-                {/*    <div></div>*/}
-                {/*    <input className="sign-in-form-submit" type="submit" value="Enter"></input>*/}
-                {/*</form>*/}
+            <ContentWrapper page_name="">
                 <Container component="main" maxWidth="xs">
                     {/*<CssBaseline />*/}
                     <Box
