@@ -113,7 +113,7 @@ const NavBarUserMenu = () => {
             <>
                 <NavLink to="/sign-in">
                     <Button variant="outlined" color="primary">
-                        Sign In
+                        LOGIN
                     </Button>
                 </NavLink>
                 {/*<MenuItem></MenuItem>*/}
@@ -127,7 +127,9 @@ const NavBarUserMenu = () => {
 
 const UserAvatar = () => {
     return (
-        <Avatar alt="Azat" src="/azat.png" variant="rounded" sx={{ width: 56, height: 56 }}/>
+        <Avatar alt="Azat" src="/azat.png" sx={{ width: 56, height: 56 }}  style={{
+            border: '0.1px solid lightgray'
+        }}/>
         // <img className="navbar-profile-avatar" src="/azat.png" alt="avatar"/>
     )
 }
@@ -174,7 +176,7 @@ const Navbar = () => {
     return (
         <AppBar position="static">
             <Container maxWidth="xl">
-                <Toolbar className={"nav"}>
+                <Toolbar disableGutters className={"nav"}>
                     <Logo/>
                     {/*<div className='nav-logo-wrapper'>*/}
                     {/*    <img src="/logo512.png" alt="MKN logo dark" className="nav-logo"/>*/}
