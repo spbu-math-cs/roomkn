@@ -38,8 +38,8 @@ fun Route.roomsRouting() {
         }
     }
     route("/map") {
+        getMap(database)
         authenticate(AuthenticationProvider.SESSION) {
-            getMap(database)
             updateMap(database)
         }
     }
