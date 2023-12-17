@@ -8,7 +8,7 @@ import useSomeAPI from '../api/FakeAPI';
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
 import {Box, Button, Slider, Stack, Typography} from "@mui/material";
 import {SnackbarContext} from '../components/SnackbarAlert'
-import TimelineWithUsers from "../components/Timeline";
+import Timeline from "../components/TimelineForRoomList";
 import {DatePicker} from "@mui/x-date-pickers";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -266,6 +266,11 @@ function Room() {
         }
     }
 
+    const fromTimelineDate = new Date(toAPITime(date, "09:00"))
+    const untilTimelineDate = new Date(toAPITime(date, "23:00"))
+
+    console.log(fromTimelineDate, untilTimelineDate)
+
     return (
         <CurrentReservationContext.Provider value={{date, setDate, from, setFrom, until, setUntil}}>
             <ContentWrapper page_name={page_name}>
@@ -279,7 +284,14 @@ function Room() {
                             <div>
                                 <div className='reservations-label'>Reservations:</div>
                             </div>
-                            <TimelineWithUsers reservations={reservations} currentReservation={currentReservation}/>
+                            <Timeline reservations={reservations}
+                                      fromTimelineDate={fromTimelineDate}
+                                      untilTimelineDate={untilTimelineDate}
+                                      show_reservation_labels={true}
+                                      show_time_labels={true}
+                                      currentReservation={currentReservation}
+                                      height="100px"
+                            />
                         </div>
                     </div>
                 </div>
