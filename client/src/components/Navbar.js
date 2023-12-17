@@ -146,7 +146,9 @@ const UserAvatar = () => {
 const Logo = () => {
     return (
         // <img src="/logo512.png" alt="MKN logo dark" className="nav-logo"/>
-        <Avatar alt="LogoDark" src="/logo512.png"  variant="square" sx={{mr: 2}}/>
+        <NavLink to="/" className="navlink">
+            <Avatar alt="LogoDark" src="/logo512.png"  variant="square" sx={{width: 60, height: 60 }}/>
+        </NavLink>
     )
 }
 
