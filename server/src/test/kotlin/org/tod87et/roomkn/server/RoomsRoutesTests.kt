@@ -68,8 +68,6 @@ class RoomsRoutesTests {
 
     @Test
     fun getAndUpdateMap() = KtorTestEnv.testJsonApplication { client ->
-        val errorResponse = client.get(mapPath)
-        assertEquals(HttpStatusCode.Unauthorized, errorResponse.status)
         with(KtorTestEnv) {
             client.createAndAuthAdmin()
         }

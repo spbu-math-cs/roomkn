@@ -101,7 +101,7 @@ class DatabaseSession private constructor(private val database: Database) :
         transaction(database) {
             Map.selectAll().orderBy(Map.id to SortOrder.DESC).limit(1).map {
                 it[Map.json]
-            }[0]
+            }.firstOrNull() ?: throw MissingElementException()
         }
     }
 
@@ -191,7 +191,11 @@ class DatabaseSession private constructor(private val database: Database) :
                     val dateCondition = untilCondition and fromCondition
                     userCondition and roomCondition and dateCondition
                 }
-                .orderBy(Reservations.from to SortOrder.ASC, Reservations.until to SortOrder.ASC)
+                .orderBy(
+                    Reservations.from to SortOrder.ASC,
+                    Reservations.until to SortOrder.ASC,
+                    Reservations.id to SortOrder.ASC
+                )
                 .limit(limit, offset)
                 .map {
                     Reservation(
