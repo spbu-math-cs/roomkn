@@ -267,7 +267,7 @@ function Room() {
     }
 
     const fromTimelineDate = new Date(toAPITime(date, "09:00"))
-    const untilTimelineDate = new Date(toAPITime(date, "23:00"))
+    const untilTimelineDate = new Date(toAPITime(date, "23:59"))
 
     console.log(fromTimelineDate, untilTimelineDate)
 
@@ -290,7 +290,7 @@ function Room() {
                                       show_reservation_labels={true}
                                       show_time_labels={true}
                                       currentReservation={currentReservation}
-                                      height="100px"
+                                      height={150}
                             />
                         </div>
                     </div>

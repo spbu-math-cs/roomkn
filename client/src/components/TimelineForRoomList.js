@@ -2,7 +2,7 @@ import {fromAPITime} from '../api/API';
 import "./TimelineForRoomList.css"
 import "./Timeline.css"
 import React, {useContext, useEffect, useState} from 'react';
-import {Box} from "@mui/material";
+import {Box, Divider, Typography} from "@mui/material";
 import {CurrentUserContext} from "./Auth";
 import useSomeAPI from "../api/FakeAPI";
 
@@ -12,7 +12,7 @@ function Reservation({
                          untilTimelineDate,
                          show_reservation_labels=false,
                          is_current_reservation=false,
-                         height="100px"
+                         height=50
 }) {
 
     const {currentUser} = useContext(CurrentUserContext)
@@ -28,7 +28,7 @@ function Reservation({
     }
 
     useEffect(() => {
-        if (!is_current_reservation)
+        if (!is_current_reservation && show_reservation_labels)
             triggerFetch()
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reservation])
@@ -44,8 +44,8 @@ function Reservation({
     const fromReservationObj = fromAPITime(reservation.from)
     const untilReservationObj = fromAPITime(reservation.until)
 
-    const fromReservationDate = new Date(fromReservationObj.date + " " + fromReservationObj.time)
-    const untilReservationDate = new Date(untilReservationObj.date + " " + untilReservationObj.time)
+    const fromReservationDate = new Date(fromReservationObj.date + " " + fromReservationObj.time + "Z")
+    const untilReservationDate = new Date(untilReservationObj.date + " " + untilReservationObj.time + "Z")
 
     const fromTimelineTime = fromTimelineDate.getTime()
     const untilTimelineTime = untilTimelineDate.getTime()
@@ -62,50 +62,55 @@ function Reservation({
     const leftOffset = (startReservationSeconds / timelineDurationSeconds * 100) + "%"
     const reservationWidth = (durationReservationsSeconds / timelineDurationSeconds * 100) + "%"
 
-    const row_style = {
+    const sx_row = {
         top: 0,
         left: leftOffset,
         width: reservationWidth,
-        height: height
+        height: height,
+        position: "absolute"
     }
 
 
-    let prefix = ""
-    if (!show_reservation_labels) {
-        prefix = "for-rooms-"
+    const sx_wrapper = {
+        color: "black",
+        background: "darkorchid",
+        borderRadius: 0,
+        height: height,
+        zIndex: -1,
     }
-
-
-
-    let reservation_class_name = prefix + "reservation-wrapper"
     if (is_current_reservation) {
-        reservation_class_name = prefix + "reservation-current-wrapper"
+        sx_wrapper.background = "#9999ff77"
+        sx_wrapper.zIndex = 1
     }
 
     if (show_reservation_labels) {
         return (
-            <div className="reservation-row" style={row_style}>
-                <div className={reservation_class_name}>
-                    <div className="reservation-info">
-                        <div className="reservation-time">
-                            <label className='reservation-time-label'>
+            <Box sx={sx_row}>
+                <Box sx={sx_wrapper}>
+                    <Box sx={{
+                        writingMode: "sideways-lr",
+                        height: "100%",
+                        textAlign: "center",
+                    }}>
+                        <Box className="reservation-time">
+                            <Typography className='reservation-time-label'>
                                 {fromAPITime(reservation.from).time} - {fromAPITime(reservation.until).time}
-                            </label>
-                        </div>
-                        <div className="reservation-user">
-                            <label className='reservation-user-label'>
+                            </Typography>
+                        </Box>
+                        <Box className="reservation-user">
+                            <Box className='reservation-user-label'>
                                 {reservedUsername}
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                            </Box>
+                        </Box>
+                    </Box>
+                </Box>
+            </Box>
         )
     } else {
         return (
-            <div className="for-rooms-reservation-row" style={row_style}>
-                <div className={reservation_class_name}/>
-            </div>
+            <Box sx={sx_row}>
+                <Box sx={sx_wrapper}/>
+            </Box>
         )
     }
 }
@@ -126,20 +131,22 @@ function getDividerRowStyle(dividerDate, fromTimelineDate, untilTimelineDate) {
     }
 }
 
-function DividerTimeline ({dividerDate, fromTimelineDate, untilTimelineDate, show_reservation_labels}) {
+function DividerTimeline ({dividerDate, fromTimelineDate, untilTimelineDate}) {
     const row_style = getDividerRowStyle(dividerDate, fromTimelineDate, untilTimelineDate)
 
-    let prefix = ""
-    if (!show_reservation_labels) {
-        prefix = "for-rooms-"
-    }
-
     return (
-        <div className={prefix + "divider-row"} style={row_style}/>
+        <Divider orientation="vertical" flexItem sx={{
+            position: "absolute",
+            height: "100%",
+            borderColor: "black",
+            borderRightWidth: 2,
+            top: 0,
+            left: row_style.left,
+        }}/>
     )
 }
 
-function HourDividerTimeline({dividerDate, fromTimelineDate, untilTimelineDate, show_divider_label, show_reservation_labels}) {
+function HourDividerTimeline({dividerDate, fromTimelineDate, untilTimelineDate, show_divider_label}) {
     const row_style = getDividerRowStyle(dividerDate, fromTimelineDate, untilTimelineDate)
 
     let fontSize = 10
@@ -155,8 +162,8 @@ function HourDividerTimeline({dividerDate, fromTimelineDate, untilTimelineDate, 
     let show = hours + ":" + minutes;
 
     if (dividerDate.getUTCHours() === 0) {
-        let day = dividerDate.getDate()
-        let month = dividerDate.getMonth() + 1
+        let day = dividerDate.getUTCDate()
+        let month = dividerDate.getUTCMonth() + 1
         if (day < 10) {
             day = "0" + day
         }
@@ -168,35 +175,35 @@ function HourDividerTimeline({dividerDate, fromTimelineDate, untilTimelineDate, 
         fontSize = fontSize + 5
     }
 
-    const boxStyle = {
-        position: "relative",
-        top: "-" + (fontSize + margin_bottom) + "px",
-    }
-
     let hour_label = <></>
 
     if (show_divider_label) {
         hour_label = (
-            <Box style={boxStyle} fontSize={fontSize}> {show} </Box>
+            <Box fontSize={fontSize} sx={{
+                position: "absolute",
+                top: -(fontSize + margin_bottom),
+                left: row_style.left,
+            }}> {show} </Box>
         )
     }
 
-    let prefix = ""
-    if (!show_reservation_labels) {
-        prefix = "for-rooms-"
-    }
-
     return (
-        <div className={prefix + "divider-hour-row-wrapper"} style={row_style}>
+        <>
             {hour_label}
-            <div className={prefix + "divider-hour-row"}/>
-
-        </div>
+            <Divider orientation="vertical" flexItem sx={{
+                position: "absolute",
+                height: "100%",
+                borderColor: "black",
+                borderRightWidth: 1,
+                top: 0,
+                left: row_style.left,
+            }}/>
+        </>
     )
 }
 
 function updateDate(date, diff) {
-    date.setDate(date.getDate() + diff)
+    date.setUTCDate(date.getUTCDate() + diff)
     return date
 }
 
@@ -207,16 +214,11 @@ function Timeline({
                       show_time_labels=false,
                       show_reservation_labels=false,
                       currentReservation=null,
-                      height="100px"
+                      height=50
                   }) {
     let label = <></>
 
     let can_draw = true
-
-    let prefix = ""
-    if (!show_reservation_labels) {
-        prefix = "for-rooms-"
-    }
 
     if (reservations == null) {
         can_draw = false
@@ -239,6 +241,8 @@ function Timeline({
         )
     }
 
+    const timeLineBorder = 1
+
 
 
     const reservationsList = []
@@ -251,6 +255,7 @@ function Timeline({
                     fromTimelineDate={fromTimelineDate}
                     untilTimelineDate={untilTimelineDate}
                     show_reservation_labels={show_reservation_labels}
+                    height={height}
                 />
             )
         })
@@ -259,7 +264,7 @@ function Timeline({
 
     function getStartDate(date) {
         let newDate = new Date(date)
-        newDate.setHours(0, 0)
+        newDate.setUTCHours(0, 0)
         // while (newDate < date) newDate.setDate(newDate.getDate() + 1)/* = new Date(updateDate(newDate, +1))*/
         return newDate
     }
@@ -281,21 +286,20 @@ function Timeline({
 
     if (can_draw) {
         for (let dividerDate = getStartDate(fromTimelineDate); dividerDate < untilTimelineDate; dividerDate = new Date(updateDate(dividerDate, +1))) {
+
             const dividerHourZeroDate = new Date(dividerDate)
             dividerHourZeroDate.setUTCHours(0, 0)
-            dividersList.push(<DividerTimeline dividerDate={dividerHourZeroDate}
-                                               fromTimelineDate={fromTimelineDate}
-                                               untilTimelineDate={untilTimelineDate}
-                                               show_reservation_labels={show_reservation_labels}
-            />)
+            if (fromTimelineDate <= dividerHourZeroDate && dividerHourZeroDate <= untilTimelineDate) {
+                dividersList.push(<DividerTimeline dividerDate={dividerHourZeroDate}
+                                                   fromTimelineDate={fromTimelineDate}
+                                                   untilTimelineDate={untilTimelineDate}
+                                                   show_reservation_labels={show_reservation_labels}
+                />)
+            }
 
             for (let i = 0; i < 24; i += deltaHours) {
                 const dividerHourDate = new Date(dividerDate)
                 dividerHourDate.setUTCHours(i, 0)
-
-                let show_divider_label = show_time_labels
-
-                console.log(fromTimelineDate, dividerHourDate)
 
                 if (fromTimelineDate <= dividerHourDate && dividerHourDate <= untilTimelineDate) {
                     // if ((deltaHours === 12 && i === 12)) {
@@ -305,7 +309,7 @@ function Timeline({
                     hourDividers.push(<HourDividerTimeline dividerDate={dividerHourDate}
                                                            fromTimelineDate={fromTimelineDate}
                                                            untilTimelineDate={untilTimelineDate}
-                                                           show_divider_label={show_divider_label}
+                                                           show_divider_label={show_time_labels}
                                                            show_reservation_labels={show_reservation_labels}
                                                            is_current_reservation={false}
                                                            height={height}
@@ -327,14 +331,22 @@ function Timeline({
     }
 
     return (
-        <div className={prefix + "reservation-list-wrapper"}>
-            <div className={prefix + "reservation-list-background"}>
+        <Box sx={{
+            height: height,
+            width: "100%",
+            position: "relative",
+            border: timeLineBorder,
+        }}>
+            <Box sx={{
+                height: height,
+
+            }}>
                 {label}
-            </div>
+            </Box>
             {reservationsList}
             {dividersList}
             {hourDividers}
-        </div>
+        </Box>
     )
 }
 

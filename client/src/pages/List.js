@@ -90,7 +90,7 @@ function TimelineForRoom({room, fromDate, untilDate, show_time_labels}) {
             fromTimelineDate={realFromDate}
             untilTimelineDate={realUntilDate}
             show_time_labels={show_time_labels}
-            height="50px"
+            height={50}
         />
     )
 }
