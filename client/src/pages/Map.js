@@ -11,7 +11,7 @@ import {empty_map} from "./MapData";
 import useSomeAPI from "../api/FakeAPI";
 
 import "./Map.css"
-import {MenuItem, Select} from "@mui/material";
+import {Box, MenuItem, Select} from "@mui/material";
 import {SnackbarContext} from "../components/SnackbarAlert";
 
 function Room({ room_id, navigate, mesh, window_scale }) {
@@ -145,18 +145,20 @@ export function MapField({map, scale=1}) {
             }
         })
 
-        const width = 1000 * scale;
+        const width = 900 * scale;
         const height = 700 * scale;
 
         return (
             <>
-                <Select value={selectedLayer} onChange={e => setSelectedLayer(e.target.value)}>
+                <Select value={selectedLayer} onChange={e => setSelectedLayer(e.target.value)} fullWidth>
                     {layer_options}
                 </Select>
+                <Box sx={{alignItems: "center"}}>
                 <Stage options={{antialias: true, backgroundAlpha: 0}} width={width} height={height}
                        className="map-stage">
                     {layers}
                 </Stage>
+                </Box>
             </>
         );
     } catch (e) {
@@ -197,7 +199,22 @@ export function Map() {
 
     return (
         <ContentWrapper page_name="Map">
-            <MapField map={map}/>
+            <Box sx={{
+                alignItems: 'center',
+                flexDirection: 'column',
+                flexGrow: 1,
+                display: { xs: 'flex', md: 'none' }
+            }}>
+                <MapField map={map} scale={0.4}/>
+            </Box>
+            <Box sx={{
+                alignItems: 'center',
+                flexDirection: 'column',
+                flexGrow: 1,
+                display: { xs: 'none', md: 'flex' }
+            }}>
+                <MapField map={map}/>
+            </Box>
         </ContentWrapper>
     )
 }
