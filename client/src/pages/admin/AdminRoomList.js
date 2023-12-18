@@ -5,7 +5,7 @@ import {NavLink} from "react-router-dom";
 
 import "./AdminRoomList.css"
 import AdminWrapper from "../../components/AdminWrapper";
-import {Box, Button, Stack, TextField, useTheme} from "@mui/material";
+import {Box, Button, Pagination, Stack, TextField, useTheme} from "@mui/material";
 import SnackbarAlert from "../../components/SnackbarAlert";
 
 function EditRoomRow({room, refresh}) {
@@ -118,10 +118,21 @@ export function AdminRoomList() {
     
     let [drawList, setDrawList] = useState([])
 
-    let {triggerFetch} = useSomeAPI('/api/v0/rooms', null, 'GET', listCallback)
+    const [page, setPage] = React.useState(1);
+    const [pageCount, setPageCount] = React.useState(10);
+    const handleChangePage = (event, value) => {
+        setPage(value);
+    };
+
+    const limit = 10
+    const offset = (page - 1) * limit
+
+    const pagination_query = `?offset=${offset}&limit=${limit}`
+
+    let {triggerFetch} = useSomeAPI('/api/v0/rooms' + pagination_query, null, 'GET', listCallback)
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => triggerFetch(), [])
+    useEffect(() => triggerFetch(), [limit, offset])
 
     function listCallback(result, statusCode) {
         if (statusCode === 200) {
@@ -151,6 +162,9 @@ export function AdminRoomList() {
             <ContentWrapper page_name={page_name}>
                 <Stack spacing={theme.spacing()}>
                     {drawList}
+                </Stack>
+                <Stack alignItems="center"  sx={{paddingTop: 4}}>
+                    <Pagination count={pageCount} page={page} onChange={handleChangePage} sx={{justifyContent:"center"}} />
                 </Stack>
             </ContentWrapper>
             <ContentWrapper page_name="Add room">
