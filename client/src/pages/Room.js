@@ -150,6 +150,8 @@ function BookingForm({room_id, triggerGetReservations}) {
         if (getMinutesByTime(from) <= getMinutesByTime(until)) triggerFetch()
     };
 
+    const is_reserve_disabled = (getMinutesByTime(from) >= getMinutesByTime(until)) || (date < getTodayDate())
+
     return (
         <ContentWrapper page_name='Reservation'>
             <Typography fontSize="18pt">
@@ -198,7 +200,7 @@ function BookingForm({room_id, triggerGetReservations}) {
                     <Button color="secondary"
                             variant="contained"
                             onClick={HandleSubmit}
-                            disabled={getMinutesByTime(from) >= getMinutesByTime(until)}
+                            disabled={is_reserve_disabled}
                             sx={{width: "100pt"}}>
                         Reserve
                     </Button>
