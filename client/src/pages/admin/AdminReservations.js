@@ -93,7 +93,7 @@ function useGetRoomName(room_id) {
     return room_name
 }
 
-function Reservation({reservation}) {
+function Reservation({reservation, display_user}) {
 
     const from_obj = fromAPITime(reservation.from)
     const until_obj = fromAPITime(reservation.until)
@@ -133,7 +133,7 @@ function Reservation({reservation}) {
             <TableCell align="right">
                 {room_name}
             </TableCell>
-            <TableCell align="right">
+            <TableCell align="right" sx={{display: display_user}}>
                 {user_name}
             </TableCell>
             <TableCell align="right">
@@ -220,7 +220,7 @@ function getTodayDate(format = "yyyy-mm-dd") {
     return dateFormat(date, format)
 }
 
-function Filters({triggerGetReservations}) {
+function Filters({triggerGetReservations, display_user}) {
 
     const {from, setFrom,
         until, setUntil,
@@ -284,7 +284,7 @@ function Filters({triggerGetReservations}) {
                     <MenuItem value = "room-name">Room name</MenuItem>
                 </Select>
             </FormControl>
-            <FormControl sx={{ m: 1, width: 200 }}>
+            <FormControl sx={{ m: 1, width: 200, display: display_user }}>
                 <InputLabel id="select-users-label-id">Users:</InputLabel>
                 <Select
                     multiple
@@ -344,7 +344,7 @@ function Filters({triggerGetReservations}) {
     )
 }
 
-function Reservations({reservations, orderBy}) {
+function Reservations({reservations, orderBy, display_user}) {
 
     if (reservations.length === 0) return (
         <></>
@@ -366,33 +366,29 @@ function Reservations({reservations, orderBy}) {
     })
 
     reservations.forEach((reservation) => {
-        drawList.push(<Reservation reservation={reservation}/> )
+        drawList.push(<Reservation reservation={reservation} display_user={display_user}/> )
     })
 
     return drawList
 }
 
-function AdminReservations() {
-    const page_name = (
-        <div>
-            <NavLink to="/admin/panel">
-                Admin Panel
-            </NavLink>
-            /Admin Reservations
-        </div>
-    )
-
+export function ReservationsList({is_admin=false, user_id=null}) {
     const [page, setPage] = React.useState(0);
     const [reservationsPerPage, setReservationsPerPage] = React.useState(10);
     const [reservationsCount, setReservationsCount] = React.useState(100);
 
     const offset = (page) * reservationsPerPage
 
+    let default_users = []
+    if (user_id != null) {
+        default_users = [user_id]
+    }
+
     const today = getTodayDate()
     const [from, setFrom] = React.useState(today)
     const [until, setUntil] = React.useState(today)
     const [orderBy, setOrderBy] = useState("reservation-date")
-    const [users, setUsers] = useState([])
+    const [users, setUsers] = useState(default_users)
     const [rooms, setRooms] = useState([])
 
     const {reservations, triggerGetReservations} = useGetReservations(orderBy, from, until, users, rooms, offset, reservationsPerPage)
@@ -415,47 +411,64 @@ function AdminReservations() {
         setPage(0);
     };
 
+    const display_user =  is_admin ? '' : 'none'
+
+    return (
+        <Box sx={{ml: 4, mr: 4}}>
+            <FiltersContext.Provider value = {{
+                from, setFrom,
+                until, setUntil,
+                orderBy, setOrderBy,
+                users, setUsers,
+                rooms, setRooms
+            }}>
+                <Stack spacing = {2} direction = "column">
+                    <Filters triggerGetReservations={onUpdate} display_user={display_user}/>
+                    <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>Reservation Id</TableCell>
+                                <TableCell align="right">Room name</TableCell>
+                                <TableCell align="right" sx={{display: display_user}}>User</TableCell>
+                                <TableCell align="right">Date</TableCell>
+                                <TableCell align="right">From</TableCell>
+                                <TableCell align="right">Until</TableCell>
+                                <TableCell align="right">Delete</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            <Reservations reservations={reservations} orderBy={orderBy} display_user={display_user}/>
+                        </TableBody>
+                    </Table>
+                </Stack>
+            </FiltersContext.Provider>
+            <TablePagination
+                sx={{paddingTop: 2}}
+                component="div"
+                count={reservationsCount}
+                page={page}
+                onPageChange={handleChangePage}
+                rowsPerPage={reservationsPerPage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+        </Box>
+    )
+}
+
+function AdminReservations() {
+    const page_name = (
+        <div>
+            <NavLink to="/admin/panel">
+                Admin Panel
+            </NavLink>
+            /Admin Reservations
+        </div>
+    )
+
     return (
         <AdminWrapper>
             <ContentWrapper page_name={page_name}>
-                <Box sx={{ml: 4, mr: 4}}>
-                <FiltersContext.Provider value = {{
-                    from, setFrom,
-                    until, setUntil,
-                    orderBy, setOrderBy,
-                    users, setUsers,
-                    rooms, setRooms
-                }}>
-                    <Stack spacing = {2} direction = "column">
-                        <Filters triggerGetReservations={onUpdate}/>
-                        <Table sx={{ minWidth: 650 }} aria-label="simple table">
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>Reservation Id</TableCell>
-                                    <TableCell align="right">Room name</TableCell>
-                                    <TableCell align="right">User</TableCell>
-                                    <TableCell align="right">Date</TableCell>
-                                    <TableCell align="right">From</TableCell>
-                                    <TableCell align="right">Until</TableCell>
-                                    <TableCell align="right">Delete</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                <Reservations reservations={reservations} orderBy={orderBy}/>
-                            </TableBody>
-                        </Table>
-                    </Stack>
-                </FiltersContext.Provider>
-                <TablePagination
-                    sx={{paddingTop: 2}}
-                    component="div"
-                    count={reservationsCount}
-                    page={page}
-                    onPageChange={handleChangePage}
-                    rowsPerPage={reservationsPerPage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
-                />
-                </Box>
+                <ReservationsList is_admin={true}/>
             </ContentWrapper>
         </AdminWrapper>)
 }
