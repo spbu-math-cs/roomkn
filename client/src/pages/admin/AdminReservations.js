@@ -5,7 +5,6 @@ import {NavLink} from "react-router-dom";
 import useSomeAPI from "../../api/FakeAPI";
 import {fromAPITime, toAPITime} from "../../api/API";
 import {
-    Box,
     Button,
     Checkbox,
     FormControl,
@@ -13,7 +12,7 @@ import {
     ListItemText,
     MenuItem,
     Select,
-    Stack, TextField,
+    Stack, Table, TableBody, TableCell, TableHead, TablePagination, TableRow, TextField,
     useTheme
 } from "@mui/material";
 import {SnackbarContext} from "../../components/SnackbarAlert";
@@ -119,23 +118,41 @@ function Reservation({reservation}) {
     if (deleted) return (<></>)
 
     return (
-        <ContentWrapper page_name={reservation.id}>
-            <Stack direction = "column">
-                <Box>Room: {room_name}</Box>
-                <Box>User: {user_name}</Box>
-                <Box>Date: {from_obj.date}</Box>
-                <Box>From: {from_obj.time}</Box>
-                <Box>Until: {until_obj.time}</Box>
+        <TableRow
+            key={reservation.id}
+            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+        >
+            <TableCell component="th" scope="row">
+                {reservation.id}
+            </TableCell>
+            <TableCell align="right">
+                {room_name}
+            </TableCell>
+            <TableCell align="right">
+                {user_name}
+            </TableCell>
+            <TableCell align="right">
+                {from_obj.date}
+            </TableCell>
+            <TableCell align="right">
+                {from_obj.time}
+            </TableCell>
+            <TableCell align="right">
+                {until_obj.time}
+            </TableCell>
+            <TableCell align="right">
                 <Button variant="outlined" color="error" onClick={deleteReservation} sx={{maxWidth: "40pt"}}>delete</Button>
-            </Stack>
-        </ContentWrapper>
+            </TableCell>
+        </TableRow>
     )
 }
 
-function useGetReservations(orderBy, from, until, userList, roomList) {
+function useGetReservations(orderBy, from, until, userList, roomList, offset, limit) {
     const params = new URLSearchParams()
     if (userList.length > 0) params.append("user_ids", userList)
     if (roomList.length > 0)  params.append("room_ids", roomList)
+    if (offset != null) params.append("offset", offset)
+    if (limit != null) params.append("limit", limit)
     params.append("from", toAPITime(from, "00:00"))
     params.append("until", toAPITime(until, "23:59"))
 
@@ -171,7 +188,7 @@ function useGetReservations(orderBy, from, until, userList, roomList) {
     })
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => triggerFetch(), [])
+    useEffect(() => triggerFetch(), [offset, limit])
 
     return result
 
@@ -311,7 +328,7 @@ function Filters({triggerGetReservations}) {
 function Reservations({reservations, orderBy}) {
 
     if (reservations.length === 0) return (
-        <ContentWrapper page_name="No reservations found"/>
+        <></>
     )
     const drawList = []
 
@@ -333,9 +350,7 @@ function Reservations({reservations, orderBy}) {
         drawList.push(<Reservation reservation={reservation}/> )
     })
 
-    return <Stack direction = "column">
-        {drawList}
-    </Stack>
+    return drawList
 }
 
 function AdminReservations() {
@@ -348,6 +363,11 @@ function AdminReservations() {
         </div>
     )
 
+    const [page, setPage] = React.useState(0);
+    const [reservationsPerPage, setReservationsPerPage] = React.useState(5);
+    const [reservationsCount, setReservationsCount] = React.useState(100);
+
+    const offset = (page) * reservationsPerPage
 
     const today = getTodayDate()
     const [from, setFrom] = React.useState(today)
@@ -356,7 +376,7 @@ function AdminReservations() {
     const [users, setUsers] = useState([])
     const [rooms, setRooms] = useState([])
 
-    const {reservations, triggerGetReservations} = useGetReservations(orderBy, from, until, users, rooms)
+    const {reservations, triggerGetReservations} = useGetReservations(orderBy, from, until, users, rooms, offset, reservationsPerPage)
 
 
     const {setNewMessageSnackbar} = useContext(SnackbarContext)
@@ -366,10 +386,20 @@ function AdminReservations() {
         triggerGetReservations()
     }
 
+
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setReservationsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+
     return (
         <AdminWrapper>
             <ContentWrapper page_name={page_name}>
-            </ContentWrapper>
+
                 <FiltersContext.Provider value = {{
                     from, setFrom,
                     until, setUntil,
@@ -377,13 +407,35 @@ function AdminReservations() {
                     users, setUsers,
                     rooms, setRooms
                 }}>
-                <Stack spacing = {2} direction = "column">
-                    <ContentWrapper page_name={"Filters"}>
+                    <Stack spacing = {2} direction = "column">
                         <Filters triggerGetReservations={onUpdate}/>
-                    </ContentWrapper>
-                    <Reservations reservations={reservations} orderBy={orderBy}/>
-                </Stack>
-            </FiltersContext.Provider>
+                        <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>Reservation Id</TableCell>
+                                    <TableCell align="right">Room name</TableCell>
+                                    <TableCell align="right">User</TableCell>
+                                    <TableCell align="right">Date</TableCell>
+                                    <TableCell align="right">From</TableCell>
+                                    <TableCell align="right">Until</TableCell>
+                                    <TableCell align="right">Delete</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                <Reservations reservations={reservations} orderBy={orderBy}/>
+                            </TableBody>
+                        </Table>
+                    </Stack>
+                </FiltersContext.Provider>
+                <TablePagination
+                    component="div"
+                    count={reservationsCount}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    rowsPerPage={reservationsPerPage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                />
+            </ContentWrapper>
         </AdminWrapper>)
 }
 
