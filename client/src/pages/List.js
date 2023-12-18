@@ -5,7 +5,7 @@ import React, {useEffect, useState} from "react";
 import {
     Box,
     ListItemButton,
-    Stack, Typography,
+    Stack, Typography, Pagination,
 } from "@mui/material";
 import {fromAPITime} from "../api/API";
 import TimelineForRoomList from "../components/TimelineForRoomList";
@@ -144,6 +144,15 @@ function RoomList() {
 
     const [roomList, setRoomList] = useState([])
 
+    const [page, setPage] = React.useState(1);
+    const [pageCount, setPageCount] = React.useState(2);
+    const handleChangePage = (event, value) => {
+        setPage(value);
+    };
+
+    const limit = 10
+    const offset = (page - 1) * limit
+
     function my_callback(result, statusCode) {
         console.log("result: " + result)
         console.log("statusCode:"  + statusCode)
@@ -153,9 +162,11 @@ function RoomList() {
         }
     }
 
-    let {triggerFetch} = useSomeAPI('/api/v0/rooms', null, 'GET', my_callback)
+    const pagination_query = `?offset=${offset}&limit=${limit}`
+
+    let {triggerFetch} = useSomeAPI('/api/v0/rooms' + pagination_query, null, 'GET', my_callback)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => triggerFetch(), [])
+    useEffect(() => triggerFetch(), [page])
 
     useEffect(() => {
         let is_first_room_row = true
@@ -169,10 +180,15 @@ function RoomList() {
 
     return (
         <ContentWrapper page_name="Classrooms">
-            <Stack direction = "column">
+            <Stack direction = "column" sx={{paddingBottom: 2}}>
                 <DateSelect setFromDate={setFrom} setUntilDate={setUntil}/>
                 {draw_list}
+
             </Stack>
+            <Stack alignItems="center">
+                <Pagination count={pageCount} page={page} onChange={handleChangePage} sx={{justifyContent:"center"}} />
+            </Stack>
+
 
         </ContentWrapper>
     );
