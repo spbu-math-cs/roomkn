@@ -87,6 +87,7 @@ function Room({ room_id, navigate, mesh, window_scale }) {
                 scale={scale * window_scale}
                 interactive={true}
                 click={click}
+                touchend={click}
                 pointerover={() => setHover(true)}
                 pointerout={() => setHover(false)}
             >
