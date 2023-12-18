@@ -37,7 +37,7 @@ const About = () => {
                         </Box>
 
                         <Box>
-                        Our project is open-source, github repository is <Link href={"https://github.com/spbu-math-cs/roomkn"}>here</Link>
+                        Our project is open-source, github repository is <Link href={"https://github.com/spbu-math-cs/roomkn"} data-test-id="external-link">here</Link>
                         </Box>
 
                     </Stack>
