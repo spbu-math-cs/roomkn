@@ -8,7 +8,7 @@ import AdminWrapper from "../../components/AdminWrapper";
 import {
     Button,
     Checkbox,
-    FormControlLabel,
+    FormControlLabel, Pagination,
     Stack,
     TextField,
     Typography,
@@ -161,20 +161,20 @@ function EditUserRow({user, refresh}) {
 
     return (
         <ContentWrapper page_name={user.id}>
-            <Stack>
-                <TextField sx={{maxWidth: "400px", paddingBottom: "20px"}} label="Username" value={name}
+            <Stack direction="row">
+                <TextField sx={{maxWidth: "400px", paddingRight: "20px"}} label="Username" value={name}
                            onChange={(e) => setName(e.target.value)}/>
                 <TextField sx={{maxWidth: "400px"}} label="Email" value={email}
                            onChange={(e) => setEmail(e.target.value)}/>
-                <Typography fontSize="18pt">Permissions</Typography>
-                <Stack sx={{paddingLeft: "10pt"}}>
-                    {permissions_draw}
-                </Stack>
-                <Stack direction="row" spacing={theme.spacing()}>
-                    <Button variant="outlined" color="secondary" onClick={reset}>reset</Button>
-                    <Button variant="contained" color="success" onClick={put_req}>update</Button>
-                    <Button variant="outlined" color="error" onClick={delete_req}>delete</Button>
-                </Stack>
+            </Stack>
+            <Typography fontSize="18pt">Permissions</Typography>
+            <Stack sx={{paddingLeft: "10pt"}}>
+                {permissions_draw}
+            </Stack>
+            <Stack direction="row" spacing={theme.spacing()}>
+                <Button variant="outlined" color="secondary" onClick={reset}>reset</Button>
+                <Button variant="contained" color="success" onClick={put_req}>update</Button>
+                <Button variant="outlined" color="error" onClick={delete_req}>delete</Button>
             </Stack>
         </ContentWrapper>
     )
@@ -215,10 +215,21 @@ export function AdminUserList() {
 
     const {currentUser, setCurrentUser} = useContext(CurrentUserContext)
 
-    let {triggerFetch} = useSomeAPI('/api/v0/users', null, 'GET', listCallback)
+    const [page, setPage] = React.useState(1);
+    const [pageCount, setPageCount] = React.useState(10);
+    const handleChangePage = (event, value) => {
+        setPage(value);
+    };
+
+    const limit = 10
+    const offset = (page - 1) * limit
+
+    const pagination_query = `?offset=${offset}&limit=${limit}`
+
+    let {triggerFetch} = useSomeAPI('/api/v0/users' + pagination_query, null, 'GET', listCallback)
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => triggerFetch(), [])
+    useEffect(() => triggerFetch(), [limit, offset])
 
     function listCallback(result, statusCode) {
         if (statusCode === 200) {
@@ -253,8 +264,12 @@ export function AdminUserList() {
     return (
         <AdminWrapper>
 
-            <ContentWrapper page_name={page_name}/>
-            {drawList}
+            <ContentWrapper page_name={page_name}>
+                <Stack alignItems="center"  sx={{paddingBottom: 1}}>
+                    <Pagination count={pageCount} page={page} onChange={handleChangePage} sx={{justifyContent:"center"}} />
+                </Stack>
+                {drawList}
+            </ContentWrapper>
             <AddUser refresh={triggerFetch}/>
         </AdminWrapper>
     )
