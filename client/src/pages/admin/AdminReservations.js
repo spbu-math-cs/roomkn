@@ -5,6 +5,7 @@ import {NavLink} from "react-router-dom";
 import useSomeAPI from "../../api/FakeAPI";
 import {fromAPITime, toAPITime} from "../../api/API";
 import {
+    Box,
     Button,
     Checkbox,
     FormControl,
@@ -12,10 +13,14 @@ import {
     ListItemText,
     MenuItem,
     Select,
-    Stack, Table, TableBody, TableCell, TableHead, TablePagination, TableRow, TextField,
+    Stack, Table, TableBody, TableCell, TableHead, TablePagination, TableRow,
     useTheme
 } from "@mui/material";
 import {SnackbarContext} from "../../components/SnackbarAlert";
+import dayjs from "dayjs";
+import {DatePicker} from "@mui/x-date-pickers";
+import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
+import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
 
 const FiltersContext = createContext()
 
@@ -318,8 +323,22 @@ function Filters({triggerGetReservations}) {
                     ))}
                 </Select>
             </FormControl>
-            <TextField id="date" label="From" type="date" defaultValue={from} onChange={(e) => {setFrom(e.target.value)}}/>
-            <TextField id="date" label="Until" type="date" defaultValue={until} onChange={(e) => {setUntil(e.target.value)}}/>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker id="date" label="From" type="date" defaultValue={dayjs(from)}
+                            onChange={(v) => {
+                                setFrom(dateFormat(v.toDate()));
+                            }}
+                            format="DD.MM.YYYY"
+                />
+                <DatePicker id="date" label="Until" type="date" defaultValue={dayjs(until)}
+                            onChange={(v) => {
+                                setUntil(dateFormat(v.toDate()));
+                            }}
+                            format="DD.MM.YYYY"
+                />
+            </LocalizationProvider>
+            {/*<TextField id="date" label="From" type="date" defaultValue={from} onChange={(e) => {setFrom(e.target.value)}}/>*/}
+            {/*<TextField id="date" label="Until" type="date" defaultValue={until} onChange={(e) => {setUntil(e.target.value)}}/>*/}
             <Button variant="contained" color="success" onClick={onUpdate}>Update</Button>
         </Stack>
     )
@@ -364,7 +383,7 @@ function AdminReservations() {
     )
 
     const [page, setPage] = React.useState(0);
-    const [reservationsPerPage, setReservationsPerPage] = React.useState(5);
+    const [reservationsPerPage, setReservationsPerPage] = React.useState(10);
     const [reservationsCount, setReservationsCount] = React.useState(100);
 
     const offset = (page) * reservationsPerPage
@@ -399,7 +418,7 @@ function AdminReservations() {
     return (
         <AdminWrapper>
             <ContentWrapper page_name={page_name}>
-
+                <Box sx={{ml: 4, mr: 4}}>
                 <FiltersContext.Provider value = {{
                     from, setFrom,
                     until, setUntil,
@@ -428,6 +447,7 @@ function AdminReservations() {
                     </Stack>
                 </FiltersContext.Provider>
                 <TablePagination
+                    sx={{paddingTop: 2}}
                     component="div"
                     count={reservationsCount}
                     page={page}
@@ -435,6 +455,7 @@ function AdminReservations() {
                     rowsPerPage={reservationsPerPage}
                     onRowsPerPageChange={handleChangeRowsPerPage}
                 />
+                </Box>
             </ContentWrapper>
         </AdminWrapper>)
 }
