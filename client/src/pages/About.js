@@ -49,32 +49,32 @@ const About = () => {
                         </Typography>
                         <List>
                             <ListItem>
-                                <Link href={"https://github.com/darkfaeries"}>
+                                <Link href={"https://github.com/darkfaeries"} data-test-id="external-link">
                                     Ivan Shinkevich
                                 </Link>
                             </ListItem>
                             <ListItem>
-                                <Link href={"https://github.com/firelion9"}>
+                                <Link href={"https://github.com/firelion9"} data-test-id="external-link">
                                     Leonid Ternopol
                                 </Link>
                             </ListItem>
                             <ListItem>
-                                <Link href={"https://github.com/makselivanov"}>
+                                <Link href={"https://github.com/makselivanov"} data-test-id="external-link">
                                     Makar Selivanov
                                 </Link>
                             </ListItem>
                             <ListItem>
-                                <Link href={"https://github.com/Bupaheh"}>
+                                <Link href={"https://github.com/Bupaheh"} data-test-id="external-link">
                                     Pavel Balay
                                 </Link>
                             </ListItem>
                             <ListItem>
-                                <Link href={"https://github.com/PaulRalnikov"}>
+                                <Link href={"https://github.com/PaulRalnikov"} data-test-id="external-link">
                                     Pavel Ralnikov
                                 </Link>
                             </ListItem>
                             <ListItem>
-                                <Link href={"https://github.com/robozmey"}>
+                                <Link href={"https://github.com/robozmey"} data-test-id="external-link">
                                     Vladimir Rachkin
                                 </Link>
                             </ListItem>
