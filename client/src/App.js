@@ -4,6 +4,8 @@ import {BrowserRouter as Router, Route, Routes} from 'react-router-dom';
 
 import Navbar from './components/Navbar';
 
+import ContentWrapper from "./components/Content";
+
 import RoomList from './pages/List';
 import Map from './pages/Map';
 import Room from './pages/Room';
@@ -28,17 +30,17 @@ import AdminReservations from "./pages/admin/AdminReservations";
 
 function PageNotFound() {
     return (
-        <div>
-            <h2>404 Page not found</h2>
-        </div>
+        <ContentWrapper page_name={"404 Page not found"}>
+            {/*<h2>404 Page not found</h2>*/}
+        </ContentWrapper>
     );
 }
 
 function AccessDenied() {
     return (
-        <div>
-            <h2>403 Access denied</h2>
-        </div>
+        <ContentWrapper page_name={"403 Access denied"}>
+            {/*<h2></h2>*/}
+        </ContentWrapper>
     );
 }
 const theme = createTheme({

@@ -1,7 +1,7 @@
 import {createContext, useContext, useEffect, useState} from "react";
 import useSomeAPI from "../api/FakeAPI";
 
-const IS_ADMIN_DEFAULT = false;
+export const IS_ADMIN_DEFAULT = false;
 export const IS_ADMIN_GUEST = false;
 
 export function AuthorizeWrapper({children}) {
