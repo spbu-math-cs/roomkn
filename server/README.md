@@ -18,3 +18,4 @@ Built static files in `./build`
 `DB_USER`
 `JWT_SECRET`
 `PEPPER`
+
