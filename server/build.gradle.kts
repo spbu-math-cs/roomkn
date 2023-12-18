@@ -22,6 +22,7 @@ val embeddedPostgresVersion = extra["embedded_postgres.version"] as String
 val junitVersion = extra["junit.version"] as String
 val koinVersion = extra["koin.version"] as String
 val koinTestVersion = extra["koin.test.version"] as String
+val micrometerPrometheusVersion = extra["micrometer.prometheus.version"] as String
 
 val runStressTests = project.properties["runStressTests"]?.toString()?.toBoolean() ?: false
 
@@ -47,10 +48,13 @@ dependencies {
     implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")
     implementation("io.ktor:ktor-server-sessions:$ktorVersion")
     implementation("io.ktor:ktor-server-call-logging:$ktorVersion")
+    implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
 
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
 
     implementation("io.insert-koin:koin-ktor:$koinVersion")
+
+    implementation("io.micrometer:micrometer-registry-prometheus:$micrometerPrometheusVersion")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
