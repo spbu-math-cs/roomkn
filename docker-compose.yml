@@ -6,7 +6,7 @@ services:
       context: client/
       args:
         CLIENT_PORT: ${CLIENT_PORT}
-        API_SERVER_ADDRESS: ${API_SERVER_ADDRESS}
+        SERVER_ADDRESS: ${SERVER_ADDRESS:-http://${SERVER_HOST}:${SERVER_PORT}}
     ports:
       - ${CLIENT_PORT}:${CLIENT_PORT}
     depends_on:
