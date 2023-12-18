@@ -160,7 +160,7 @@ export function AdminRoomList() {
     return (
         <AdminWrapper>
             <ContentWrapper page_name={page_name}>
-                <Stack spacing={theme.spacing()}>
+                <Stack spacing={theme.spacing()} sx={{ml: 4, mr: 4}}>
                     {drawList}
                 </Stack>
                 <Stack alignItems="center"  sx={{paddingTop: 4}}>
