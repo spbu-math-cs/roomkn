@@ -38,7 +38,7 @@ const emptyUser = {
 export function AuthorizationProvider({children}) {
     const [isAuthorized, setIsAuthorized] = useState(null)
     const [currentUser, setCurrentUser] = useState(emptyUser)
-    const [currentUserPermissions, setCurrentUserPermissions] = useState({})
+    const [currentUserPermissions, setCurrentUserPermissions] = useState([])
 
     return (
         <IsAuthorizedContext.Provider value={{isAuthorized, setIsAuthorized}}>
@@ -57,7 +57,7 @@ function useGetCurrentUserPermissions() {
     const {currentUser} = useContext(CurrentUserContext)
     const {setCurrentUserPermissions} = useContext(CurrentUserPermissionsContext)
 
-    const {triggerFetch} = useSomeAPI(`/api/v0/users/${currentUser.user_id}/permissions`, null, "GET", getUserPermissionsCallback)
+    const {triggerFetch} = useSomeAPI(`/api/v0/users/${currentUser?.user_id}/permissions`, null, "GET", getUserPermissionsCallback)
 
     function getUserPermissionsCallback(result, statusCode) {
         if (statusCode === 200) {

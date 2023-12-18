@@ -1,18 +1,22 @@
 import {useContext, useEffect} from "react";
-import {CurrentUserPermissionsContext, IS_ADMIN_GUEST, IS_ADMIN_DEFAULT} from "./Auth";
+import {CurrentUserContext, CurrentUserPermissionsContext, IS_ADMIN_GUEST, IS_ADMIN_DEFAULT} from "./Auth";
 import {useNavigate} from "react-router-dom";
 
 export function AdminWrapper({children}) {
     const navigate = useNavigate()
 
+    const {currentUser} = useContext(CurrentUserContext)
+
     const {currentUserPermissions} = useContext(CurrentUserPermissionsContext)
 
-    const is_admin = ("ReservationsAdmin" in currentUserPermissions)
-        || ("UsersAdmin" in currentUserPermissions)
-        || ("RoomsAdmin" in currentUserPermissions)
-        || ("GroupsAdmin" in currentUserPermissions)
+    const is_admin = (currentUserPermissions.indexOf("ReservationsAdmin") > -1)
+        || (currentUserPermissions.indexOf("UsersAdmin") > -1)
+        || (currentUserPermissions.indexOf("RoomsAdmin") > -1)
+        || (currentUserPermissions.indexOf("GroupsAdmin") > -1)
         || IS_ADMIN_GUEST
         || IS_ADMIN_DEFAULT
+
+    // console.log(is_admin,  currentUserPermissions)
 
 
     useEffect(() => {
@@ -20,7 +24,7 @@ export function AdminWrapper({children}) {
             navigate('/pagenotfound', {replace: true})
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [currentUser]);
 
     return children
 }
