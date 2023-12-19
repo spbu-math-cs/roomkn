@@ -26,17 +26,17 @@ To deploy latest release watch `/docker` directory or [/docker/README.md](https:
 
 ## Demo
 
-[Link to roomkn.tech]()
+[Link to roomkn.kpnn.ru](https://roomkn.kpnn.ru)
 
 ## Screenshots
 
-![Screenshot 1](1)
+<!-- ![Screenshot 1](1)
 
-![Screenshot 2](2)
+![Screenshot 2](2) -->
 
 ## Video Recording
 
-![video.gif](https://drive.google.com/file/d/1BbTL7qJN3_oOoZMpy0nfwlKIvyqbo7OK/view?usp=sharing)
+<!-- ![video.gif](https://drive.google.com/file/d/1BbTL7qJN3_oOoZMpy0nfwlKIvyqbo7OK/view?usp=sharing) -->
 
 ## Documantation
 
