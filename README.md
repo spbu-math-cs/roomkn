@@ -6,15 +6,15 @@
 # roomkn
 ![RooMKN](https://github.com/spbu-math-cs/roomkn/assets/33569237/af9cb75c-b26b-4bf5-a5cc-a1afaebc44bd)
 
-RooMKN is open-source room booking service
+RooMKN is an open-source room booking service
 
 ## Deployment
 
-To deploy from source
+To deploy from sources:
 
 -   create `.env` file with `.env-template` environment variables 
 
--   run `docker compose up` to start service
+-   run `docker compose up` to start the service
 
 To deploy latest release watch `/docker` directory or [/docker/README.md](https://github.com/spbu-math-cs/roomkn/blob/main/docker/README.md)
 
@@ -38,7 +38,7 @@ To deploy latest release watch `/docker` directory or [/docker/README.md](https:
 
 <!-- ![video.gif](https://drive.google.com/file/d/1BbTL7qJN3_oOoZMpy0nfwlKIvyqbo7OK/view?usp=sharing) -->
 
-## Documantation
+## Documentation
 
 REST-service documentation can be found at [wiki](https://github.com/spbu-math-cs/roomkn/wiki), interactive docs can be found [here](https://github.com/spbu-math-cs/roomkn/blob/main/server/docs/api.md)
 
