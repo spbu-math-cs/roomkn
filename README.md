@@ -16,7 +16,7 @@ To deploy from sources:
 
 -   run `docker compose up` to start the service
 
-To deploy latest release watch `/docker` directory or [/docker/README.md](https://github.com/spbu-math-cs/roomkn/blob/main/docker/README.md)
+To deploy latest release watch `/docker` directory
 
 ## Run
 
