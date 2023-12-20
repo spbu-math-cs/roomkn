@@ -2,7 +2,7 @@ import {fromAPITime} from '../api/API';
 import "./TimelineForRoomList.css"
 import "./Timeline.css"
 import React, {useContext, useEffect, useState} from 'react';
-import {Box, Divider, Typography} from "@mui/material";
+import {Box, Divider, Typography, useMediaQuery, useTheme} from "@mui/material";
 import {CurrentUserContext} from "./Auth";
 import useSomeAPI from "../api/FakeAPI";
 
@@ -216,6 +216,19 @@ function Timeline({
                       currentReservation=null,
                       height=50
                   }) {
+
+    const theme = useTheme();
+
+    let time_labels_modifier = 1;
+
+    if (useMediaQuery(theme.breakpoints.down('lg')))
+        time_labels_modifier = 2
+    if (useMediaQuery(theme.breakpoints.down('md')))
+        time_labels_modifier = 3
+    if (useMediaQuery(theme.breakpoints.down('sm')))
+        time_labels_modifier = 4
+
+
     let label = <></>
 
     let can_draw = true
@@ -272,7 +285,7 @@ function Timeline({
     const dividersList = []
     const hourDividers = []
 
-    const daysCount = Math.floor((untilTimelineDate.getTime() - getStartDate(fromTimelineDate).getTime()) / 1000 / 60 / 60 / 24)
+    const daysCount = Math.floor((untilTimelineDate.getTime() - getStartDate(fromTimelineDate).getTime()) / 1000 / 60 / 60 / 24) * time_labels_modifier
 
     let deltaHours = 1
 
