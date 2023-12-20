@@ -2,7 +2,7 @@ import {fromAPITime} from '../api/API';
 import "./TimelineForRoomList.css"
 import "./Timeline.css"
 import React, {useContext, useEffect, useState} from 'react';
-import {Box, Divider, Tooltip, Typography, useMediaQuery, useTheme} from "@mui/material";
+import {Box, Divider, Skeleton, Tooltip, Typography, useMediaQuery, useTheme} from "@mui/material";
 import {CurrentUserContext} from "./Auth";
 import useSomeAPI from "../api/FakeAPI";
 
@@ -238,11 +238,8 @@ function Timeline({
     let can_draw = true
 
     if (reservations == null) {
-        can_draw = false
-        label = (
-            <label className='for-rooms-reservations-not-found-label'>
-                Can't get reservations list for this room.
-            </label>
+        return (
+            <Skeleton variant="rectangular" sx={{width: 100/100, height: height}}/>
         )
     }
 
