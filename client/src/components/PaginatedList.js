@@ -3,25 +3,36 @@ import {Pagination, Stack} from "@mui/material";
 import useSomeAPI from "../api/FakeAPI";
 
 
-export function PaginatedList({children, endpoint, resultHandler, additional_deps}) {
+export function PaginatedList({children, endpoint, resultHandler, additional_deps, limit=5}) {
 
     const [draw_list, setDrawList] = useState([])
 
     const [page, setPage] = React.useState(1);
     const [pageCount, setPageCount] = React.useState(2);
-    const [size, setSize] = React.useState(2);
+    const [size, setSize] = React.useState(20);
+    const [elementsOnPage, setElementsOnPage] = React.useState(limit);
 
-    const limit = 10
-    const offset = (page - 1) * limit
+    useEffect(() => {
+        setPageCount(Math.ceil(size / limit))
+        if (size - offset > limit) {
+            setElementsOnPage(limit)
+        } else {
+            setElementsOnPage(size - offset)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [size])
+
+    const [offset, setOffset] = React.useState(0);
 
     const [result, setResult] = React.useState(null);
+    const [statusCode, setStatusCode] = React.useState(null);
+
 
     function getSizeCallback(result, statusCode) {
         console.log("result: " + result)
         console.log("statusCode:"  + statusCode)
         if (statusCode === 200 && result != null) {
             setSize(result);
-            setPageCount(Math.ceil(size / limit))
         }
     }
 
@@ -31,17 +42,21 @@ export function PaginatedList({children, endpoint, resultHandler, additional_dep
     useEffect(() => triggerFetchSize(), [])
 
     function getListCallback(result, statusCode) {
+        setStatusCode(statusCode)
         console.log("result: " + result)
         console.log("statusCode:"  + statusCode)
+        console.log("page:"  + page)
         if (statusCode === 200 && result != null) {
             setResult(result);
+
         }
+
     }
 
     // result handler
 
     useEffect(() => {
-        const newDrawList = resultHandler()
+        const newDrawList = resultHandler(result, statusCode, elementsOnPage)
         setDrawList(newDrawList)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [result, additional_deps])
@@ -52,6 +67,7 @@ export function PaginatedList({children, endpoint, resultHandler, additional_dep
 
     const handleChangePage = (event, value) => {
         setPage(value);
+        setOffset((value - 1) * limit)
     };
 
     return (
