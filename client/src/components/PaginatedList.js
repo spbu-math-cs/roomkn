@@ -1,9 +1,9 @@
 import React, {useEffect, useState} from "react";
-import {Pagination, Stack} from "@mui/material";
+import {Pagination, Stack, useTheme} from "@mui/material";
 import useSomeAPI from "../api/FakeAPI";
 
 
-export function PaginatedList({children, endpoint, resultHandler, additional_deps, limit=5}) {
+export function PaginatedList({children, endpoint, resultHandler, additional_deps, limit=5, fetchFlag}) {
 
     const [draw_list, setDrawList] = useState([])
 
@@ -39,7 +39,7 @@ export function PaginatedList({children, endpoint, resultHandler, additional_dep
     const pagination_query = `?offset=${offset}&limit=${limit}`
     let {triggerFetch: triggerFetchSize} = useSomeAPI(endpoint + '/size', null, 'GET', getSizeCallback)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => triggerFetchSize(), [])
+    useEffect(() => triggerFetchSize(), [fetchFlag])
 
     function getListCallback(result, statusCode) {
         setStatusCode(statusCode)
@@ -63,16 +63,18 @@ export function PaginatedList({children, endpoint, resultHandler, additional_dep
 
     let {triggerFetch: triggerFetchList} = useSomeAPI(endpoint + pagination_query, null, 'GET', getListCallback)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => triggerFetchList(), [page])
+    useEffect(() => triggerFetchList(), [page, fetchFlag])
 
     const handleChangePage = (event, value) => {
         setPage(value);
         setOffset((value - 1) * limit)
     };
 
+    const theme = useTheme()
+
     return (
         <>
-            <Stack direction = "column" sx={{paddingBottom: 2}}>
+            <Stack spacing={theme.spacing()} direction = "column" sx={{paddingBottom: 2}}>
                 {children}
                 {draw_list}
             </Stack>

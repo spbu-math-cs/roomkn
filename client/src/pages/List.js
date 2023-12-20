@@ -173,12 +173,11 @@ function RoomList() {
                 )
                 is_first_room_row = false
             })
-        } else {
-            for (let i = 0; i < elementsOnPage; i++) {
-                new_draw_list.push(
-                    <RoomRowSkeleton/>
-                )
-            }
+        }
+        while (new_draw_list.length < elementsOnPage) {
+            new_draw_list.push(
+                <RoomRowSkeleton/>
+            )
         }
         return new_draw_list
     }

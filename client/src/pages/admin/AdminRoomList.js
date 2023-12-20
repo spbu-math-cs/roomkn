@@ -5,8 +5,9 @@ import {NavLink} from "react-router-dom";
 
 import "./AdminRoomList.css"
 import AdminWrapper from "../../components/AdminWrapper";
-import {Box, Button, Pagination, Stack, TextField, useTheme} from "@mui/material";
+import {Box, Button, Skeleton, Stack, TextField, useTheme} from "@mui/material";
 import SnackbarAlert from "../../components/SnackbarAlert";
+import PaginatedList from "../../components/PaginatedList";
 
 function EditRoomRow({room, refresh}) {
 
@@ -82,6 +83,25 @@ function EditRoomRow({room, refresh}) {
     )
 }
 
+function EditRoomRowSkeleton() {
+    const theme = useTheme()
+
+    return (
+        <Stack direction="row" alignItems="baseline" spacing={theme.spacing()}>
+            <Skeleton sx={{minWidth: "30pt"}}/>
+            <TextField label="Name" variant="outlined"  disabled/>
+            <TextField InputLabelProps={{shrink: true}}
+                       multiline
+                       maxRows={4}
+                       label="Description"
+                       variant="outlined"  disabled/>
+            <Button variant="outlined" color="secondary" disabled>reset</Button>
+            <Button variant="contained" color="success" disabled>update</Button>
+            <Button variant="outlined" color="error"  disabled>delete</Button>
+        </Stack>
+    )
+}
+
 function AddRoom({refresh}) {
     const [name, setName] = useState("")
     const [desc, setDesc] = useState("")
@@ -115,35 +135,22 @@ function AddRoom({refresh}) {
 }
 
 export function AdminRoomList() {
-    
-    let [drawList, setDrawList] = useState([])
 
-    const [page, setPage] = React.useState(1);
-    const [pageCount, setPageCount] = React.useState(10);
-    const handleChangePage = (event, value) => {
-        setPage(value);
-    };
-
-    const limit = 10
-    const offset = (page - 1) * limit
-
-    const pagination_query = `?offset=${offset}&limit=${limit}`
-
-    let {triggerFetch} = useSomeAPI('/api/v0/rooms' + pagination_query, null, 'GET', listCallback)
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => triggerFetch(), [limit, offset])
-
-    function listCallback(result, statusCode) {
+    function resultHandler(result, statusCode, elementsOnPage) {
+        const newList = []
         if (statusCode === 200) {
-            const newList = []
             result.forEach((room) => {
                 newList.push(
                     <EditRoomRow room={room} key={room.id} refresh={triggerFetch}/>
                 )
             })
-            setDrawList(newList)
         }
+        while (newList.length < elementsOnPage) {
+            newList.push(
+                <EditRoomRowSkeleton/>
+            )
+        }
+        return newList
     }
 
     const page_name = (
@@ -155,17 +162,15 @@ export function AdminRoomList() {
         </div>
     )
 
-    const theme = useTheme()
+    const [fetchFlag, setFetchFlag] = useState([])
+    function triggerFetch() {
+        setFetchFlag(fetchFlag+1)
+    }
 
     return (
         <AdminWrapper>
             <ContentWrapper page_name={page_name}>
-                <Stack spacing={theme.spacing()} sx={{ml: 4, mr: 4}}>
-                    {drawList}
-                </Stack>
-                <Stack alignItems="center"  sx={{paddingTop: 4}}>
-                    <Pagination count={pageCount} page={page} onChange={handleChangePage} sx={{justifyContent:"center"}} />
-                </Stack>
+                <PaginatedList endpoint={'/api/v0/rooms'} resultHandler={resultHandler} limit={2} fetchFlag={fetchFlag}/>
             </ContentWrapper>
             <ContentWrapper page_name="Add room">
                 <AddRoom refresh={triggerFetch}/>
