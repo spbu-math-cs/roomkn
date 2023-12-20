@@ -10,6 +10,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.patch
+import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import org.koin.ktor.ext.inject
@@ -36,6 +37,7 @@ fun Route.usersRouting() {
             listUserPermissions(database)
             setUserPermissions(database)
             updateUserCredentials(database)
+            generateInvite()
         }
     }
 }
@@ -120,6 +122,12 @@ private fun Route.setUserPermissions(database: Database) {
         call.requirePermission(database) { return@put call.onMissingPermission() }
 
         database.updateUserPermissions(id, body).okResponseWithHandleException(call)
+    }
+}
+
+private fun Route.generateInvite() {
+    post("/invite") {
+        //TODO add token smh
     }
 }
 
