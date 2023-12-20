@@ -11,7 +11,7 @@ export function AuthorizeWrapper({children}) {
 
     useEffect(() => {
         setCurrentUser(getUserDataFromStorage());
-        setIsAuthorized(currentUser != {})
+        setIsAuthorized(currentUser?.user_id != null)
 
         if (isAuthorized == null) {
             triggerValidate()
@@ -32,16 +32,16 @@ export function AuthorizeWrapper({children}) {
     return children
 }
 
-const emptyUser = {
-    user_id: null,
-    csrf_token: null,
-    is_admin: null,
-    username: null
-}
+// const emptyUser = {
+//     user_id: null,
+//     csrf_token: null,
+//     is_admin: null,
+//     username: null
+// }
 
 export function AuthorizationProvider({children}) {
-    const [isAuthorized, setIsAuthorized] = useState(null)
-    const [currentUser, setCurrentUser] = useState(emptyUser)
+    const [currentUser, setCurrentUser] = useState(getUserDataFromStorage())
+    const [isAuthorized, setIsAuthorized] = useState(currentUser?.user_id != null)
     const [currentUserPermissions, setCurrentUserPermissions] = useState([])
 
     return (
