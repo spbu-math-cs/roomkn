@@ -127,7 +127,7 @@ private fun Route.setUserPermissions(database: Database) {
 
 private fun Route.generateInvite() {
     post("/invite") {
-        //TODO add token smh
+        // TODO add token smh
     }
 }
 
