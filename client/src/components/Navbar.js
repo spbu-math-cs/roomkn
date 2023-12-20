@@ -3,7 +3,7 @@ import React, {useContext, useEffect, useState} from "react";
 
 
 import {NavLink} from "react-router-dom";
-import {CurrentUserContext, IsAuthorizedContext, useLogout} from "./Auth";
+import {CurrentUserContext, IsAdmin, IsAuthorizedContext, useLogout} from "./Auth";
 import {AppBar, Avatar, Box, Button, IconButton, ListItemIcon, Menu, Toolbar, Tooltip, Typography} from "@mui/material";
 import {SnackbarContext} from "./SnackbarAlert";
 import {Container} from "@pixi/react";
@@ -15,6 +15,8 @@ import {Logout} from "@mui/icons-material";
 const NavBarUserMenu = () => {
     const {isAuthorized} = useContext(IsAuthorizedContext)
     const {currentUser} = useContext(CurrentUserContext)
+
+    const is_admin = IsAdmin();
 
     const [userNickname, setUserNickname] = useState(currentUser?.username)
     const [anchorElUser, setAnchorElUser] = React.useState(null);
@@ -96,7 +98,7 @@ const NavBarUserMenu = () => {
                             Profile
                         </NavLink>
                     </MenuItem>
-                    <MenuItem>
+                    <MenuItem sx={{display: (is_admin ? '' : 'none')}}>
                         <NavLink to="/admin/panel" className="navlink">
                             Admin panel
                         </NavLink>
