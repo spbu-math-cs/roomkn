@@ -285,7 +285,7 @@ function Timeline({
     const dividersList = []
     const hourDividers = []
 
-    const daysCount = Math.floor((untilTimelineDate.getTime() - getStartDate(fromTimelineDate).getTime()) / 1000 / 60 / 60 / 24) * time_labels_modifier
+    const daysCount = Math.ceil((untilTimelineDate.getTime() - getStartDate(fromTimelineDate).getTime()) / 1000 / 60 / 60 / 24) * time_labels_modifier
 
     let deltaHours = 1
 
