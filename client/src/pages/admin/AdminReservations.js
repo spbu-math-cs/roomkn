@@ -12,7 +12,7 @@ import {
     InputLabel,
     ListItemText,
     MenuItem,
-    Select,
+    Select, Skeleton,
     Stack, Table, TableBody, TableCell, TableHead, TablePagination, TableRow,
     useTheme
 } from "@mui/material";
@@ -60,7 +60,7 @@ function useGetRooms() {
 }
 
 function useGetUserName(user_id) {
-    const [user_name, setUserName] = useState("")
+    const [user_name, setUserName] = useState(null)
 
     function getUserCallback(result, statusCode) {
         if (result != null && statusCode === 200) {
@@ -77,7 +77,7 @@ function useGetUserName(user_id) {
 }
 
 function useGetRoomName(room_id) {
-    const [room_name, setRoomName] = useState("")
+    const [room_name, setRoomName] = useState(null)
 
     function getRoomCallback(result, statusCode) {
         if (result != null && statusCode === 200) {
@@ -103,7 +103,9 @@ function Reservation({reservation, display_user}) {
     let [deleted, setDeleted] = useState(false)
 
     let room_name = useGetRoomName(room_id)
+    room_name = room_name ? room_name : (<Skeleton/>)
     let user_name = useGetUserName(user_id)
+    user_name = user_name ? user_name : <Skeleton/>
 
     const {setNewMessageSnackbar} = useContext(SnackbarContext)
 
@@ -147,6 +149,38 @@ function Reservation({reservation, display_user}) {
             </TableCell>
             <TableCell align="right">
                 <Button variant="outlined" color="error" onClick={deleteReservation} sx={{maxWidth: "40pt"}}>delete</Button>
+            </TableCell>
+        </TableRow>
+    )
+}
+
+function ReservationSkeleton({id, display_user}) {
+
+    return (
+        <TableRow
+            key={id}
+            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+        >
+            <TableCell component="th" scope="row">
+                <Skeleton/>
+            </TableCell>
+            <TableCell align="right">
+                <Skeleton/>
+            </TableCell>
+            <TableCell align="right" sx={{display: display_user}}>
+                <Skeleton/>
+            </TableCell>
+            <TableCell align="right">
+                <Skeleton/>
+            </TableCell>
+            <TableCell align="right">
+                <Skeleton/>
+            </TableCell>
+            <TableCell align="right">
+                <Skeleton/>
+            </TableCell>
+            <TableCell align="right">
+                <Button variant="outlined" color="error" disable sx={{maxWidth: "40pt"}}>delete</Button>
             </TableCell>
         </TableRow>
     )
@@ -344,11 +378,11 @@ function Filters({triggerGetReservations, display_user}) {
     )
 }
 
-function Reservations({reservations, orderBy, display_user}) {
+function Reservations({reservations, orderBy, display_user, reservationsPerPage}) {
 
-    if (reservations.length === 0) return (
-        <></>
-    )
+    // if (reservations.length === 0) return (
+    //     <></>
+    // )
     const drawList = []
 
     reservations.sort((a, b) => {
@@ -368,6 +402,9 @@ function Reservations({reservations, orderBy, display_user}) {
     reservations.forEach((reservation) => {
         drawList.push(<Reservation reservation={reservation} display_user={display_user}/> )
     })
+    while (drawList.length < reservationsPerPage) {
+        drawList.push(<ReservationSkeleton id={1} display_user={display_user}/>)
+    }
 
     return drawList
 }
@@ -378,6 +415,18 @@ export function ReservationsList({is_admin=false, user_id=null}) {
     const [reservationsCount, setReservationsCount] = React.useState(100);
 
     const offset = (page) * reservationsPerPage
+
+    function getSizeCallback(result, statusCode) {
+        console.log("result: " + result)
+        console.log("statusCode:"  + statusCode)
+        if (statusCode === 200 && result != null) {
+            setReservationsCount(result);
+        }
+    }
+
+    let {triggerFetch: triggerFetchSize} = useSomeAPI('/api/v0/reservations/size', null, 'GET', getSizeCallback)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => triggerFetchSize(), [])
 
     let default_users = []
     if (user_id != null) {
@@ -437,7 +486,7 @@ export function ReservationsList({is_admin=false, user_id=null}) {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            <Reservations reservations={reservations} orderBy={orderBy} display_user={display_user}/>
+                            <Reservations reservations={reservations} orderBy={orderBy} display_user={display_user} reservationsPerPage={reservationsPerPage}/>
                         </TableBody>
                     </Table>
                 </Stack>
