@@ -13,7 +13,7 @@ export function AuthorizeWrapper({children}) {
         setCurrentUser(getUserDataFromStorage());
         setIsAuthorized(currentUser?.user_id != null)
 
-        if (isAuthorized == null) {
+        if (!isAuthorized) {
             triggerValidate()
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -22,7 +22,7 @@ export function AuthorizeWrapper({children}) {
     const {triggerGetPermissions} = useGetCurrentUserPermissions()
 
     useEffect(() => {
-        if (isAuthorized != null) {
+        if (isAuthorized) {
             triggerGetPermissions()
         }
         SaveUserDataIntoStorage(currentUser)
@@ -32,12 +32,12 @@ export function AuthorizeWrapper({children}) {
     return children
 }
 
-// const emptyUser = {
-//     user_id: null,
-//     csrf_token: null,
-//     is_admin: null,
-//     username: null
-// }
+const emptyUser = {
+    user_id: null,
+    csrf_token: null,
+    is_admin: null,
+    username: null
+}
 
 export function AuthorizationProvider({children}) {
     const [currentUser, setCurrentUser] = useState(getUserDataFromStorage())
@@ -213,7 +213,11 @@ export function useLogout() {
 
 export function getUserDataFromStorage() {
     const dataString = localStorage.getItem('roomkn');
-    return JSON.parse(dataString)
+    try {
+        return JSON.parse(dataString)
+    } catch (e) {
+        return emptyUser
+    }
 }
 
 export function SaveUserDataIntoStorage(currentUser) {
