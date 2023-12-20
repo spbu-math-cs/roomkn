@@ -298,6 +298,15 @@ function Timeline({
     if (daysCount >= 24) deltaHours = 24
 
     if (can_draw) {
+        hourDividers.push(<HourDividerTimeline dividerDate={fromTimelineDate}
+                                               fromTimelineDate={fromTimelineDate}
+                                               untilTimelineDate={untilTimelineDate}
+                                               show_divider_label={show_time_labels}
+                                               show_reservation_labels={show_reservation_labels}
+                                               is_current_reservation={false}
+                                               height={height}
+        />)
+
         for (let dividerDate = getStartDate(fromTimelineDate); dividerDate < untilTimelineDate; dividerDate = new Date(updateDate(dividerDate, +1))) {
 
             const dividerHourZeroDate = new Date(dividerDate)
@@ -310,7 +319,7 @@ function Timeline({
                 />)
             }
 
-            for (let i = 0; i < 24; i += deltaHours) {
+            for (let i = fromTimelineDate.getUTCHours(); i < 24; i += deltaHours) {
                 const dividerHourDate = new Date(dividerDate)
                 dividerHourDate.setUTCHours(i, 0)
 

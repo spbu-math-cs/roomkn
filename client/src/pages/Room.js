@@ -266,7 +266,7 @@ function Room() {
         }
     }
 
-    const fromTimelineDate = new Date(toAPITime(date, "09:00"))
+    const fromTimelineDate = new Date(toAPITime(date, "09:30"))
     const untilTimelineDate = new Date(toAPITime(date, "23:59"))
 
     console.log(fromTimelineDate, untilTimelineDate)
