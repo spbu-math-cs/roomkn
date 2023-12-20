@@ -5,6 +5,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
@@ -16,6 +17,7 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.datetime.Instant
 import org.junit.jupiter.api.Test
+import org.tod87et.roomkn.server.models.reservations.NewReservationBounds
 import org.tod87et.roomkn.server.models.reservations.Reservation
 import org.tod87et.roomkn.server.models.reservations.ReservationRequest
 import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
@@ -245,6 +247,37 @@ class ReservationsRoutesTests {
 
         assertEquals(HttpStatusCode.OK, resp.status)
         assertTrue(KtorTestEnv.database.getReservation(reservation.id).isFailure)
+    }
+
+    @Test
+    fun updateReservation() = KtorTestEnv.testJsonApplication { client ->
+        val myId = with(KtorTestEnv) {
+            client.createAndAuthUser()
+        }
+        val room = KtorTestEnv.createRoom("301")
+
+        val from = Instant.fromEpochMilliseconds(6.hours.inWholeMilliseconds)
+        val until = Instant.fromEpochMilliseconds(7.hours.inWholeMilliseconds)
+        val untilEps = until + 1.hours
+        val fromEps = from - 1.hours
+
+        val reqReservation = UnregisteredReservation(myId, room.id, from, until)
+        val secondReservation = UnregisteredReservation(myId, room.id, until, untilEps)
+        val reservation = KtorTestEnv.database.createReservation(reqReservation).getOrThrow()
+        assertTrue(KtorTestEnv.database.createReservation(secondReservation).isSuccess)
+
+        var resp = client.put(reservationPath(reservation.id)) {
+            contentType(ContentType.Application.Json)
+            setBody(NewReservationBounds(from, untilEps))
+        }
+
+        assertEquals(HttpStatusCode.BadRequest, resp.status)
+
+        resp = client.put(reservationPath(reservation.id)) {
+            contentType(ContentType.Application.Json)
+            setBody(NewReservationBounds(fromEps, until))
+        }
+        assertEquals(HttpStatusCode.OK, resp.status)
     }
 
     @Test

@@ -7,6 +7,7 @@ import org.tod87et.roomkn.server.plugins.configureCORS
 import org.tod87et.roomkn.server.plugins.configureCleanup
 import org.tod87et.roomkn.server.plugins.configureCallLogging
 import org.tod87et.roomkn.server.plugins.configureMap
+import org.tod87et.roomkn.server.plugins.configureMetrics
 import org.tod87et.roomkn.server.plugins.configureRouting
 import org.tod87et.roomkn.server.plugins.configureSerialization
 
@@ -22,5 +23,6 @@ fun Application.module() {
     configureCleanup()
     configureCallLogging()
     configureMap()
+    configureMetrics()
     logger.info("RooMKN main module has been initialized")
 }
