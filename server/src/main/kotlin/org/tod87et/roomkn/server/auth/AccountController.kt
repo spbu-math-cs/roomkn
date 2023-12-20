@@ -19,6 +19,8 @@ interface AccountController {
 
     fun invalidateSession(session: AuthSession): Result<Unit>
 
+    fun validateInvite(token: String): Result<Unit>
+
     suspend fun cleanerLoop()
 
     fun createZeroAdminIfRequested()

@@ -30,6 +30,7 @@ import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
 import org.tod87et.roomkn.server.models.rooms.RoomInfo
 import org.tod87et.roomkn.server.models.rooms.ShortRoomInfo
 import org.tod87et.roomkn.server.models.users.FullUserInfo
+import org.tod87et.roomkn.server.models.users.InviteRequest
 import org.tod87et.roomkn.server.models.users.RegistrationUserInfo
 import org.tod87et.roomkn.server.models.users.ShortUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
@@ -343,6 +344,10 @@ class DatabaseSession private constructor(private val database: Database) :
             }
         }
 
+    override fun createInvite(inviteRequest: InviteRequest): Result<Unit> {
+        TODO("Not yet implemented")
+    }
+
     override fun registerUser(user: RegistrationUserInfo): Result<UserInfo> = queryWrapper {
         transaction(database) {
             val userRow = Users.insert {
@@ -398,6 +403,10 @@ class DatabaseSession private constructor(private val database: Database) :
 
             ActiveTokens.deleteWhere { expirationDate lessEq now }
         }
+    }
+
+    override fun validateInvite(token: String): Result<Unit> {
+        TODO("Not yet implemented")
     }
 
     override fun getCredentialsInfoByUsername(username: String): Result<UserCredentialsInfo> = queryWrapper {

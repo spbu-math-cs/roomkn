@@ -23,4 +23,6 @@ interface CredentialsDatabase {
     fun checkTokenValid(hash: ByteArray): Result<Boolean>
 
     fun cleanupExpiredTokens(): Result<Unit>
+
+    fun validateInvite(token: String): Result<Unit>
 }

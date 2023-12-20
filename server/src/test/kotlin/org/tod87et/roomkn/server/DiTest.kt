@@ -29,6 +29,7 @@ import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
 import org.tod87et.roomkn.server.models.rooms.RoomInfo
 import org.tod87et.roomkn.server.models.rooms.ShortRoomInfo
 import org.tod87et.roomkn.server.models.users.FullUserInfo
+import org.tod87et.roomkn.server.models.users.InviteRequest
 import org.tod87et.roomkn.server.models.users.RegistrationUserInfo
 import org.tod87et.roomkn.server.models.users.ShortUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
@@ -102,6 +103,7 @@ private class CredentialsDatabaseMock : CredentialsDatabase {
     override fun checkTokenValid(hash: ByteArray): Result<Boolean> = fail()
 
     override fun cleanupExpiredTokens(): Result<Unit> = fail()
+    override fun validateInvite(token: String): Result<Unit> = fail()
 }
 
 private class DatabaseMock : Database {
@@ -177,6 +179,8 @@ private class DatabaseMock : Database {
         userId: Int,
         permissions: List<UserPermission>
     ): Result<Unit> = fail()
+
+    override fun createInvite(inviteRequest: InviteRequest): Result<Unit> = fail()
 
     override fun clear(): Result<Unit> = fail()
 }

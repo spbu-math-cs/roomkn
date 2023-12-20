@@ -10,6 +10,7 @@ import org.tod87et.roomkn.server.models.users.ShortUserInfo
 import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
 import org.tod87et.roomkn.server.models.users.FullUserInfo
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
+import org.tod87et.roomkn.server.models.users.InviteRequest
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfoWithNull
 import org.tod87et.roomkn.server.models.users.UserInfo
@@ -62,6 +63,7 @@ interface Database {
     fun deleteUser(userId: Int): Result<Unit>
     fun getUserPermissions(userId: Int): Result<List<UserPermission>>
     fun updateUserPermissions(userId: Int, permissions: List<UserPermission>): Result<Unit>
+    fun createInvite(inviteRequest: InviteRequest): Result<Unit>
 
 
     /**

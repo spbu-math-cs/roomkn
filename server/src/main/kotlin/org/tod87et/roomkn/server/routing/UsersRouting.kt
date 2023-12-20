@@ -20,6 +20,7 @@ import org.tod87et.roomkn.server.auth.NoSuchUserException
 import org.tod87et.roomkn.server.database.Database
 import org.tod87et.roomkn.server.di.injectDatabase
 import org.tod87et.roomkn.server.models.permissions.UserPermission
+import org.tod87et.roomkn.server.models.users.InviteRequest
 import org.tod87et.roomkn.server.models.users.PasswordUpdateInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfoWithNull
@@ -37,7 +38,7 @@ fun Route.usersRouting() {
             listUserPermissions(database)
             setUserPermissions(database)
             updateUserCredentials(database)
-            generateInvite()
+            generateInvite(database)
         }
     }
 }
@@ -125,9 +126,10 @@ private fun Route.setUserPermissions(database: Database) {
     }
 }
 
-private fun Route.generateInvite() {
-    post("/invite") {
-        // TODO add token smh
+private fun Route.generateInvite(database: Database) {
+    post("/invite") { body: InviteRequest ->
+        call.requirePermission(database) { return@post call.onMissingPermission() }
+        database.createInvite(body).okResponseWithHandleException(call)
     }
 }
 
