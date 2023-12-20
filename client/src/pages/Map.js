@@ -11,7 +11,7 @@ import {empty_map} from "./MapData";
 import useSomeAPI from "../api/FakeAPI";
 
 import "./Map.css"
-import {Box, MenuItem, Select} from "@mui/material";
+import {Box, MenuItem, Select, Skeleton} from "@mui/material";
 import {SnackbarContext} from "../components/SnackbarAlert";
 
 function Room({ room_id, navigate, mesh, window_scale }) {
@@ -120,13 +120,34 @@ function Layer({ layer, navigate, scale }) {
 
 }
 
-export function MapField({map, scale=1}) {
+export function MapFieldSkeleton({scale=1}) {
+    const width = 900 * scale;
+    const height = 700 * scale;
+
+    return (
+        <>
+            <Select disabled fullWidth sx={{mb: 4}}>
+            </Select>
+            <Box sx={{alignItems: "center"}}>
+                <Skeleton variant={"rounded"} width={width} height={height}/>
+            </Box>
+        </>
+    );
+}
+
+export function MapField({map, scale=1,loading}) {
     const {setNewMessageSnackbar} = useContext(SnackbarContext)
 
     const navigate = useNavigate();
 
     const [selectedLayer, setSelectedLayer] = useState(1);
     // const [layersList, setLayersList] = useState([]);
+
+    if (loading) {
+        return (
+            <MapFieldSkeleton scale={scale}/>
+        )
+    }
 
     try {
 
@@ -151,7 +172,12 @@ export function MapField({map, scale=1}) {
 
         return (
             <>
-                <Select value={selectedLayer} onChange={e => setSelectedLayer(e.target.value)} fullWidth>
+                <Select
+                    value={selectedLayer}
+                    onChange={e => setSelectedLayer(e.target.value)}
+                    fullWidth
+                    sx={{mb: 4}}
+                >
                     {layer_options}
                 </Select>
                 <Box sx={{alignItems: "center"}}>
@@ -173,7 +199,7 @@ export function MapField({map, scale=1}) {
 
 export function GetMap() {
 
-    const {triggerFetch} = useSomeAPI('/api/v0/map', null, 'GET', getMapCallback);
+    const {triggerFetch, loading} = useSomeAPI('/api/v0/map', null, 'GET', getMapCallback);
 
     const [map, setMap] = useState(empty_map);
 
@@ -186,12 +212,12 @@ export function GetMap() {
     // console.log(JSON.stringify(cheba_map))
 
 
-    return {map, triggerGetMap: triggerFetch};
+    return {map, triggerGetMap: triggerFetch, loading};
 }
 
 export function Map() {
 
-    const {map, triggerGetMap} = GetMap()
+    const {map, triggerGetMap, loading} = GetMap()
 
     useEffect(() => {
         triggerGetMap()
@@ -206,7 +232,7 @@ export function Map() {
                 flexGrow: 1,
                 display: { xs: 'flex', md: 'none' }
             }}>
-                <MapField map={map} scale={0.4}/>
+                <MapField map={map} scale={0.4} loading={loading}/>
             </Box>
             <Box sx={{
                 alignItems: 'center',
@@ -214,7 +240,7 @@ export function Map() {
                 flexGrow: 1,
                 display: { xs: 'none', md: 'flex' }
             }}>
-                <MapField map={map}/>
+                <MapField map={map} loading={loading}/>
             </Box>
         </ContentWrapper>
     )
