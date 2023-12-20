@@ -8,13 +8,47 @@ import AdminWrapper from "../../components/AdminWrapper";
 import {
     Button,
     Checkbox,
-    FormControlLabel, Pagination,
+    FormControlLabel, Skeleton,
     Stack,
     TextField,
     Typography,
     useTheme
 } from "@mui/material";
 import { CurrentUserContext } from "../../components/Auth";
+import PaginatedList from "../../components/PaginatedList";
+
+const permissionsDefault = {
+    "ReservationsCreate": false,
+    "ReservationsAdmin": false,
+    "RoomsAdmin": false,
+    "UsersAdmin": false,
+    "GroupsAdmin": false
+}
+
+function PermCheckbox({perm, label, was, on_change}) {
+
+    var boxColor
+
+    if (perm) {
+        if (was) boxColor = 'primary'
+        else boxColor = 'success'
+    }
+    else {
+        if (was) boxColor = 'secondary'
+        else boxColor = 'error'
+    }
+
+    return (
+        <FormControlLabel
+            control={<Checkbox checked={perm} color={boxColor} onChange={on_change}/>}
+            label={
+                <Typography color={boxColor}>
+                    {label}
+                </Typography>
+            }
+        />
+    )
+}
 
 function EditUserRow({user, refresh}) {
 
@@ -24,14 +58,6 @@ function EditUserRow({user, refresh}) {
     const put_data = {
         username: name,
         email: email
-    }
-
-    const permissionsDefault = {
-        "ReservationsCreate": false,
-        "ReservationsAdmin": false,
-        "RoomsAdmin": false,
-        "UsersAdmin": false,
-        "GroupsAdmin": false
     }
 
     const [permissions, setPermissions] = useState(permissionsDefault)
@@ -85,31 +111,6 @@ function EditUserRow({user, refresh}) {
             setPermissionsBefore(JSON.parse(JSON.stringify(tmp_perms)))
             setPermissions(JSON.parse(JSON.stringify(tmp_perms)))
         } 
-    }
-
-    function PermCheckbox({perm, label, was, on_change}) {
-
-        var boxColor
-        
-        if (perm) {
-            if (was) boxColor = 'primary'
-            else boxColor = 'success'
-        }
-        else {
-            if (was) boxColor = 'secondary'
-            else boxColor = 'error'
-        }
-
-        return (
-            <FormControlLabel
-                control={<Checkbox checked={perm} color={boxColor} onChange={on_change}/>}
-                label={
-                    <Typography color={boxColor}>
-                        {label}
-                    </Typography>
-                }
-            />
-        )
     }
 
     console.log('rerendering user')
@@ -168,13 +169,36 @@ function EditUserRow({user, refresh}) {
                            onChange={(e) => setEmail(e.target.value)}/>
             </Stack>
             <Typography fontSize="18pt">Permissions</Typography>
-            <Stack sx={{paddingLeft: "10pt"}}>
+            <Stack sx={{paddingLeft: 2, paddingBottom: 2}}>
                 {permissions_draw}
             </Stack>
             <Stack direction="row" spacing={theme.spacing()}>
                 <Button variant="outlined" color="secondary" onClick={reset}>reset</Button>
                 <Button variant="contained" color="success" onClick={put_req}>update</Button>
                 <Button variant="outlined" color="error" onClick={delete_req}>delete</Button>
+            </Stack>
+        </ContentWrapper>
+    )
+}
+
+function EditUserRowSkeleton() {
+    const theme = useTheme();
+
+    return (
+        <ContentWrapper page_name={<Skeleton/>}>
+            <Stack direction="row">
+                <TextField sx={{maxWidth: "400px", paddingRight: "20px"}} label="Username" disabled/>
+                <TextField sx={{maxWidth: "400px"}} label="Email" />
+            </Stack>
+            <Typography fontSize="18pt">Permissions</Typography>
+            <Stack sx={{paddingLeft: 2, paddingBottom: 2}}>
+                {/*{permissions_draw}*/}
+                <Skeleton variant="rectangular" sx={{width: 300, height:100, fontSize: 20}}/>
+            </Stack>
+            <Stack direction="row" spacing={theme.spacing()}>
+                <Button variant="outlined" color="secondary" disabled>reset</Button>
+                <Button variant="contained" color="success" disabled>update</Button>
+                <Button variant="outlined" color="error" disabled>delete</Button>
             </Stack>
         </ContentWrapper>
     )
@@ -211,29 +235,17 @@ function AddUser({refresh}) {
 
 export function AdminUserList() {
 
-    let [drawList, setDrawList] = useState([])
-
     const {currentUser, setCurrentUser} = useContext(CurrentUserContext)
 
-    const [page, setPage] = React.useState(1);
-    const [pageCount, setPageCount] = React.useState(10);
-    const handleChangePage = (event, value) => {
-        setPage(value);
-    };
+    const [fetchFlag, setFetchFlag] = useState([])
+    function triggerFetch() {
+        setFetchFlag(fetchFlag+1)
+    }
 
-    const limit = 10
-    const offset = (page - 1) * limit
-
-    const pagination_query = `?offset=${offset}&limit=${limit}`
-
-    let {triggerFetch} = useSomeAPI('/api/v0/users' + pagination_query, null, 'GET', listCallback)
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => triggerFetch(), [limit, offset])
-
-    function listCallback(result, statusCode) {
+    function resultHandler(result, statusCode, elementsOnPage) {
+        const newList = []
         if (statusCode === 200) {
-            const newList = []
+
             result.forEach((user) => {
                 if (user.id === currentUser?.user_id) {
                     if (user.username !== currentUser?.username) {
@@ -248,8 +260,13 @@ export function AdminUserList() {
                     <EditUserRow user={user} key={user.id} refresh={triggerFetch}/>
                 )
             })
-            setDrawList(newList)
         }
+        while (newList.length < elementsOnPage) {
+            newList.push(
+                <EditUserRowSkeleton/>
+            )
+        }
+        return newList
     }
 
     const page_name = (
@@ -265,10 +282,7 @@ export function AdminUserList() {
         <AdminWrapper>
 
             <ContentWrapper page_name={page_name}>
-                <Stack alignItems="center"  sx={{paddingBottom: 1}}>
-                    <Pagination count={pageCount} page={page} onChange={handleChangePage} sx={{justifyContent:"center"}} />
-                </Stack>
-                {drawList}
+                <PaginatedList endpoint={'/api/v0/users'} resultHandler={resultHandler} limit={10} fetchFlag={fetchFlag}/>
             </ContentWrapper>
             <AddUser refresh={triggerFetch}/>
         </AdminWrapper>

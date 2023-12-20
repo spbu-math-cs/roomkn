@@ -14,7 +14,7 @@ function EditRoomRow({room, refresh}) {
     let [snackbarVis, setSnackbarVis] = useState(false)
     let [putStatusCode, setPutStatusCode] = useState(0)
 
-    let {triggerFetch} = useSomeAPI('/api/v0/rooms/' + room.id, null, 'GET', roomGetCallback)
+    let {triggerFetch, loading} = useSomeAPI('/api/v0/rooms/' + room.id, null, 'GET', roomGetCallback)
     //eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [])
 
@@ -62,6 +62,12 @@ function EditRoomRow({room, refresh}) {
     }
 
     const theme = useTheme()
+
+    if (loading) {
+        return (
+            <EditRoomRowSkeleton/>
+        )
+    }
 
     return (
         <Stack direction="row" alignItems="baseline" spacing={theme.spacing()}>
@@ -170,7 +176,7 @@ export function AdminRoomList() {
     return (
         <AdminWrapper>
             <ContentWrapper page_name={page_name}>
-                <PaginatedList endpoint={'/api/v0/rooms'} resultHandler={resultHandler} limit={2} fetchFlag={fetchFlag}/>
+                <PaginatedList endpoint={'/api/v0/rooms'} resultHandler={resultHandler} limit={10} fetchFlag={fetchFlag}/>
             </ContentWrapper>
             <ContentWrapper page_name="Add room">
                 <AddRoom refresh={triggerFetch}/>
