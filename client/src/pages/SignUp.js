@@ -2,7 +2,7 @@ import "./SignUp.css";
 import React, {useContext} from "react";
 import useSomeAPI from '../api/FakeAPI'
 import ContentWrapper from '../components/Content';
-import {IsAuthorizedContext, CurrentUserContext, saveUserData} from "../components/Auth";
+import {IsAuthorizedContext, CurrentUserContext} from "../components/Auth";
 import {SnackbarContext} from "../components/SnackbarAlert";
 
 const IS_ADMIN_DEFAULT = true;
@@ -53,7 +53,6 @@ function SignUpForm() {
                         console.log('user data:')
                         console.log(userData)
                         setCurrentUser(userData)
-                        saveUserData(userData)
                         setIsAuthorized(true)
                 }
                 else setNewMessageSnackbar("statusCode: " + statusCode)

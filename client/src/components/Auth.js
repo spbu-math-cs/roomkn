@@ -5,10 +5,14 @@ export const IS_ADMIN_DEFAULT = false;
 export const IS_ADMIN_GUEST = false;
 
 export function AuthorizeWrapper({children}) {
-    const {isAuthorized} = useContext(IsAuthorizedContext)
+    const {currentUser, setCurrentUser} = useContext(CurrentUserContext)
+    const {isAuthorized, setIsAuthorized} = useContext(IsAuthorizedContext)
     const {triggerValidate} = useAuthorizeByCookie()
 
     useEffect(() => {
+        setCurrentUser(getUserDataFromStorage());
+        setIsAuthorized(currentUser != {})
+
         if (isAuthorized == null) {
             triggerValidate()
         }
@@ -17,11 +21,11 @@ export function AuthorizeWrapper({children}) {
 
     const {triggerGetPermissions} = useGetCurrentUserPermissions()
 
-    const {currentUser} = useContext(CurrentUserContext)
     useEffect(() => {
         if (isAuthorized != null) {
             triggerGetPermissions()
         }
+        SaveUserDataIntoStorage(currentUser)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentUser])
 
@@ -92,7 +96,6 @@ export function useAuthorizeByCookie() {
                 }
                 console.log(userData)
                 setCurrentUser(userData)
-                saveUserData(userData)
                 setIsAuthorized(true)
             } else {
                 setIsAuthorized(false)
@@ -160,7 +163,6 @@ export function useAuthorize(username, password) {
                 }
 
                 setCurrentUser(userData)
-                saveUserData(userData)
                 setIsAuthorized(true)
             } else {
                 setIsAuthorized(false)
@@ -196,7 +198,6 @@ export function useLogout() {
     function logoutCallback(result, statusCode) {
         setIsAuthorized(false)
         setCurrentUser({})
-        saveUserData({})
     }
 
     // useEffect(() => {
@@ -210,18 +211,15 @@ export function useLogout() {
     return {result, statusCode, headers, triggerLogout: triggerFetch, finished}
 }
 
-export function getUserData() {
-    const dataString = sessionStorage.getItem('roomkn');
+export function getUserDataFromStorage() {
+    const dataString = localStorage.getItem('roomkn');
     return JSON.parse(dataString)
 }
 
-export function getCSRFToken() {
-    return getUserData?.crsf_token
-}
-
-export function saveUserData(userData) {
-    console.log(userData, JSON.stringify(userData))
-    sessionStorage.setItem('roomkn', JSON.stringify(userData));
+export function SaveUserDataIntoStorage(currentUser) {
+    // const {currentUser} = useContext(CurrentUserContext)
+    console.log(currentUser, JSON.stringify(currentUser))
+    localStorage.setItem('roomkn', JSON.stringify(currentUser));
 }
 
 export const IsAuthorizedContext = createContext(false)

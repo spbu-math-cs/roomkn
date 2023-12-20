@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import {getCSRFToken} from "../components/Auth";
+// import {getCSRFToken} from "../components/Auth";
 
 const API_HOST = process.env.REACT_APP_REST_SERVER_ADDRESS
 
@@ -29,9 +29,9 @@ export function useAPI(url, data=null, method='GET', callback = () => {}) {
             options['body'] = JSON.stringify(data)
             options.headers["Content-Type"] = 'application/json;charset=utf-8'
         }
-        if (getCSRFToken() != null) {
-            options.headers["X-CSRF-Token"] = getCSRFToken()
-        }
+        // if (getCSRFToken() != null) {
+        //     options.headers["X-CSRF-Token"] = getCSRFToken()
+        // }
 
         fetch(API_HOST + url, options)
             .then(r => {

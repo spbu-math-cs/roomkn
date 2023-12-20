@@ -1,7 +1,10 @@
 import "./SignIn.css";
 //import React, {useContext, useEffect} from "react";
 import ContentWrapper from '../components/Content';
-import {IsAuthorizedContext, CurrentUserContext, saveUserData} from "../components/Auth";
+import {
+    IsAuthorizedContext,
+    CurrentUserContext,
+} from "../components/Auth";
 
 import React, {useContext, useState} from "react";
 import useSomeAPI from "../api/FakeAPI";
@@ -40,7 +43,6 @@ function SignInForm() {
 
                 console.log('user set to ' + userData)
                 setCurrentUser(userData)
-                saveUserData(userData)
                 setIsAuthorized(true)
             } else {
                 setIsAuthorized(false)
