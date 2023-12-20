@@ -2,7 +2,7 @@ import {fromAPITime} from '../api/API';
 import "./TimelineForRoomList.css"
 import "./Timeline.css"
 import React, {useContext, useEffect, useState} from 'react';
-import {Box, Divider, Typography, useMediaQuery, useTheme} from "@mui/material";
+import {Box, Divider, Tooltip, Typography, useMediaQuery, useTheme} from "@mui/material";
 import {CurrentUserContext} from "./Auth";
 import useSomeAPI from "../api/FakeAPI";
 
@@ -83,8 +83,11 @@ function Reservation({
         sx_wrapper.zIndex = 1
     }
 
+    const tooltip = "by " + reservedUsername + " on " + fromAPITime(reservation.from).time + " - " + fromAPITime(reservation.until).time
+
     if (show_reservation_labels) {
         return (
+            <Tooltip arrow placement="top" title={tooltip}>
             <Box sx={sx_row}>
                 <Box sx={sx_wrapper}>
                     <Box sx={{
@@ -105,6 +108,7 @@ function Reservation({
                     </Box>
                 </Box>
             </Box>
+            </Tooltip>
         )
     } else {
         return (
