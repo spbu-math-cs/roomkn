@@ -32,7 +32,6 @@ const NavBarUserMenu = () => {
     const logOut = () => {
         handleCloseUserMenu()
         triggerLogout()
-        // browser.cookies.remove('_xsrf');
     }
 
     useEffect(() => {
@@ -57,11 +56,6 @@ const NavBarUserMenu = () => {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [finished]);
-
-    // let userNickname = currentUser?.username
-    // if (userNickname == null) {
-    //     userNickname = "Azat"
-    // }
 
     if (isAuthorized) {
         console.log("authorized, nickname = " + userNickname)
@@ -127,10 +121,6 @@ const NavBarUserMenu = () => {
                         LOGIN
                     </Button>
                 </NavLink>
-                {/*<MenuItem></MenuItem>*/}
-                {/*<NavLink to="/sign-up" className="navlink">*/}
-                {/*    Sign Up*/}
-                {/*</NavLink>*/}
             </>
         )
     }
@@ -141,13 +131,11 @@ const UserAvatar = () => {
         <Avatar alt="Azat" src="/azat.png" sx={{ width: 45, height: 45 }}  style={{
             border: '0.1px solid lightgray'
         }}/>
-        // <img className="navbar-profile-avatar" src="/azat.png" alt="avatar"/>
     )
 }
 
 const Logo = () => {
     return (
-        // <img src="/logo512.png" alt="MKN logo dark" className="nav-logo"/>
         <NavLink to="/" className="navlink">
             <Avatar alt="LogoDark" src="/logo512.png"  variant="square" sx={{width: 60, height: 60 }}/>
         </NavLink>
@@ -191,10 +179,6 @@ const Navbar = () => {
         <AppBar position="static">
             <Container maxWidth="xl">
                 <Toolbar className={"nav"}>
-                    {/*<div className='nav-logo-wrapper'>*/}
-                    {/*    <img src="/logo512.png" alt="MKN logo dark" className="nav-logo"/>*/}
-                    {/*</div>*/}
-
                     <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
 
                         <IconButton
@@ -233,7 +217,6 @@ const Navbar = () => {
                         variant="h5"
                         noWrap
                         component="a"
-                        // href="#app-bar-with-responsive-menu"
                         sx={{
                             mr: 2,
                             display: { xs: 'flex', md: 'none' },

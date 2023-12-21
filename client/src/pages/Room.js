@@ -231,13 +231,6 @@ function getTodayDate(format = "yyyy-mm-dd") {
     return dateFormat(date, format)
 }
 
-// function updateDate(date, diff) {
-//     const new_date = new Date(date)
-//     new_date.setDate(new_date.getDate() + diff)
-//     const tmp = dateFormat(new_date)
-//     console.log(tmp)
-//     return tmp
-// }
 
 function RoomDate({date, setDate}) {
 
@@ -255,16 +248,6 @@ function RoomDate({date, setDate}) {
                         />
                     </LocalizationProvider>
                 </div>
-                {/*<div className="room-date-buttons">*/}
-                {/*    <div className="room-date-button-wrapper">*/}
-                {/*        <input className="room-date-button" type="button" value="◄"*/}
-                {/*               onClick={() => setDate(updateDate(date, -1))}/>*/}
-                {/*    </div>*/}
-                {/*    <div className="room-date-button-wrapper">*/}
-                {/*        <input className="room-date-button" type="button" value="►"*/}
-                {/*               onClick={() => setDate(updateDate(date, +1))}/>*/}
-                {/*    </div>*/}
-                {/*</div>*/}
             </div>
         </div>
     )

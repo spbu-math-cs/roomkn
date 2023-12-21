@@ -72,7 +72,6 @@ function SignInForm() {
         <div>
             <ContentWrapper page_name="">
                 <Container component="main" maxWidth="xs">
-                    {/*<CssBaseline />*/}
                     <Box
                         sx={{
                             marginTop: 0,
@@ -109,10 +108,6 @@ function SignInForm() {
                                 id="password"
                                 autoComplete="current-password"
                             />
-                            {/*<FormControlLabel*/}
-                            {/*    control={<Checkbox value="remember" color="primary" />}*/}
-                            {/*    label="Remember me"*/}
-                            {/*/>*/}
                             <Button
                                 type="submit"
                                 fullWidth
@@ -146,7 +141,6 @@ function SignInForm() {
 function SignIn() {
     return (
         <>
-            {/*<AuthorizationStatusLabel/>*/}
             <SignInForm></SignInForm>
         </>
     )

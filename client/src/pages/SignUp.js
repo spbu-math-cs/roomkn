@@ -129,10 +129,6 @@ function SignUpForm() {
                                 id="password"
                                 autoComplete="new-password"
                             />
-                                    {/*<FormControlLabel*/}
-                                    {/*    control={<Checkbox value="allowExtraEmails" color="primary" />}*/}
-                                    {/*    label="I want to receive inspiration, marketing promotions and updates via email."*/}
-                                    {/*/>*/}
                             <Button
                                 type="submit"
                                 fullWidth
