@@ -32,6 +32,7 @@ import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 import org.tod87et.roomkn.server.models.rooms.RoomInfo
 import org.tod87et.roomkn.server.models.users.LoginUserInfo
 import org.tod87et.roomkn.server.models.users.UnregisteredUserInfo
+import org.tod87et.roomkn.server.models.users.UserInfo
 import kotlin.concurrent.thread
 import kotlin.test.assertEquals
 
@@ -131,6 +132,16 @@ object KtorTestEnv {
         assertEquals(HttpStatusCode.OK, auth.status)
 
         return initialSession.userId
+    }
+
+    suspend fun HttpClient.createAndAuthUserWithInfo(
+        name: String = "Alice",
+        password: String = "qwerty",
+        email: String = "$name@example.org",
+        permissions: List<UserPermission> = listOf(UserPermission.ReservationsCreate)
+    ): UserInfo {
+        val id = createAndAuthUser(name, password, email, permissions)
+        return database.getUser(id).getOrThrow()
     }
 
     fun createRoom(name: String, desc: String = "Description of $name"): RoomInfo {

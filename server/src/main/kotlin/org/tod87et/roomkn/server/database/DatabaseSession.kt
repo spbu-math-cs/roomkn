@@ -203,7 +203,9 @@ class DatabaseSession private constructor(private val database: Database) :
                         userId = it[Reservations.userId],
                         roomId = it[Reservations.roomId],
                         from = it[Reservations.from],
-                        until = it[Reservations.until]
+                        until = it[Reservations.until],
+                        TODO(),
+                        TODO(),
                     )
                 }
         }
@@ -231,7 +233,7 @@ class DatabaseSession private constructor(private val database: Database) :
             it[Reservations.until] = until
         } get Reservations.id
 
-        return Reservation(id, userId, roomId, from, until)
+        return Reservation(id, userId, roomId, from, until, TODO(), TODO())
     }
 
     override fun createReservation(reservation: UnregisteredReservation): Result<Reservation> = queryWrapper {
@@ -253,6 +255,8 @@ class DatabaseSession private constructor(private val database: Database) :
                 row[Reservations.roomId],
                 row[Reservations.from],
                 row[Reservations.until],
+                TODO(),
+                TODO(),
             )
         }
     }
