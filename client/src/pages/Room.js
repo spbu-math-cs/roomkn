@@ -8,7 +8,7 @@ import useSomeAPI from '../api/FakeAPI';
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
 import {Box, Button, Slider, Stack, Typography} from "@mui/material";
 import {SnackbarContext} from '../components/SnackbarAlert'
-import Timeline from "../components/Timeline";
+import Timeline from "../components/TimelineForRoomList";
 import {DatePicker, TimePicker} from "@mui/x-date-pickers";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -99,7 +99,7 @@ const timeMarks = [...Array(25).keys()].map((_, idx, __) => {
 
 function BookingForm({room_id, triggerGetReservations}) {
 
-    const {date, from, setFrom, until, setUntil} = useContext(CurrentReservationContext)
+    const {date, from, setFrom, until, setUntil, isActive, setIsActive} = useContext(CurrentReservationContext)
 
     const min_booking_time = 9 * 60 + 30;
     const max_booking_time = 23 * 60 + 30;
@@ -154,7 +154,7 @@ function BookingForm({room_id, triggerGetReservations}) {
 
     return (
         <ContentWrapper page_name='Reservation'>
-            <Typography fontSize="18pt">
+            <Typography fontSize="18pt" sx={{display: isActive ? '' : 'none'}}>
                 <Stack spacing={5}>
                     <Box sx={{paddingRight: 1, paddingLeft: 1, display: { xs: 'none', md: 'flex' }}} fullWidth>
                         <Slider
@@ -197,15 +197,35 @@ function BookingForm({room_id, triggerGetReservations}) {
                             />
                         </LocalizationProvider>
                     </Box>
-                    <Button color="secondary"
-                            variant="contained"
-                            onClick={HandleSubmit}
-                            disabled={is_reserve_disabled}
-                            sx={{width: "100pt"}}>
-                        Reserve
-                    </Button>
+                    <Stack direction="row" spacing={2}>
+                        <Button color="secondary"
+                                variant="contained"
+                                onClick={HandleSubmit}
+                                disabled={is_reserve_disabled}
+                                sx={{width: "100pt"}}>
+                            Reserve
+                        </Button>
+                        <Button color="secondary"
+                                variant="outlined"
+                                onClick={() => setIsActive(false)}
+                                disabled={is_reserve_disabled}
+                                sx={{width: "100pt"}}
+                        >
+                            Cancel
+                        </Button>
+                    </Stack>
                 </Stack>
             </Typography>
+            <Box sx={{display: isActive ? 'none' : ''}}>
+                <Button color="secondary"
+                        variant="contained"
+                        onClick={() => setIsActive(true)}
+                        disabled={is_reserve_disabled}
+                        sx={{width: "200pt"}}
+                >
+                    New reservation
+                </Button>
+            </Box>
         </ContentWrapper>
     )
 }
@@ -259,6 +279,7 @@ function Room() {
     const [date, setDate] = React.useState(date_string)
     const [from, setFrom] = React.useState("09:30")
     const [until, setUntil] = React.useState("11:05")
+    const [isActive, setIsActive] = React.useState(false)
     const room_info = GetRoomInfo()
     const {reservations, triggerGetReservations} = GetReservations(room_info.id, date)
 
@@ -271,7 +292,7 @@ function Room() {
     const {currentUser} = useContext(CurrentUserContext)
     const {isAuthorized} = useContext(IsAuthorizedContext)
 
-    if (currentUser != null && isAuthorized) {
+    if (currentUser != null && isAuthorized && isActive) {
         currentReservation = {
             from: toAPITime(date, from),
             until: toAPITime(date, until),
@@ -285,7 +306,7 @@ function Room() {
     console.log(fromTimelineDate, untilTimelineDate)
 
     return (
-        <CurrentReservationContext.Provider value={{date, setDate, from, setFrom, until, setUntil}}>
+        <CurrentReservationContext.Provider value={{date, setDate, from, setFrom, until, setUntil, isActive, setIsActive}}>
             <ContentWrapper page_name={page_name}>
                 <div className="room-wrapper">
                     <div className='room-info'>
@@ -297,14 +318,16 @@ function Room() {
                             <div>
                                 <div className='reservations-label'>Reservations:</div>
                             </div>
-                            <Timeline reservations={reservations}
-                                      fromTimelineDate={fromTimelineDate}
-                                      untilTimelineDate={untilTimelineDate}
-                                      show_reservation_labels={true}
-                                      show_time_labels={true}
-                                      currentReservation={currentReservation}
-                                      height={150}
-                            />
+                            <Box sx={{ml: 5, mr: 5}}>
+                                <Timeline reservations={reservations}
+                                          fromTimelineDate={fromTimelineDate}
+                                          untilTimelineDate={untilTimelineDate}
+                                          show_reservation_labels={true}
+                                          show_time_labels={true}
+                                          currentReservation={currentReservation}
+                                          height={150}
+                                />
+                            </Box>
                         </div>
                     </div>
                 </div>
