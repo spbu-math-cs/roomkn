@@ -9,7 +9,7 @@ import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
 import {Box, Button, Slider, Stack, Typography} from "@mui/material";
 import {SnackbarContext} from '../components/SnackbarAlert'
 import TimelineWithUsers from "../components/Timeline";
-import {DatePicker} from "@mui/x-date-pickers";
+import {DatePicker, TimePicker} from "@mui/x-date-pickers";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from "dayjs";
@@ -101,6 +101,9 @@ function BookingForm({room_id, triggerGetReservations}) {
 
     const {date, from, setFrom, until, setUntil} = useContext(CurrentReservationContext)
 
+    const min_booking_time = 9 * 60 + 30;
+    const max_booking_time = 23 * 60 + 30;
+
     const {currentUser} = useContext(CurrentUserContext)
 
     const reservation = {
@@ -147,16 +150,19 @@ function BookingForm({room_id, triggerGetReservations}) {
         if (getMinutesByTime(from) <= getMinutesByTime(until)) triggerFetch()
     };
 
+    const is_reserve_disabled = (getMinutesByTime(from) >= getMinutesByTime(until)) || (date < getTodayDate())
+
     return (
         <ContentWrapper page_name='Reservation'>
             <Typography fontSize="18pt">
-                <Stack spacing={1}>
-                    <Box sx={{paddingRight: "10pt", paddingLeft: "10pt"}}>
+                <Stack spacing={5}>
+                    <Box sx={{paddingRight: 1, paddingLeft: 1, display: { xs: 'none', md: 'flex' }}} fullWidth>
                         <Slider
+                            fullWidth
                             track={false}
-                            step={15}
-                            min={0}
-                            max={24 * 60}
+                            step={5}
+                            min={min_booking_time}
+                            max={max_booking_time}
                             value={[parseTimeMinutes(from), parseTimeMinutes(until)]}
                             onChange={(e) => {
                                 setFrom(makeTimeMinutes(e.target.value[0]));
@@ -168,8 +174,36 @@ function BookingForm({room_id, triggerGetReservations}) {
                             marks={timeMarks}
                         />
                     </Box>
-                    <Button color="secondary" variant="contained" onClick={HandleSubmit}
-                            sx={{width: "100pt"}}>Reserve</Button>
+                    <Box sx={{paddingRight: "10pt", paddingLeft: "10pt"}} >
+                        <LocalizationProvider dateAdapter={AdapterDayjs}>
+                            <TimePicker
+                                label="From"
+                                value={dayjs('1970-01-01 '+ from)}
+                                onChange={(newValue) => {
+                                    console.log(makeTimeMinutes(newValue.hour() * 60 + newValue.minute()))
+                                    setFrom(makeTimeMinutes(newValue.hour() * 60 + newValue.minute()))
+                                }}
+                                format="HH:mm"
+                                sx={{mr: 1, mb: 2}}
+                            />
+                            <TimePicker
+                                label="Until"
+                                value={dayjs('1970-01-01 '+ until)}
+                                onChange={(newValue) => {
+                                    console.log(newValue.hour() * 60 + newValue.minute())
+                                    setUntil(makeTimeMinutes(newValue.hour() * 60 + newValue.minute()))
+                                }}
+                                format="HH:mm"
+                            />
+                        </LocalizationProvider>
+                    </Box>
+                    <Button color="secondary"
+                            variant="contained"
+                            onClick={HandleSubmit}
+                            disabled={is_reserve_disabled}
+                            sx={{width: "100pt"}}>
+                        Reserve
+                    </Button>
                 </Stack>
             </Typography>
         </ContentWrapper>
@@ -197,43 +231,22 @@ function getTodayDate(format = "yyyy-mm-dd") {
     return dateFormat(date, format)
 }
 
-function updateDate(date, diff) {
-    const new_date = new Date(date)
-    new_date.setDate(new_date.getDate() + diff)
-    const tmp = dateFormat(new_date)
-    console.log(tmp)
-    return tmp
-}
 
 function RoomDate({date, setDate}) {
 
     return (
         <div className="form-field">
             <div className="room-date">
-                <div className="room-date-label">
-                    <label className="form-label">
-                        Date
-                    </label>
-                </div>
                 <div className="room-date-value">
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                         <DatePicker className="form-input" type="date" value={dayjs(date)}
                                     onChange={(v) => {
                                         setDate(dateFormat(v.toDate()));
                                     }}
+                                    label="Date"
                                     format="DD.MM.YYYY"
                         />
                     </LocalizationProvider>
-                </div>
-                <div className="room-date-buttons">
-                    <div className="room-date-button-wrapper">
-                        <input className="room-date-button" type="button" value="◄"
-                               onClick={() => setDate(updateDate(date, -1))}/>
-                    </div>
-                    <div className="room-date-button-wrapper">
-                        <input className="room-date-button" type="button" value="►"
-                               onClick={() => setDate(updateDate(date, +1))}/>
-                    </div>
                 </div>
             </div>
         </div>
