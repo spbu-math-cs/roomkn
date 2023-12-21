@@ -10,6 +10,7 @@ export default function SnackbarAlert() {
     const [open, setOpen] = useState(false)
     const [message, setMessage] = useState("")
 
+    //eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         if (newMessageSnackbar !== "") {
             setOpen(true)
