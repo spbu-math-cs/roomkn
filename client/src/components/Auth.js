@@ -1,8 +1,8 @@
 import {createContext, useContext, useEffect, useState} from "react";
 import useSomeAPI from "../api/FakeAPI";
 
-const IS_ADMIN_DEFAULT = true;
-export const IS_ADMIN_GUEST = true;
+export const IS_ADMIN_DEFAULT = false;
+export const IS_ADMIN_GUEST = false;
 
 export function AuthorizeWrapper({children}) {
     const {isAuthorized} = useContext(IsAuthorizedContext)
@@ -14,6 +14,16 @@ export function AuthorizeWrapper({children}) {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
+
+    const {triggerGetPermissions} = useGetCurrentUserPermissions()
+
+    const {currentUser} = useContext(CurrentUserContext)
+    useEffect(() => {
+        if (isAuthorized != null) {
+            triggerGetPermissions()
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentUser])
 
     return children
 }
@@ -28,16 +38,46 @@ const emptyUser = {
 export function AuthorizationProvider({children}) {
     const [isAuthorized, setIsAuthorized] = useState(null)
     const [currentUser, setCurrentUser] = useState(emptyUser)
+    const [currentUserPermissions, setCurrentUserPermissions] = useState([])
 
     return (
         <IsAuthorizedContext.Provider value={{isAuthorized, setIsAuthorized}}>
             <CurrentUserContext.Provider value={{currentUser, setCurrentUser}}>
-                <AuthorizeWrapper>
-                    {children}
-                </AuthorizeWrapper>
+                <CurrentUserPermissionsContext.Provider value={{currentUserPermissions, setCurrentUserPermissions}}>
+                    <AuthorizeWrapper>
+                        {children}
+                    </AuthorizeWrapper>
+                </CurrentUserPermissionsContext.Provider>
             </CurrentUserContext.Provider>
         </IsAuthorizedContext.Provider>
     )
+}
+
+export function IsAdmin() {
+    const {currentUserPermissions} = useContext(CurrentUserPermissionsContext)
+
+    return (currentUserPermissions.indexOf("ReservationsAdmin") > -1)
+        || (currentUserPermissions.indexOf("UsersAdmin") > -1)
+        || (currentUserPermissions.indexOf("RoomsAdmin") > -1)
+        || (currentUserPermissions.indexOf("GroupsAdmin") > -1)
+        || IS_ADMIN_GUEST
+        || IS_ADMIN_DEFAULT;
+}
+
+function useGetCurrentUserPermissions() {
+    const {currentUser} = useContext(CurrentUserContext)
+    const {setCurrentUserPermissions} = useContext(CurrentUserPermissionsContext)
+
+    const {triggerFetch} = useSomeAPI(`/api/v0/users/${currentUser?.user_id}/permissions`, null, "GET", getUserPermissionsCallback)
+
+    function getUserPermissionsCallback(result, statusCode) {
+        if (statusCode === 200) {
+            setCurrentUserPermissions(result)
+            console.log(result)
+        }
+    }
+
+    return {triggerGetPermissions: triggerFetch}
 }
 
 export function useAuthorizeByCookie() {
@@ -197,3 +237,4 @@ export function saveUserData(userData) {
 
 export const IsAuthorizedContext = createContext(false)
 export const CurrentUserContext = createContext({})
+export const CurrentUserPermissionsContext = createContext({})

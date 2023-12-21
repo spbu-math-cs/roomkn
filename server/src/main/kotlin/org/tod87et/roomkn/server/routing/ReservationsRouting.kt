@@ -1,6 +1,7 @@
 package org.tod87et.roomkn.server.routing
 
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.headers
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.auth.authenticate
@@ -11,6 +12,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.datetime.Instant
@@ -22,11 +24,16 @@ import org.tod87et.roomkn.server.database.ConstraintViolationException
 import org.tod87et.roomkn.server.database.Database
 import org.tod87et.roomkn.server.database.MissingElementException
 import org.tod87et.roomkn.server.database.ReservationException
+import org.tod87et.roomkn.server.database.SerializationException
 import org.tod87et.roomkn.server.di.injectDatabase
 import org.tod87et.roomkn.server.models.permissions.UserPermission
+import org.tod87et.roomkn.server.models.reservations.NewReservationBounds
 import org.tod87et.roomkn.server.models.reservations.ReservationRequest
 import org.tod87et.roomkn.server.models.reservations.toUnregisteredReservation
 import org.tod87et.roomkn.server.util.defaultExceptionHandler
+import kotlin.time.Duration.Companion.seconds
+
+private val DEFAULT_RETRY_AFTER = 10.seconds
 
 fun Route.reservationsRouting() {
     val database by injectDatabase()
@@ -45,6 +52,7 @@ fun Route.reservationsRouting() {
 
             reserveRouting(database)
             reservationDeleteRouting(database)
+            reservationUpdateRouting(database)
         }
     }
 }
@@ -103,6 +111,20 @@ private fun Route.reservationDeleteRouting(database: Database) {
             .onFailure {
                 call.handleReservationException(it)
             }
+    }
+}
+
+private fun Route.reservationUpdateRouting(database: Database) {
+    put("/{id}") { body: NewReservationBounds ->
+        val id = call.parameters["id"]?.toInt() ?: return@put call.onMissingId()
+        val reservation = database.getReservation(id).getOrElse {
+            return@put call.handleReservationException(it)
+        }
+        call.requirePermissionOrSelf(reservation.userId, database) { return@put call.onMissingPermission() }
+
+        database.updateReservation(id, body.from, body.until)
+            .onSuccess { call.respond(HttpStatusCode.OK, it) }
+            .onFailure { call.handleReservationException(it) }
     }
 }
 
@@ -165,7 +187,7 @@ private fun Route.reserveRouting(database: Database) {
         val offset = offsetResult.getOrElse { return@get call.onIncorrectOffset() }
         database.getReservations(userIds, roomIds, from, until, limit, offset)
             .onSuccess {
-                call.respond(HttpStatusCode.Created, it)
+                call.respond(HttpStatusCode.OK, it)
             }
             .onFailure {
                 call.handleReservationException(it)
@@ -173,6 +195,7 @@ private fun Route.reserveRouting(database: Database) {
     }
     post { body: ReservationRequest ->
         val userId = call.principal<AuthSession>()!!.userId
+        call.requireReservationCreatePermission(database) { return@post call.onMissingPermission() }
 
         val result = database.createReservation(body.toUnregisteredReservation(userId))
         result
@@ -183,6 +206,13 @@ private fun Route.reserveRouting(database: Database) {
                 call.handleReservationException(it)
             }
     }
+}
+
+private inline fun ApplicationCall.requireReservationCreatePermission(
+    database: Database,
+    onPermissionMissing: () -> Nothing
+) {
+    requirePermissionOrSelfImpl(null, database, UserPermission.ReservationsCreate, onPermissionMissing)
 }
 
 private inline fun ApplicationCall.requirePermissionOrSelf(
@@ -202,8 +232,19 @@ private suspend fun ApplicationCall.handleReservationException(ex: Throwable) {
         is ConstraintViolationException, is ReservationException -> {
             respondText(
                 "Failed to add reservation: conflict with other reservations",
-                status = HttpStatusCode.BadRequest
+                status = HttpStatusCode.Conflict
             )
+        }
+
+        is SerializationException -> {
+            respondText(
+                "Server is overloaded, please try again a few seconds later",
+                status = HttpStatusCode.ServiceUnavailable
+            ) {
+                headers {
+                    append("Retry-After", DEFAULT_RETRY_AFTER.inWholeSeconds.toString())
+                }
+            }
         }
 
         else -> {
