@@ -37,13 +37,16 @@ export function GetRoomInfo() {
     }
     if (statusCode !== 200 || loading || result == null) {
         return {
-            id: id
+            result: {
+                id: id
+            },
+            triggerFetch
         }
     }
 
     // const res = getRoomInfo(id)
 
-    return result
+    return {result, triggerFetch}
 }
 
 export function GetReservations(room_id, date) {
@@ -284,7 +287,7 @@ function Room() {
     const [from, setFrom] = React.useState("09:30")
     const [until, setUntil] = React.useState("11:05")
     const [isActive, setIsActive] = React.useState(false)
-    const room_info = GetRoomInfo()
+    const {result: room_info} = GetRoomInfo()
     const {reservations, triggerGetReservations} = GetReservations(room_info.id, date)
 
     console.log(reservations)
