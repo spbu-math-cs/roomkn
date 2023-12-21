@@ -232,7 +232,7 @@ private suspend fun ApplicationCall.handleReservationException(ex: Throwable) {
         is ConstraintViolationException, is ReservationException -> {
             respondText(
                 "Failed to add reservation: conflict with other reservations",
-                status = HttpStatusCode.BadRequest
+                status = HttpStatusCode.Conflict
             )
         }
 
