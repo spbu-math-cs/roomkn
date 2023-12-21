@@ -271,7 +271,7 @@ class ReservationsRoutesTests {
             setBody(NewReservationBounds(from, untilEps))
         }
 
-        assertEquals(HttpStatusCode.BadRequest, resp.status)
+        assertEquals(HttpStatusCode.Conflict, resp.status)
 
         resp = client.put(reservationPath(reservation.id)) {
             contentType(ContentType.Application.Json)

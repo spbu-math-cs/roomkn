@@ -239,7 +239,7 @@ private suspend fun ApplicationCall.handleReservationException(ex: Throwable) {
         is SerializationException -> {
             respondText(
                 "Server is overloaded, please try again a few seconds later",
-                status = HttpStatusCode.TooManyRequests
+                status = HttpStatusCode.ServiceUnavailable
             ) {
                 headers {
                     append("Retry-After", DEFAULT_RETRY_AFTER.inWholeSeconds.toString())
