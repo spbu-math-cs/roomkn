@@ -16,7 +16,7 @@ import dayjs from "dayjs";
 
 const CurrentReservationContext = createContext()
 
-function GetRoomInfo() {
+export function GetRoomInfo() {
     // TODO
     const location = useLocation()
     const navigate = useNavigate()
@@ -46,7 +46,7 @@ function GetRoomInfo() {
     return result
 }
 
-function GetReservations(room_id, date) {
+export function GetReservations(room_id, date) {
 
     let {triggerFetch} = useSomeAPI('/api/v0/rooms/' + room_id + '/reservations', null, 'GET', ReservationsCallback)
 
@@ -191,7 +191,7 @@ function dateFormat(date, format = "yyyy-mm-dd") {
     return format.replace(/mm|dd|yyyy/gi, matched => map[matched])
 }
 
-function getTodayDate(format = "yyyy-mm-dd") {
+export function getTodayDate(format = "yyyy-mm-dd") {
     const date = new Date()
 
     return dateFormat(date, format)
