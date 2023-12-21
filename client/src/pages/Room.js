@@ -6,7 +6,7 @@ import React, {createContext, useContext, useEffect, useState} from 'react';
 import {fromAPITime, toAPITime} from '../api/API';
 import useSomeAPI from '../api/FakeAPI';
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
-import {Box, Button, Slider, Stack, Typography} from "@mui/material";
+import {Box, Button, Skeleton, Slider, Stack, Typography} from "@mui/material";
 import {SnackbarContext} from '../components/SnackbarAlert'
 import Timeline from "../components/TimelineForRoomList";
 import {DatePicker, TimePicker} from "@mui/x-date-pickers";
@@ -97,12 +97,12 @@ const timeMarks = [...Array(25).keys()].map((_, idx, __) => {
     }
 })
 
-function BookingForm({room_id, triggerGetReservations}) {
+function BookingForm({room_id, triggerGetReservations, min_res_time, max_res_time}) {
 
     const {date, from, setFrom, until, setUntil, isActive, setIsActive} = useContext(CurrentReservationContext)
 
-    const min_booking_time = 9 * 60 + 30;
-    const max_booking_time = 23 * 60 + 30;
+    const min_booking_time = parseTimeMinutes(min_res_time)
+    const max_booking_time = parseTimeMinutes(max_res_time)
 
     const {currentUser} = useContext(CurrentUserContext)
 
@@ -275,6 +275,10 @@ function RoomDate({date, setDate}) {
 
 
 function Room() {
+
+    const min_res_time = "09:30";
+    const max_res_time = "23:30"
+
     const date_string = getTodayDate()
     const [date, setDate] = React.useState(date_string)
     const [from, setFrom] = React.useState("09:30")
@@ -285,7 +289,14 @@ function Room() {
 
     console.log(reservations)
 
-    const page_name = "Classroom: " + room_info.name
+    const room_name = room_info.name == null ? (<Skeleton/>) : room_info.name
+
+    const page_name = (
+        <Stack direction="row" spacing={2} alignItems="flex-end">
+            <Box>Classroom:</Box>
+            <Typography variant="h4">{room_name}</Typography>
+        </Stack>
+    )
 
     let currentReservation = null
 
@@ -300,8 +311,8 @@ function Room() {
         }
     }
 
-    const fromTimelineDate = new Date(toAPITime(date, "09:30"))
-    const untilTimelineDate = new Date(toAPITime(date, "23:59"))
+    const fromTimelineDate = new Date(toAPITime(date, min_res_time))
+    const untilTimelineDate = new Date(toAPITime(date, max_res_time))
 
     console.log(fromTimelineDate, untilTimelineDate)
 
@@ -332,7 +343,16 @@ function Room() {
                     </div>
                 </div>
             </ContentWrapper>
-            <BookingForm room_id={room_info.id} date={date} triggerGetReservations={triggerGetReservations}/>
+            <Box sx={{display: isAuthorized ? '' : 'none'}}>
+                <BookingForm
+                    room_id={room_info.id}
+                    date={date}
+                    triggerGetReservations={triggerGetReservations}
+                    min_res_time={min_res_time}
+                    max_res_time={max_res_time}
+                />
+            </Box>
+
         </CurrentReservationContext.Provider>
     )
 }
