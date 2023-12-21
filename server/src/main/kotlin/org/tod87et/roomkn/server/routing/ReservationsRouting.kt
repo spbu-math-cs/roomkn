@@ -1,6 +1,7 @@
 package org.tod87et.roomkn.server.routing
 
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.headers
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.auth.authenticate
@@ -23,12 +24,16 @@ import org.tod87et.roomkn.server.database.ConstraintViolationException
 import org.tod87et.roomkn.server.database.Database
 import org.tod87et.roomkn.server.database.MissingElementException
 import org.tod87et.roomkn.server.database.ReservationException
+import org.tod87et.roomkn.server.database.SerializationException
 import org.tod87et.roomkn.server.di.injectDatabase
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.reservations.NewReservationBounds
 import org.tod87et.roomkn.server.models.reservations.ReservationRequest
 import org.tod87et.roomkn.server.models.reservations.toUnregisteredReservation
 import org.tod87et.roomkn.server.util.defaultExceptionHandler
+import kotlin.time.Duration.Companion.seconds
+
+private val DEFAULT_RETRY_AFTER = 10.seconds
 
 fun Route.reservationsRouting() {
     val database by injectDatabase()
@@ -227,8 +232,19 @@ private suspend fun ApplicationCall.handleReservationException(ex: Throwable) {
         is ConstraintViolationException, is ReservationException -> {
             respondText(
                 "Failed to add reservation: conflict with other reservations",
-                status = HttpStatusCode.BadRequest
+                status = HttpStatusCode.Conflict
             )
+        }
+
+        is SerializationException -> {
+            respondText(
+                "Server is overloaded, please try again a few seconds later",
+                status = HttpStatusCode.ServiceUnavailable
+            ) {
+                headers {
+                    append("Retry-After", DEFAULT_RETRY_AFTER.inWholeSeconds.toString())
+                }
+            }
         }
 
         else -> {
