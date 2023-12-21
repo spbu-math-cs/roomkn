@@ -95,15 +95,11 @@ function Reservation({
                         height: "100%",
                         textAlign: "center",
                     }}>
-                        <Box className="reservation-time">
-                            <Typography className='reservation-time-label'>
-                                {fromAPITime(reservation.from).time} - {fromAPITime(reservation.until).time}
-                            </Typography>
-                        </Box>
-                        <Box className="reservation-user">
-                            <Box className='reservation-user-label'>
-                                {reservedUsername}
-                            </Box>
+                        <Typography className='reservation-time-label'>
+                            {fromAPITime(reservation.from).time} - {fromAPITime(reservation.until).time}
+                        </Typography>
+                        <Box className='reservation-user-label'>
+                            {reservedUsername}
                         </Box>
                     </Box>
                 </Box>
