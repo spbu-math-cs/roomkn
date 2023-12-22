@@ -37,12 +37,12 @@ export function RoomScreenPage() {
     // const res_from = fromAPITime(next_reservation.from)
     // const res_until = fromAPITime(next_reservation.until)
 
-    function fetchInfo() {
-        // triggerGetInfo()
-        // triggerGetReservations()
-    }
-
-    setInterval(fetchInfo, 10000);
+    // function fetchInfo() {
+    //     // triggerGetInfo()
+    //     // triggerGetReservations()
+    // }
+    //
+    // setInterval(fetchInfo, 10000);
 
 
 
