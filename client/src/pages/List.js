@@ -7,8 +7,8 @@ import {
     ListItemButton,
     Stack, Typography,
 } from "@mui/material";
-import {fromAPITime} from "../api/API";
-import TimelineForRoomList from "../components/TimelineForRoomList";
+import {fromAPITime, toAPITime} from "../api/API";
+import Timeline from "../components/TimelineForRoomList";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
 import {DatePicker} from "@mui/x-date-pickers";
@@ -74,18 +74,24 @@ function updateDate(date, diff) {
     return new_date
 }
 
-function TimelineForRoom({room, fromDate, untilDate, is_first_timeline}) {
+function TimelineForRoom({room, fromDate, untilDate, show_time_labels}) {
     const {reservations} = GetReservationsInSegment(room.id, fromDate, untilDate)
 
-    let realFromDate = new Date(fromDate)
-    realFromDate.setHours(0, 0)
+    let realFromDate = new Date(toAPITime(fromDate, "00:00"))
+    // realFromDate.setHours(0, 0)
 
-    let realUntilDate = new Date(untilDate)
-    realUntilDate.setHours(0, 0)
+    let realUntilDate = new Date(toAPITime(untilDate, "00:00"))
+    // realUntilDate.setHours(0, 0)
     realUntilDate = updateDate(realUntilDate, +1)
 
     return (
-        <TimelineForRoomList reservations = {reservations} fromTimelineDate={realFromDate} untilTimelineDate={realUntilDate} is_first_timeline={is_first_timeline}/>
+        <Timeline
+            reservations={reservations}
+            fromTimelineDate={realFromDate}
+            untilTimelineDate={realUntilDate}
+            show_time_labels={show_time_labels}
+            height={50}
+        />
     )
 }
 
@@ -126,7 +132,7 @@ function RoomRow({room, from, until, is_first_room_row}) {
                         </Typography>
                     </Box>
 
-                    <TimelineForRoom room={room} fromDate={from} untilDate={until} is_first_timeline={is_first_room_row}/>
+                    <TimelineForRoom room={room} fromDate={from} untilDate={until} show_time_labels={is_first_room_row}/>
                 </Stack>
             </ListItemButton>
 

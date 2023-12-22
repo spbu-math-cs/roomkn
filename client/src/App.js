@@ -26,6 +26,7 @@ import AdminMap from "./pages/admin/AdminMap";
 
 import {createTheme, ThemeProvider} from "@mui/material";
 import AdminReservations from "./pages/admin/AdminReservations";
+import RoomScreenPage from "./pages/RoomScreenPage";
 
 
 function PageNotFound() {
@@ -72,6 +73,7 @@ function App() {
                             <Route path='/map' element={<Map/>}/>
                             <Route path='/about' element={<About/>}/>
                             <Route path='/room/*' element={<Room/>}/>
+                            <Route path='/scrn/*' element={<RoomScreenPage/>}/>
                             <Route path='/sign-up' element={<SignUp/>}/>
                             <Route path='/sign-in' element={<SignIn/>}/>
                             <Route path='/my-reservations' element={<UserReservations/>} />
