@@ -17,7 +17,7 @@ export default function SnackbarAlert() {
             setMessage(newMessageSnackbar)
             setNewMessageSnackbar("")
         }
-
+    //eslint-disable-next-line react-hooks/exhaustive-deps
     }, [newMessageSnackbar]);
 
     return (
