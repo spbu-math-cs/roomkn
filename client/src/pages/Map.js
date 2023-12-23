@@ -29,6 +29,16 @@ function Room({ room_id, navigate, mesh, window_scale }) {
 
     const is_room = mesh.room_name != null;
 
+    const [roomName, setRoomName] = useState("")
+
+    setRoomName(mesh.room_name)
+
+    // function callback(result, statusCode) {
+    //     if (statusCode === 200) setRoomName(result.name)
+    // }
+    //
+    // let {triggerFetch} = useSomeAPI('/api/v0/rooms/' + mesh.room_name, null, 'GET', callback)
+
     if (is_room) {
         room_name_element = (
             <Text text={mesh.room_name} anchor={{ x: 0.5, y: 0.5 }} scale={0.8}/>
@@ -181,10 +191,10 @@ export function MapField({map, scale=1,loading}) {
                     {layer_options}
                 </Select>
                 <Box sx={{alignItems: "center"}}>
-                <Stage options={{antialias: true, backgroundAlpha: 0}} width={width} height={height}
-                       className="map-stage">
-                    {layers}
-                </Stage>
+                    <Stage options={{antialias: true, backgroundAlpha: 0}} width={width} height={height}
+                           className="map-stage">
+                        {layers}
+                    </Stage>
                 </Box>
             </>
         );
