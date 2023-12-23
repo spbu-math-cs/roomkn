@@ -243,8 +243,8 @@ class ReservationsRoutesTests {
 
     @Test
     fun reserveMultipleOk() = KtorTestEnv.testJsonApplication { client ->
-        val myId = with(KtorTestEnv) {
-            client.createAndAuthUser()
+        val me = with(KtorTestEnv) {
+            client.createAndAuthUserWithInfo()
         }
         val room = KtorTestEnv.createRoom("301")
 
@@ -269,7 +269,12 @@ class ReservationsRoutesTests {
         assertEquals(0, resp.failure.size)
 
         val expectedReservations = reqReservations.mapIndexed { idx, it ->
-            it.toRegistered(userId = myId, reservationId = resp.success[idx].id)
+            it.toRegistered(
+                userId = me.id,
+                userName = me.username,
+                reservationId = resp.success[idx].id,
+                roomName = room.name,
+            )
         }
 
         assertEquals(expectedReservations, resp.success)
@@ -283,8 +288,8 @@ class ReservationsRoutesTests {
 
     @Test
     fun reserveMultipleOkFail() = KtorTestEnv.testJsonApplication { client ->
-        val myId = with(KtorTestEnv) {
-            client.createAndAuthUser()
+        val me = with(KtorTestEnv) {
+            client.createAndAuthUserWithInfo()
         }
         val room = KtorTestEnv.createRoom("301")
 
@@ -309,7 +314,12 @@ class ReservationsRoutesTests {
         assertEquals(1, resp.failure.size)
 
         val expectedReservation =
-            reqReservations[0].toRegistered(userId = myId, reservationId = resp.success.first().id)
+            reqReservations[0].toRegistered(
+                userId = me.id,
+                userName = me.username,
+                reservationId = resp.success[0].id,
+                roomName = room.name,
+            )
 
         assertEquals(expectedReservation, resp.success.first())
 
