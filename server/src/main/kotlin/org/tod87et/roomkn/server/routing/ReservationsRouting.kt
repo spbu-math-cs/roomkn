@@ -18,6 +18,7 @@ import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.datetime.Instant
 import kotlinx.datetime.toInstant
+import org.jetbrains.exposed.sql.SortOrder
 import org.tod87et.roomkn.server.auth.AuthSession
 import org.tod87et.roomkn.server.auth.AuthenticationProvider
 import org.tod87et.roomkn.server.auth.userId
@@ -32,6 +33,7 @@ import org.tod87et.roomkn.server.models.reservations.FailedReservation
 import org.tod87et.roomkn.server.models.reservations.MultipleReservationResult
 import org.tod87et.roomkn.server.models.reservations.NewReservationBounds
 import org.tod87et.roomkn.server.models.reservations.ReservationRequest
+import org.tod87et.roomkn.server.models.reservations.ReservationSortParameter
 import org.tod87et.roomkn.server.models.reservations.toUnregisteredReservation
 import org.tod87et.roomkn.server.util.defaultExceptionHandler
 import kotlin.time.Duration.Companion.seconds
@@ -168,6 +170,13 @@ private fun String?.toResultLongOrDefault(default: Long): Result<Long> {
     }
 }
 
+private fun String?.toSortOrder(default: SortOrder): SortOrder? = when (this) {
+    null -> default
+    "asc" -> SortOrder.ASC
+    "desc" -> SortOrder.DESC
+    else -> null
+}
+
 private fun Route.reserveRouting(database: Database) {
     post { body: ReservationRequest ->
         val userId = call.principal<AuthSession>()!!.userId
@@ -217,30 +226,54 @@ private fun Route.reserveMultipleRouting(database: Database) {
 
 private fun Route.reservationListRouting(database: Database) {
     get {
-        val fromResult = call.request.queryParameters["from"].toResultInstantOrNull()
-        val untilResult = call.request.queryParameters["until"].toResultInstantOrNull()
-        val userIdsString = call.request.queryParameters["user_ids"]
-        val roomIdsString = call.request.queryParameters["room_ids"]
-        val limitResult = call.request.queryParameters["limit"].toResultIntOrDefault(Int.MAX_VALUE)
-        val offsetResult = call.request.queryParameters["offset"].toResultLongOrDefault(0)
+        val from = call.request.queryParameters["from"].toResultInstantOrNull()
+            .getOrElse { return@get call.onIncorrectTimestamp() }
 
-        val userIds = userIdsString?.split(",")?.map {
+        val until = call.request.queryParameters["until"].toResultInstantOrNull()
+            .getOrElse { return@get call.onIncorrectTimestamp() }
+
+        val userIds = call.request.queryParameters["user_ids"]?.split(",")?.map {
             it.toIntOrNull() ?: return@get call.respondText(
                 "id in userIds should be int",
                 status = HttpStatusCode.BadRequest
             )
         } ?: listOf()
-        val roomIds = roomIdsString?.split(",")?.map {
+
+        val roomIds = call.request.queryParameters["room_ids"]?.split(",")?.map {
             it.toIntOrNull() ?: return@get call.respondText(
                 "id in roomIds should be int",
                 status = HttpStatusCode.BadRequest
             )
         } ?: listOf()
-        val from = fromResult.getOrElse { return@get call.onIncorrectTimestamp() }
-        val until = untilResult.getOrElse { return@get call.onIncorrectTimestamp() }
-        val limit = limitResult.getOrElse { return@get call.onIncorrectLimit() }
-        val offset = offsetResult.getOrElse { return@get call.onIncorrectOffset() }
-        database.getReservations(userIds, roomIds, from, until, limit, offset)
+
+        val limit = call.request.queryParameters["limit"].toResultIntOrDefault(Int.MAX_VALUE)
+            .getOrElse { return@get call.onIncorrectLimit() }
+
+        val offset = call.request.queryParameters["offset"].toResultLongOrDefault(0)
+            .getOrElse { return@get call.onIncorrectOffset() }
+
+        val sortParameter = call.request.queryParameters["sort_by"]?.let {
+            ReservationSortParameter.parse(it) ?: return@get call.respondText(
+                "unknown sort parameter",
+                status = HttpStatusCode.BadRequest
+            )
+        }
+        val sortOrder =
+            call.request.queryParameters["sort_order"].toSortOrder(SortOrder.ASC) ?: return@get call.respondText(
+                "unknown sort order",
+                status = HttpStatusCode.BadRequest
+            )
+
+        database.getReservations(
+            usersIds = userIds,
+            roomsIds = roomIds,
+            from = from,
+            until = until,
+            limit = limit,
+            offset = offset,
+            sortParameter = sortParameter,
+            sortOrder = sortOrder
+        )
             .onSuccess {
                 call.respond(HttpStatusCode.OK, it)
             }

@@ -1,8 +1,10 @@
 package org.tod87et.roomkn.server.database
 
 import kotlinx.datetime.Instant
+import org.jetbrains.exposed.sql.SortOrder
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.reservations.Reservation
+import org.tod87et.roomkn.server.models.reservations.ReservationSortParameter
 import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
@@ -38,7 +40,7 @@ interface Database {
         from: Instant? = null,
         until: Instant? = null,
         limit: Int = Int.MAX_VALUE,
-        offset: Long = 0L
+        offset: Long = 0L,
     ): Result<List<Reservation>>
 
     @Suppress("LongParameterList")
@@ -48,7 +50,9 @@ interface Database {
         from: Instant? = null,
         until: Instant? = null,
         limit: Int = Int.MAX_VALUE,
-        offset: Long = 0L
+        offset: Long = 0L,
+        sortParameter: ReservationSortParameter? = null,
+        sortOrder: SortOrder? = null,
     ): Result<List<Reservation>>
 
     fun getReservation(reservationId: Int): Result<Reservation>
