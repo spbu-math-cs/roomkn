@@ -59,3 +59,11 @@
     height: 52px;
     z-index: 1;
 }
+
+.for-rooms-reservation-current-wrapper {
+    color: black;
+    background: #9999ff77;;
+    border-radius: 2px;
+    height: 52px;
+    z-index: 1;
+}

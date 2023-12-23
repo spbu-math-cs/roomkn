@@ -53,6 +53,17 @@ export function AuthorizationProvider({children}) {
     )
 }
 
+export function IsAdmin() {
+    const {currentUserPermissions} = useContext(CurrentUserPermissionsContext)
+
+    return (currentUserPermissions.indexOf("ReservationsAdmin") > -1)
+        || (currentUserPermissions.indexOf("UsersAdmin") > -1)
+        || (currentUserPermissions.indexOf("RoomsAdmin") > -1)
+        || (currentUserPermissions.indexOf("GroupsAdmin") > -1)
+        || IS_ADMIN_GUEST
+        || IS_ADMIN_DEFAULT;
+}
+
 function useGetCurrentUserPermissions() {
     const {currentUser} = useContext(CurrentUserContext)
     const {setCurrentUserPermissions} = useContext(CurrentUserPermissionsContext)

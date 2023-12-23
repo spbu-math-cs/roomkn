@@ -1,14 +1,51 @@
 import {fromAPITime} from '../api/API';
 import "./TimelineForRoomList.css"
-import React from 'react';
-import {Box} from "@mui/material";
+import "./Timeline.css"
+import React, {useContext, useEffect, useState} from 'react';
+import {Box, Divider, Skeleton, Stack, Tooltip, Typography, useMediaQuery, useTheme} from "@mui/material";
+import {CurrentUserContext} from "./Auth";
+import useSomeAPI from "../api/FakeAPI";
 
-function Reservation({reservation, fromTimelineDate, untilTimelineDate}) {
+function Reservation({
+                         reservation,
+                         fromTimelineDate,
+                         untilTimelineDate,
+                         show_reservation_labels=false,
+                         is_current_reservation=false,
+                         height=50
+}) {
+
+    const {currentUser} = useContext(CurrentUserContext)
+
+    let [reservedUsername, setReservedUsername] = useState('')
+
+    let {triggerFetch} = useSomeAPI('/api/v0/users/' + reservation.user_id, null, 'GET', userCallback)
+
+    function userCallback(result, statusCode) {
+        if (statusCode === 200 && result != null) {
+            setReservedUsername(result?.username)
+        }
+    }
+
+    useEffect(() => {
+        if (!is_current_reservation && show_reservation_labels)
+            triggerFetch()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [reservation])
+
+
+    useEffect(() => {
+        if (is_current_reservation) {
+            setReservedUsername(currentUser.username)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentUser])
+
     const fromReservationObj = fromAPITime(reservation.from)
     const untilReservationObj = fromAPITime(reservation.until)
 
-    const fromReservationDate = new Date(fromReservationObj.date + " " + fromReservationObj.time)
-    const untilReservationDate = new Date(untilReservationObj.date + " " + untilReservationObj.time)
+    const fromReservationDate = new Date(fromReservationObj.date + " " + fromReservationObj.time + "Z")
+    const untilReservationDate = new Date(untilReservationObj.date + " " + untilReservationObj.time + "Z")
 
     const fromTimelineTime = fromTimelineDate.getTime()
     const untilTimelineTime = untilTimelineDate.getTime()
@@ -25,18 +62,66 @@ function Reservation({reservation, fromTimelineDate, untilTimelineDate}) {
     const leftOffset = (startReservationSeconds / timelineDurationSeconds * 100) + "%"
     const reservationWidth = (durationReservationsSeconds / timelineDurationSeconds * 100) + "%"
 
-    const row_style = {
+    const sx_row = {
         top: 0,
         left: leftOffset,
         width: reservationWidth,
-        height: "50px"
+        height: height,
+        position: "absolute"
     }
 
-    return (
-        <div className="for-rooms-reservation-row" style={row_style}>
-            <div className="for-rooms-reservation-wrapper"/>
-        </div>
+
+    const sx_wrapper = {
+        color: "black",
+        background: "darkorchid",
+        borderRadius: 0,
+        height: height,
+        zIndex: -1,
+    }
+    if (is_current_reservation) {
+        sx_wrapper.background = "#9999ff77"
+        sx_wrapper.zIndex = 1
+    }
+
+    const tooltip = (
+        <Stack spacing={2} direction="row">
+        <Typography>
+            {fromAPITime(reservation.from).time + " - " + fromAPITime(reservation.until).time}
+        </Typography>
+        <Typography>
+            {reservedUsername}
+        </Typography>
+        </Stack>
     )
+
+    if (show_reservation_labels) {
+        return (
+            <Tooltip arrow placement="top" title={tooltip}>
+            <Box sx={sx_row}>
+                <Box sx={sx_wrapper}>
+                    <Box sx={{
+                        writingMode: "sideways-lr",
+                        height: "100%",
+                        textAlign: "center",
+                    }}>
+                        <Typography className='reservation-time-label'>
+                            {fromAPITime(reservation.from).time} - {fromAPITime(reservation.until).time}
+                        </Typography>
+                        <Box className='reservation-user-label'>
+                            {reservedUsername}
+                        </Box>
+                    </Box>
+                </Box>
+            </Box>
+            </Tooltip>
+        )
+    } else {
+        return (
+            <Box sx={sx_row}>
+                <Box sx={sx_wrapper}/>
+            </Box>
+        )
+    }
 }
 
 function getDividerRowStyle(dividerDate, fromTimelineDate, untilTimelineDate) {
@@ -59,7 +144,14 @@ function DividerTimeline ({dividerDate, fromTimelineDate, untilTimelineDate}) {
     const row_style = getDividerRowStyle(dividerDate, fromTimelineDate, untilTimelineDate)
 
     return (
-        <div className="for-rooms-divider-row" style={row_style}/>
+        <Divider orientation="vertical" flexItem sx={{
+            position: "absolute",
+            height: "100%",
+            borderColor: "black",
+            borderRightWidth: 2,
+            top: 0,
+            left: row_style.left,
+        }}/>
     )
 }
 
@@ -69,8 +161,8 @@ function HourDividerTimeline({dividerDate, fromTimelineDate, untilTimelineDate, 
     let fontSize = 10
     const margin_bottom = 5;
 
-    const hours = dividerDate.getHours()
-    let minutes = dividerDate.getMinutes()
+    const hours = dividerDate.getUTCHours()
+    let minutes = dividerDate.getUTCMinutes()
     if (minutes < 10) {
         minutes = "0" + minutes
     }
@@ -78,9 +170,9 @@ function HourDividerTimeline({dividerDate, fromTimelineDate, untilTimelineDate, 
 
     let show = hours + ":" + minutes;
 
-    if (dividerDate.getHours() === 0) {
-        let day = dividerDate.getDate()
-        let month = dividerDate.getMonth() + 1
+    if (dividerDate.getUTCHours() === 0) {
+        let day = dividerDate.getUTCDate()
+        let month = dividerDate.getUTCMonth() + 1
         if (day < 10) {
             day = "0" + day
         }
@@ -92,44 +184,67 @@ function HourDividerTimeline({dividerDate, fromTimelineDate, untilTimelineDate, 
         fontSize = fontSize + 5
     }
 
-    const boxStyle = {
-        position: "relative",
-        top: "-" + (fontSize + margin_bottom) + "px",
-    }
-
     let hour_label = <></>
 
     if (show_divider_label) {
         hour_label = (
-            <Box style={boxStyle} fontSize={fontSize}> {show} </Box>
+            <Box fontSize={fontSize} sx={{
+                position: "absolute",
+                top: -(fontSize + margin_bottom),
+                left: row_style.left,
+            }}> {show} </Box>
         )
     }
 
     return (
-        <div className="for-rooms-divider-hour-row-wrapper" style={row_style}>
+        <>
             {hour_label}
-            <div className="for-rooms-divider-hour-row"/>
-
-        </div>
+            <Divider orientation="vertical" flexItem sx={{
+                position: "absolute",
+                height: "100%",
+                borderColor: "black",
+                borderRightWidth: 1,
+                top: 0,
+                left: row_style.left,
+            }}/>
+        </>
     )
 }
 
 function updateDate(date, diff) {
-    date.setDate(date.getDate() + diff)
+    date.setUTCDate(date.getUTCDate() + diff)
     return date
 }
 
-function TimelineForRoomList({reservations, fromTimelineDate = null, untilTimelineDate = null, is_first_timeline=false}) {
+function Timeline({
+                      reservations,
+                      fromTimelineDate = null,
+                      untilTimelineDate = null,
+                      show_time_labels=false,
+                      show_reservation_labels=false,
+                      currentReservation=null,
+                      height=50
+                  }) {
+
+    const theme = useTheme();
+
+    let time_labels_modifier = 1;
+
+    if (useMediaQuery(theme.breakpoints.down('lg')))
+        time_labels_modifier = 2
+    if (useMediaQuery(theme.breakpoints.down('md')))
+        time_labels_modifier = 3
+    if (useMediaQuery(theme.breakpoints.down('sm')))
+        time_labels_modifier = 4
+
+
     let label = <></>
 
     let can_draw = true
 
     if (reservations == null) {
-        can_draw = false
-        label = (
-            <label className='for-rooms-reservations-not-found-label'>
-                Can't get reservations list for this room.
-            </label>
+        return (
+            <Skeleton variant="rectangular" sx={{width: 100/100, height: height}}/>
         )
     }
 
@@ -145,6 +260,8 @@ function TimelineForRoomList({reservations, fromTimelineDate = null, untilTimeli
         )
     }
 
+    const timeLineBorder = 1
+
 
 
     const reservationsList = []
@@ -155,8 +272,9 @@ function TimelineForRoomList({reservations, fromTimelineDate = null, untilTimeli
                 <Reservation
                     reservation={reservation}
                     fromTimelineDate={fromTimelineDate}
-
                     untilTimelineDate={untilTimelineDate}
+                    show_reservation_labels={show_reservation_labels}
+                    height={height}
                 />
             )
         })
@@ -165,15 +283,15 @@ function TimelineForRoomList({reservations, fromTimelineDate = null, untilTimeli
 
     function getStartDate(date) {
         let newDate = new Date(date)
-        newDate.setHours(0, 0)
-        while (newDate < date) newDate.setDate(newDate.getDate() + 1)/* = new Date(updateDate(newDate, +1))*/
+        newDate.setUTCHours(0, 0)
+        // while (newDate < date) newDate.setDate(newDate.getDate() + 1)/* = new Date(updateDate(newDate, +1))*/
         return newDate
     }
 
     const dividersList = []
     const hourDividers = []
 
-    const daysCount = Math.floor((untilTimelineDate.getTime() - getStartDate(fromTimelineDate).getTime()) / 1000 / 60 / 60 / 24)
+    const daysCount = Math.ceil((untilTimelineDate.getTime() - getStartDate(fromTimelineDate).getTime()) / 1000 / 60 / 60 / 24) * time_labels_modifier
 
     let deltaHours = 1
 
@@ -186,36 +304,78 @@ function TimelineForRoomList({reservations, fromTimelineDate = null, untilTimeli
     if (daysCount >= 24) deltaHours = 24
 
     if (can_draw) {
+        hourDividers.push(<HourDividerTimeline dividerDate={fromTimelineDate}
+                                               fromTimelineDate={fromTimelineDate}
+                                               untilTimelineDate={untilTimelineDate}
+                                               show_divider_label={show_time_labels}
+                                               show_reservation_labels={show_reservation_labels}
+                                               is_current_reservation={false}
+                                               height={height}
+        />)
+
         for (let dividerDate = getStartDate(fromTimelineDate); dividerDate < untilTimelineDate; dividerDate = new Date(updateDate(dividerDate, +1))) {
-            dividersList.push(<DividerTimeline dividerDate={dividerDate} fromTimelineDate={fromTimelineDate}
-                                               untilTimelineDate={untilTimelineDate}/>)
 
-            for (let i = 0; i < 24; i += deltaHours) {
+            const dividerHourZeroDate = new Date(dividerDate)
+            dividerHourZeroDate.setUTCHours(0, 0)
+            if (fromTimelineDate <= dividerHourZeroDate && dividerHourZeroDate <= untilTimelineDate) {
+                dividersList.push(<DividerTimeline dividerDate={dividerHourZeroDate}
+                                                   fromTimelineDate={fromTimelineDate}
+                                                   untilTimelineDate={untilTimelineDate}
+                                                   show_reservation_labels={show_reservation_labels}
+                />)
+            }
+
+            for (let i = fromTimelineDate.getUTCHours(); i < 24; i += deltaHours) {
                 const dividerHourDate = new Date(dividerDate)
-                dividerHourDate.setHours(i, 0)
+                dividerHourDate.setUTCHours(i, 0)
 
-                let show_divider_label = is_first_timeline
+                if (fromTimelineDate <= dividerHourDate && dividerHourDate <= untilTimelineDate) {
+                    // if ((deltaHours === 12 && i === 12)) {
+                    //     show_divider_label = false
+                    // }
 
-                if (deltaHours === 12 && i === 12) {
-                    show_divider_label = false
+                    hourDividers.push(<HourDividerTimeline dividerDate={dividerHourDate}
+                                                           fromTimelineDate={fromTimelineDate}
+                                                           untilTimelineDate={untilTimelineDate}
+                                                           show_divider_label={show_time_labels}
+                                                           show_reservation_labels={show_reservation_labels}
+                                                           is_current_reservation={false}
+                                                           height={height}
+                    />)
                 }
-
-                hourDividers.push(<HourDividerTimeline dividerDate={dividerHourDate} fromTimelineDate={fromTimelineDate}
-                                                       untilTimelineDate={untilTimelineDate} show_divider_label={show_divider_label}/>)
             }
         }
     }
 
+    if (currentReservation != null) {
+        reservationsList.push(<Reservation
+            reservation={currentReservation}
+            fromTimelineDate={fromTimelineDate}
+            untilTimelineDate={untilTimelineDate}
+            show_reservation_labels={show_reservation_labels}
+            is_current_reservation={true }
+            height={height}
+        />)
+    }
+
     return (
-        <div className="for-rooms-reservation-list-wrapper">
-            <div className="for-rooms-reservation-list-background">
+        <Box sx={{
+            height: height,
+            width: "100%",
+            position: "relative",
+            border: timeLineBorder,
+        }}>
+            <Box sx={{
+                height: height,
+
+            }}>
                 {label}
-            </div>
+            </Box>
             {reservationsList}
             {dividersList}
             {hourDividers}
-        </div>
+        </Box>
     )
 }
 
-export default TimelineForRoomList
+export default Timeline

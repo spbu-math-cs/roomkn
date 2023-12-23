@@ -10,6 +10,7 @@ import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
 import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.and
@@ -132,6 +133,14 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
+    override fun getRoomsShort(ids: List<Int>): Result<List<ShortRoomInfo>> = queryWrapper {
+        transaction(database) {
+            Rooms.selectAll()
+                .adjustWhere { Rooms.id inList ids }
+                .map { ShortRoomInfo(it[Rooms.id], it[Rooms.name]) }
+        }
+    }
+
     override fun getRoom(roomId: Int): Result<RoomInfo> = queryWrapper {
         transaction(database) {
             val roomRow = Rooms.select { Rooms.id eq roomId }.firstOrNull() ?: throw MissingElementException()
@@ -183,7 +192,7 @@ class DatabaseSession private constructor(private val database: Database) :
         offset: Long
     ): Result<List<Reservation>> = queryWrapper {
         transaction(database) {
-            Reservations
+            (Reservations innerJoin Users innerJoin Rooms)
                 .select {
                     val userCondition = if (usersIds.isEmpty()) Op.TRUE else Reservations.userId inList usersIds
                     val roomCondition = if (roomsIds.isEmpty()) Op.TRUE else Reservations.roomId inList roomsIds
@@ -204,7 +213,9 @@ class DatabaseSession private constructor(private val database: Database) :
                         userId = it[Reservations.userId],
                         roomId = it[Reservations.roomId],
                         from = it[Reservations.from],
-                        until = it[Reservations.until]
+                        until = it[Reservations.until],
+                        userName = it[Users.username],
+                        roomName = it[Rooms.name],
                     )
                 }
         }
@@ -231,8 +242,10 @@ class DatabaseSession private constructor(private val database: Database) :
             it[Reservations.from] = from
             it[Reservations.until] = until
         } get Reservations.id
+        val user = Users.select { Users.id eq userId }.firstOrNull() ?: throw MissingElementException()
+        val room = Rooms.select { Rooms.id eq roomId }.firstOrNull() ?: throw MissingElementException()
 
-        return Reservation(id, userId, roomId, from, until)
+        return Reservation(id, userId, roomId, from, until, user[Users.username], room[Rooms.name])
     }
 
     override fun createReservation(reservation: UnregisteredReservation): Result<Reservation> = queryWrapper {
@@ -245,8 +258,9 @@ class DatabaseSession private constructor(private val database: Database) :
 
     override fun getReservation(reservationId: Int): Result<Reservation> = queryWrapper {
         transaction(database) {
-            val row = Reservations.select { Reservations.id eq reservationId }.firstOrNull()
-                ?: throw MissingElementException()
+            val row = (Reservations innerJoin Users innerJoin Rooms)
+                .select { Reservations.id eq reservationId }
+                .firstOrNull() ?: throw MissingElementException()
 
             Reservation(
                 row[Reservations.id],
@@ -254,6 +268,8 @@ class DatabaseSession private constructor(private val database: Database) :
                 row[Reservations.roomId],
                 row[Reservations.from],
                 row[Reservations.until],
+                row[Users.username],
+                row[Rooms.name]
             )
         }
     }
