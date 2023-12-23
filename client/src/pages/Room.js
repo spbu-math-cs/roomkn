@@ -133,9 +133,16 @@ function BookingForm({room_id, triggerGetReservations, min_res_time, max_res_tim
     )
 
     function reservationsCallback(result, statusCode) {
-        if (statusCode === 200) {
-            console.log("reserved: " + result)
-        }
+        console.log("result : ", result)
+        if (statusCode === 201) {
+            result["success"].forEach((reservation) => {
+                setNewMessageSnackbar("Successfully reserved on date " + fromAPITime(reservation.from).date)
+            })
+
+            result["failed"].forEach((reservation) => {
+                setNewMessageSnackbar("Reservation on " + fromAPITime(reservation.from).date + " failed: conflict with existing reservations")
+            })
+        } else setNewMessageSnackbar("Status code: " + statusCode)
         triggerGetReservations()
     }
 
@@ -158,22 +165,23 @@ function BookingForm({room_id, triggerGetReservations, min_res_time, max_res_tim
 
         let changeDate = (repeat === "every-day" ? nextDay : nextWeek)
 
-        console.log("start date: " + new Date() + "until date: " + new Date(repeatUntil))
-
         const untilDate = new Date(repeatUntil)
 
+        function getStartDate() {
+            const date = new Date()
+            date.setHours(0, 0)
+            return date
+        }
+
         const newReservationList = []
-        for (let currDate = new Date(); currDate <= untilDate; currDate = new Date(changeDate(currDate))) {
+        for (let currDate = getStartDate(); currDate <= untilDate; currDate = new Date(changeDate(currDate))) {
             console.log("foreach date: " + currDate)
             newReservationList.push({
-                from: toAPITime(currDate, from),
-                until: toAPITime(currDate, until),
+                from: toAPITime(dateFormat(currDate), from),
+                until: toAPITime(dateFormat(currDate), until),
                 room_id: room_id
             })
         }
-
-        console.log("new reservation list: " + newReservationList)
-
         setReservationList(newReservationList)
     }
 
