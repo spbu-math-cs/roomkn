@@ -133,14 +133,15 @@ function BookingForm({room_id, triggerGetReservations, min_res_time, max_res_tim
     )
 
     function reservationsCallback(result, statusCode) {
-        console.log("result : ", result)
         if (statusCode === 201) {
-            result["success"].forEach((reservation) => {
+            console.log("result: ", result?.success, "result: ", result)
+
+            result.success.forEach((reservation) => {
                 setNewMessageSnackbar("Successfully reserved on date " + fromAPITime(reservation.from).date)
             })
 
-            result["failed"].forEach((reservation) => {
-                setNewMessageSnackbar("Reservation on " + fromAPITime(reservation.from).date + " failed: conflict with existing reservations")
+            result.failure.forEach((reservation) => {
+                setNewMessageSnackbar("Reservation on " + fromAPITime(reservation.request.from).date + " failed: " + reservation.message)
             })
         } else setNewMessageSnackbar("Status code: " + statusCode)
         triggerGetReservations()
