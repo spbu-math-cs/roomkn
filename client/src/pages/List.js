@@ -132,27 +132,50 @@ function DateSelect({from, setFromDate, until, setUntilDate}) {
         setUntilDate(dateFormat(dateUntil))
     }
 
+    const datePickers = (
+        <Box>
+            <DatePicker id="date" label="From" type="date" value={dayjs(from)}
+                        onChange={(v) => {
+                            setFromDate(dateFormat(v.toDate()));
+                        }}
+                        format="DD.MM.YYYY"
+                        sx={{mb: 1}}
+            />
+            <DatePicker id="date" label="Until" type="date" value={dayjs(until)}
+                        onChange={(v) => {
+                            setUntilDate(dateFormat(v.toDate()));
+                        }}
+                        format="DD.MM.YYYY"
+            />
+        </Box>
+    )
+
+    const button_sx = {
+        paddingTop: "16.5px",
+        paddingBottom: "16.5px",
+        fontSize: 12,
+    }
+
+    const buttons = (
+        <Box>
+            <Button variant="text" onClick={setTodayDay} sx={button_sx}>Today</Button>
+            <Button variant="text" onClick={setTomorrowDay} sx={button_sx}>Tomorrow</Button>
+            <Button variant="text" onClick={setThisWeekDate} sx={button_sx}>This Week</Button>
+            <Button variant="text" onClick={setNextWeekDate} sx={button_sx}>Next Week</Button>
+        </Box>
+    )
+
     return (
-        <Stack direction="row" spacing={1} className="room-list-time">
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DatePicker id="date" label="From" type="date" value={dayjs(from)}
-                            onChange={(v) => {
-                                setFromDate(dateFormat(v.toDate()));
-                            }}
-                            format="DD.MM.YYYY"
-                />
-                <DatePicker id="date" label="Until" type="date" value={dayjs(until)}
-                            onChange={(v) => {
-                                setUntilDate(dateFormat(v.toDate()));
-                            }}
-                            format="DD.MM.YYYY"
-                />
-                <Button variant="contained" onClick={setTodayDay}>Today</Button>
-                <Button variant="contained" onClick={setTomorrowDay}>Tomorrow</Button>
-                <Button variant="contained" onClick={setThisWeekDate}>This Week</Button>
-                <Button variant="contained" onClick={setNextWeekDate}>Next Week</Button>
-            </LocalizationProvider>
-        </Stack>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <Stack direction="row" spacing={1} className="room-list-time" sx={{display: {xs: 'none', lg: 'flex'}}}>
+                {datePickers}
+                {buttons}
+            </Stack>
+            <Stack spacing={1} className="room-list-time" sx={{display: {xs: 'flex', lg: 'none'}}}>
+                {datePickers}
+                {buttons}
+            </Stack>
+        </LocalizationProvider>
     )
 }
 
