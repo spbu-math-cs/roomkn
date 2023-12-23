@@ -3,7 +3,7 @@ import ContentWrapper from "../components/Content"
 import useSomeAPI from "../api/FakeAPI"
 import React, {useEffect, useState} from "react";
 import {
-    Box,
+    Box, Button,
     ListItemButton,
     Stack, Typography,
 } from "@mui/material";
@@ -95,25 +95,62 @@ function TimelineForRoom({room, fromDate, untilDate, show_time_labels}) {
     )
 }
 
-function DateSelect({setFromDate, setUntilDate}) {
+function DateSelect({from, setFromDate, until, setUntilDate}) {
 
-    const date = getTodayDate()
+    function setTodayDay() {
+        const date = new Date()
+        const today = dateFormat(date)
+        setFromDate(today)
+        setUntilDate(today)
+    }
+
+    function setTomorrowDay() {
+        const date = new Date()
+        date.setDate(date.getDate() + 1)
+        const tomorrow = dateFormat(date)
+        setFromDate(tomorrow)
+        setUntilDate(tomorrow)
+    }
+
+    function setThisWeekDate() {
+        const dateFrom = new Date()
+        const dateUntil = new Date()
+        const fromDelta = -dateFrom.getDay() + 1, untilDelta = 7 - dateUntil.getDay()
+        dateFrom.setDate(dateFrom.getDate() + fromDelta)
+        dateUntil.setDate(dateUntil.getDate() + untilDelta)
+        setFromDate(dateFormat(dateFrom))
+        setUntilDate(dateFormat(dateUntil))
+    }
+
+    function setNextWeekDate() {
+        const dateFrom = new Date()
+        const dateUntil = new Date()
+        const fromDelta = -dateFrom.getDay() + 1 + 7, untilDelta = 7 - dateUntil.getDay() + 7
+        dateFrom.setDate(dateFrom.getDate() + fromDelta)
+        dateUntil.setDate(dateUntil.getDate() + untilDelta)
+        setFromDate(dateFormat(dateFrom))
+        setUntilDate(dateFormat(dateUntil))
+    }
 
     return (
         <Stack direction="row" spacing={1} className="room-list-time">
             <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DatePicker id="date" label="From" type="date" defaultValue={dayjs(date)}
+                <DatePicker id="date" label="From" type="date" value={dayjs(from)}
                             onChange={(v) => {
                                 setFromDate(dateFormat(v.toDate()));
                             }}
                             format="DD.MM.YYYY"
                 />
-                <DatePicker id="date" label="Until" type="date" defaultValue={dayjs(date)}
+                <DatePicker id="date" label="Until" type="date" value={dayjs(until)}
                             onChange={(v) => {
                                 setUntilDate(dateFormat(v.toDate()));
                             }}
                             format="DD.MM.YYYY"
                 />
+                <Button variant="contained" onClick={setTodayDay}>Today</Button>
+                <Button variant="contained" onClick={setTomorrowDay}>Tomorrow</Button>
+                <Button variant="contained" onClick={setThisWeekDate}>This Week</Button>
+                <Button variant="contained" onClick={setNextWeekDate}>Next Week</Button>
             </LocalizationProvider>
         </Stack>
     )
@@ -176,7 +213,7 @@ function RoomList() {
     return (
         <ContentWrapper page_name="Classrooms">
             <Stack direction = "column">
-                <DateSelect setFromDate={setFrom} setUntilDate={setUntil}/>
+                <DateSelect from = {from} setFromDate={setFrom} until = {until} setUntilDate={setUntil}/>
                 {draw_list}
             </Stack>
 
