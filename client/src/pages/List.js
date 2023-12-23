@@ -115,7 +115,7 @@ function DateSelect({from, setFromDate, until, setUntilDate}) {
     function setThisWeekDate() {
         const dateFrom = new Date()
         const dateUntil = new Date()
-        const fromDelta = -dateFrom.getDay() + 1, untilDelta = 7 - dateUntil.getDay()
+        const fromDelta = (7 - dateFrom.getDay()) % 7 - 6, untilDelta = (7 - dateUntil.getDay()) % 7
         dateFrom.setDate(dateFrom.getDate() + fromDelta)
         dateUntil.setDate(dateUntil.getDate() + untilDelta)
         setFromDate(dateFormat(dateFrom))
@@ -125,7 +125,7 @@ function DateSelect({from, setFromDate, until, setUntilDate}) {
     function setNextWeekDate() {
         const dateFrom = new Date()
         const dateUntil = new Date()
-        const fromDelta = -dateFrom.getDay() + 1 + 7, untilDelta = 7 - dateUntil.getDay() + 7
+        const fromDelta = (7 - dateFrom.getDay()) % 7 + 1, untilDelta = (7 - dateUntil.getDay()) % 7 + 7
         dateFrom.setDate(dateFrom.getDate() + fromDelta)
         dateUntil.setDate(dateUntil.getDate() + untilDelta)
         setFromDate(dateFormat(dateFrom))
