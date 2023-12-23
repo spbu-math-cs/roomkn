@@ -170,9 +170,7 @@ function BookingForm({room_id, triggerGetReservations, min_res_time, max_res_tim
             return date
         }
 
-        let changeDate = (date) => {return date}
-        if (repeat === "every-day") changeDate = nextDay
-        else changeDate = nextWeek
+        let changeDate = (repeat === "every-day" ? nextDay : nextWeek)
 
         console.log("start date: " + new Date() + "until date: " + new Date(repeatUntil))
 
@@ -193,24 +191,7 @@ function BookingForm({room_id, triggerGetReservations, min_res_time, max_res_tim
         setReservationList(newReservationList)
     }
 
-    const reservation = {
-        from: toAPITime(date, from),
-        until: toAPITime(date, until),
-        room_id: room_id
-    }
-
-    let {triggerFetch} = useSomeAPI('/api/v0/reserve', reservation, "POST", bookingCallback)
-
     const {setNewMessageSnackbar} = useContext(SnackbarContext)
-
-    function bookingCallback(result, statusCode) {
-        if (statusCode === 400) setNewMessageSnackbar("Error: " + result)
-        else if (statusCode === 409) setNewMessageSnackbar("Impossible to reserve: at this time classroom already reserved")
-        else if (statusCode === 201) setNewMessageSnackbar("Reservation succeeded!")
-        else setNewMessageSnackbar("Status Code: " + statusCode)
-
-        triggerGetReservations()
-    }
 
     if (currentUser === null) {
         return (
@@ -230,12 +211,6 @@ function BookingForm({room_id, triggerGetReservations, min_res_time, max_res_tim
         const minutes = parseInt(time.slice(3, 5))
         return hour * 60 + minutes
     }
-
-    const HandleSubmit = (e) => {
-        e.preventDefault();
-
-        if (getMinutesByTime(from) <= getMinutesByTime(until)) triggerFetch()
-    };
 
     const MassHandleSubmit = (e) => {
         e.preventDefault();
@@ -467,7 +442,10 @@ function Room() {
                 <BookingForm
                     room_id={room_info.id}
                     date={date}
-                    triggerGetReservations={triggerGetReservations}
+                    triggerGetReservations={() => {
+                        triggerGetReservations()
+                        console.log("trigger get reservations")
+                    }}
                     min_res_time={min_res_time}
                     max_res_time={max_res_time}
                 />
