@@ -29,9 +29,6 @@ export function useAPI(url, data=null, method='GET', callback = () => {}) {
             options['body'] = JSON.stringify(data)
             options.headers["Content-Type"] = 'application/json;charset=utf-8'
         }
-        // if (getCSRFToken() != null) {
-        //     options.headers["X-CSRF-Token"] = getCSRFToken()
-        // }
 
         fetch(API_HOST + url, options)
             .then(r => {

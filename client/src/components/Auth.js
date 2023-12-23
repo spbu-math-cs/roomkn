@@ -221,7 +221,6 @@ export function getUserDataFromStorage() {
 }
 
 export function SaveUserDataIntoStorage(currentUser) {
-    // const {currentUser} = useContext(CurrentUserContext)
     console.log(currentUser, JSON.stringify(currentUser))
     localStorage.setItem('roomkn', JSON.stringify(currentUser));
 }
