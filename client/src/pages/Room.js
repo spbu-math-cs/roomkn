@@ -6,13 +6,24 @@ import React, {createContext, useContext, useEffect, useState} from 'react';
 import {fromAPITime, toAPITime} from '../api/API';
 import useSomeAPI from '../api/FakeAPI';
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
-import {Box, Button, Skeleton, Slider, Stack, Typography} from "@mui/material";
+import {
+    Box,
+    Button,
+    FormControl,
+    InputLabel,
+    Select,
+    Skeleton,
+    Slider,
+    Stack,
+    Typography
+} from "@mui/material";
 import {SnackbarContext} from '../components/SnackbarAlert'
 import Timeline from "../components/TimelineForRoomList";
 import {DatePicker, TimePicker} from "@mui/x-date-pickers";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from "dayjs";
+import MenuItem from "@mui/material/MenuItem";
 
 const CurrentReservationContext = createContext()
 
@@ -103,30 +114,79 @@ const timeMarks = [...Array(25).keys()].map((_, idx, __) => {
 function BookingForm({room_id, triggerGetReservations, min_res_time, max_res_time}) {
 
     const {date, from, setFrom, until, setUntil, isActive, setIsActive} = useContext(CurrentReservationContext)
+    const [repeat, setRepeat] = useState("no-repeat")
+    const [repeatUntil, setRepeatUntil] = useState(getTodayDate())
 
     const min_booking_time = parseTimeMinutes(min_res_time)
     const max_booking_time = parseTimeMinutes(max_res_time)
 
     const {currentUser} = useContext(CurrentUserContext)
 
-    const reservation = {
+    const defaultReservationList = [{
         from: toAPITime(date, from),
         until: toAPITime(date, until),
         room_id: room_id
-    }
+    }]
 
-    let {triggerFetch} = useSomeAPI('/api/v0/reserve', reservation, "POST", bookingCallback)
+    const [reservationList, setReservationList] = useState(
+        defaultReservationList
+    )
 
-    const {setNewMessageSnackbar} = useContext(SnackbarContext)
+    function reservationsCallback(result, statusCode) {
+        if (statusCode === 201) {
+            console.log("result: ", result?.success, "result: ", result)
 
-    function bookingCallback(result, statusCode) {
-        if (statusCode === 400) setNewMessageSnackbar("Error: " + result)
-        else if (statusCode === 409) setNewMessageSnackbar("Impossible to reserve: at this time classroom already reserved")
-        else if (statusCode === 201) setNewMessageSnackbar("Reservation succeeded!")
-        else setNewMessageSnackbar("Status Code: " + statusCode)
+            result.success.forEach((reservation) => {
+                setNewMessageSnackbar("Successfully reserved on date " + fromAPITime(reservation.from).date)
+            })
 
+            result.failure.forEach((reservation) => {
+                setNewMessageSnackbar("Reservation on " + fromAPITime(reservation.request.from).date + " failed: " + reservation.message)
+            })
+        } else setNewMessageSnackbar("Status code: " + statusCode)
         triggerGetReservations()
     }
+
+    const {triggerFetch} = useSomeAPI('/api/v0/reserve/multiple', reservationList, "POST", reservationsCallback)
+
+    function updateReservationsList() {
+        if (repeat === "no-repeat") {
+            setReservationList(defaultReservationList)
+            return
+        }
+
+        function nextDay(date) {
+            date.setDate(date.getDate() + 1)
+            return date
+        }
+        function nextWeek(date) {
+            date.setDate(date.getDate() + 7)
+            return date
+        }
+
+        let changeDate = (repeat === "every-day" ? nextDay : nextWeek)
+
+        const untilDate = new Date(repeatUntil)
+
+        function getStartDate() {
+            const date = new Date()
+            date.setHours(0, 0)
+            return date
+        }
+
+        const newReservationList = []
+        for (let currDate = getStartDate(); currDate <= untilDate; currDate = new Date(changeDate(currDate))) {
+            console.log("foreach date: " + currDate)
+            newReservationList.push({
+                from: toAPITime(dateFormat(currDate), from),
+                until: toAPITime(dateFormat(currDate), until),
+                room_id: room_id
+            })
+        }
+        setReservationList(newReservationList)
+    }
+
+    const {setNewMessageSnackbar} = useContext(SnackbarContext)
 
     if (currentUser === null) {
         return (
@@ -147,13 +207,72 @@ function BookingForm({room_id, triggerGetReservations, min_res_time, max_res_tim
         return hour * 60 + minutes
     }
 
-    const HandleSubmit = (e) => {
+    const MassHandleSubmit = (e) => {
         e.preventDefault();
 
-        if (getMinutesByTime(from) <= getMinutesByTime(until)) triggerFetch()
-    };
+        console.log("massHandleSubmit repeat: " + repeat + " repeat until: " + repeatUntil)
+
+        updateReservationsList()
+        triggerFetch()
+    }
 
     const is_reserve_disabled = (getMinutesByTime(from) >= getMinutesByTime(until)) || (date < getTodayDate())
+
+    const timePickers = (
+        <Box>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <TimePicker
+                    label="From"
+                    value={dayjs('1970-01-01 '+ from)}
+                    onChange={(newValue) => {
+                        console.log(makeTimeMinutes(newValue.hour() * 60 + newValue.minute()))
+                        setFrom(makeTimeMinutes(newValue.hour() * 60 + newValue.minute()))
+                    }}
+                    format="HH:mm"
+                    sx={{ margin: 1}}
+                />
+                <TimePicker
+                    label="Until"
+                    value={dayjs('1970-01-01 '+ until)}
+                    onChange={(newValue) => {
+                        console.log(newValue.hour() * 60 + newValue.minute())
+                        setUntil(makeTimeMinutes(newValue.hour() * 60 + newValue.minute()))
+                    }}
+                    format="HH:mm"
+                    sx={{ margin: 1}}
+                />
+            </LocalizationProvider>
+        </Box>
+    )
+
+    const repeatChoose = (
+        <Box>
+            <FormControl sx={{ margin: 1}}>
+                <InputLabel id="repeated-select-label">Repeat:</InputLabel>
+                <Select
+                    label="Repeat:"
+                    labelId="repeated-select-label"
+                    value = {repeat}
+                    onChange = {(e) => {setRepeat(e.target.value)}}
+                >
+                    <MenuItem value = "no-repeat"> Do not repeat</MenuItem>
+                    <MenuItem value = "every-day"> Every day</MenuItem>
+                    <MenuItem value = "every-week"> Every week</MenuItem>
+                </Select>
+            </FormControl>
+
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                    type="date" value={dayjs(repeatUntil)}
+                    onChange={(v) => {setRepeatUntil(dateFormat(v.toDate()))}}
+                    label="Repeat until:"
+                    format="DD.MM.YYYY"
+                    sx={{margin: 1, display: repeat === 'no-repeat' ? 'none' : ''}}
+
+                />
+            </LocalizationProvider>
+        </Box>
+    )
 
     return (
         <ContentWrapper page_name='Reservation'>
@@ -177,33 +296,20 @@ function BookingForm({room_id, triggerGetReservations, min_res_time, max_res_tim
                             marks={timeMarks}
                         />
                     </Box>
-                    <Box sx={{paddingRight: "10pt", paddingLeft: "10pt"}} >
-                        <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            <TimePicker
-                                label="From"
-                                value={dayjs('1970-01-01 '+ from)}
-                                onChange={(newValue) => {
-                                    console.log(makeTimeMinutes(newValue.hour() * 60 + newValue.minute()))
-                                    setFrom(makeTimeMinutes(newValue.hour() * 60 + newValue.minute()))
-                                }}
-                                format="HH:mm"
-                                sx={{mr: 1, mb: 2}}
-                            />
-                            <TimePicker
-                                label="Until"
-                                value={dayjs('1970-01-01 '+ until)}
-                                onChange={(newValue) => {
-                                    console.log(newValue.hour() * 60 + newValue.minute())
-                                    setUntil(makeTimeMinutes(newValue.hour() * 60 + newValue.minute()))
-                                }}
-                                format="HH:mm"
-                            />
-                        </LocalizationProvider>
-                    </Box>
+                    <Stack direction="row" spacing={1} sx={{paddingRight: "10pt", paddingLeft: "10pt", display: {xs: 'none', lg: 'flex'}}} >
+                        {timePickers}
+                        {repeatChoose}
+                    </Stack>
+                    <Stack direction="column" spacing={1} sx={{paddingRight: "10pt", paddingLeft: "10pt", display: {xs: 'flex', lg: 'none'}}} >
+                        {timePickers}
+                        {repeatChoose}
+                    </Stack>
+
+
                     <Stack direction="row" spacing={2}>
                         <Button color="secondary"
                                 variant="contained"
-                                onClick={HandleSubmit}
+                                onClick={MassHandleSubmit}
                                 disabled={is_reserve_disabled}
                                 sx={{width: "100pt"}}>
                             Reserve
@@ -350,7 +456,10 @@ function Room() {
                 <BookingForm
                     room_id={room_info.id}
                     date={date}
-                    triggerGetReservations={triggerGetReservations}
+                    triggerGetReservations={() => {
+                        triggerGetReservations()
+                        console.log("trigger get reservations")
+                    }}
                     min_res_time={min_res_time}
                     max_res_time={max_res_time}
                 />
