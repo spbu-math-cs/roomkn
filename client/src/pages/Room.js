@@ -6,13 +6,24 @@ import React, {createContext, useContext, useEffect, useState} from 'react';
 import {fromAPITime, toAPITime} from '../api/API';
 import useSomeAPI from '../api/FakeAPI';
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
-import {Box, Button, Skeleton, Slider, Stack, Typography} from "@mui/material";
+import {
+    Box,
+    Button,
+    FormControl,
+    InputLabel,
+    Select,
+    Skeleton,
+    Slider,
+    Stack,
+    Typography
+} from "@mui/material";
 import {SnackbarContext} from '../components/SnackbarAlert'
 import Timeline from "../components/TimelineForRoomList";
 import {DatePicker, TimePicker} from "@mui/x-date-pickers";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from "dayjs";
+import MenuItem from "@mui/material/MenuItem";
 
 const CurrentReservationContext = createContext()
 
@@ -103,11 +114,84 @@ const timeMarks = [...Array(25).keys()].map((_, idx, __) => {
 function BookingForm({room_id, triggerGetReservations, min_res_time, max_res_time}) {
 
     const {date, from, setFrom, until, setUntil, isActive, setIsActive} = useContext(CurrentReservationContext)
+    const [repeat, setRepeat] = useState("no-repeat")
+    const [repeatUntil, setRepeatUntil] = useState(getTodayDate())
 
     const min_booking_time = parseTimeMinutes(min_res_time)
     const max_booking_time = parseTimeMinutes(max_res_time)
 
     const {currentUser} = useContext(CurrentUserContext)
+
+    const defaultReservationList = [{
+        from: toAPITime(date, from),
+        until: toAPITime(date, until),
+        room_id: room_id
+    }]
+
+    const [reservationList, setReservationList] = useState(
+        defaultReservationList
+    )
+
+    function GetTriggerFetch(reservation) {
+        const reservationDate = fromAPITime(reservation.from).date
+
+        function callback(result, statusCode) {
+            if (statusCode === 400) setNewMessageSnackbar("Reservation on date" + reservationDate + ": error: " + result)
+            else if (statusCode === 409)
+                setNewMessageSnackbar("Reservation on date" + reservationDate +
+                    ":impossible to reserve(at this time classroom already reserved)")
+            else if (statusCode === 201) setNewMessageSnackbar("Reservation on date" + reservationDate + ":reservation succeeded!")
+            else setNewMessageSnackbar("Reservation on date" + reservationDate + ":status Code: " + statusCode)
+        }
+
+        let {triggerFetch} = useSomeAPI('/api/v0/reserve', reservation, "POST", callback)
+        return triggerFetch
+    }
+
+    const triggerFetchList = reservationList.map((reservation) => GetTriggerFetch(reservation))
+
+    const massTriggerFetch = () => {
+        triggerFetchList.forEach((el) => el())
+        triggerGetReservations()
+    }
+
+    function updateReservationsList() {
+        if (repeat === "no-repeat") {
+            setReservationList(defaultReservationList)
+            return
+        }
+
+        function nextDay(date) {
+            date.setDate(date.getDate() + 1)
+            return date
+        }
+        function nextWeek(date) {
+            date.setDate(date.getDate() + 7)
+            return date
+        }
+
+        let changeDate = (date) => {return date}
+        if (repeat === "every-day") changeDate = nextDay
+        else changeDate = nextWeek
+
+        console.log("start date: " + new Date() + "until date: " + new Date(repeatUntil))
+
+        const untilDate = new Date(repeatUntil)
+
+        const newReservationList = []
+        for (let currDate = new Date(); currDate <= untilDate; currDate = new Date(changeDate(currDate))) {
+            console.log("foreach date: " + currDate)
+            newReservationList.push({
+                from: toAPITime(currDate, from),
+                until: toAPITime(currDate, until),
+                room_id: room_id
+            })
+        }
+
+        console.log("new reservation list: " + newReservationList)
+
+        setReservationList(newReservationList)
+    }
 
     const reservation = {
         from: toAPITime(date, from),
@@ -153,6 +237,15 @@ function BookingForm({room_id, triggerGetReservations, min_res_time, max_res_tim
         if (getMinutesByTime(from) <= getMinutesByTime(until)) triggerFetch()
     };
 
+    const MassHandleSubmit = (e) => {
+        e.preventDefault();
+
+        console.log("massHandleSubmit repeat: " + repeat + " repeat until: " + repeatUntil)
+
+        updateReservationsList()
+        massTriggerFetch()
+    }
+
     const is_reserve_disabled = (getMinutesByTime(from) >= getMinutesByTime(until)) || (date < getTodayDate())
 
     return (
@@ -177,7 +270,7 @@ function BookingForm({room_id, triggerGetReservations, min_res_time, max_res_tim
                             marks={timeMarks}
                         />
                     </Box>
-                    <Box sx={{paddingRight: "10pt", paddingLeft: "10pt"}} >
+                    <Stack direction="row" spacing={1} sx={{paddingRight: "10pt", paddingLeft: "10pt"}} >
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
                             <TimePicker
                                 label="From"
@@ -199,11 +292,35 @@ function BookingForm({room_id, triggerGetReservations, min_res_time, max_res_tim
                                 format="HH:mm"
                             />
                         </LocalizationProvider>
-                    </Box>
+                        <FormControl>
+                            <InputLabel id="repeated-select-label">Repeat:</InputLabel>
+                            <Select
+                                label="Repeat:"
+                                labelId="repeated-select-label"
+                                value = {repeat}
+                                onChange = {(e) => {setRepeat(e.target.value)}}
+                            >
+                                <MenuItem value = "no-repeat"> Do not repeat</MenuItem>
+                                <MenuItem value = "every-day"> Every day</MenuItem>
+                                <MenuItem value = "every-week"> Every week</MenuItem>
+                            </Select>
+                        </FormControl>
+
+                        <LocalizationProvider dateAdapter={AdapterDayjs}>
+                            <DatePicker
+                                type="date" value={dayjs(repeatUntil)}
+                                onChange={(v) => {setRepeatUntil(dateFormat(v.toDate()))}}
+                                label="Repeat until:"
+                                format="DD.MM.YYYY"
+                            />
+                        </LocalizationProvider>
+                    </Stack>
+
+
                     <Stack direction="row" spacing={2}>
                         <Button color="secondary"
                                 variant="contained"
-                                onClick={HandleSubmit}
+                                onClick={MassHandleSubmit}
                                 disabled={is_reserve_disabled}
                                 sx={{width: "100pt"}}>
                             Reserve
