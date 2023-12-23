@@ -169,7 +169,9 @@ class DatabaseTest {
             userInfo.id,
             room1Info.id,
             from,
-            until
+            until,
+            userInfo.username,
+            room1Info.name,
         )
 
         assertEquals(listOf(expectedReservation), room1Reservations)

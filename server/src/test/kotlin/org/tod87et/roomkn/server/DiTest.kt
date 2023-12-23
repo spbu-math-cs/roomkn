@@ -107,6 +107,8 @@ private class CredentialsDatabaseMock : CredentialsDatabase {
 private class DatabaseMock : Database {
     override fun getRooms(limit: Int, offset: Long): Result<List<ShortRoomInfo>> = fail()
 
+    override fun getRoomsShort(ids: List<Int>): Result<List<ShortRoomInfo>> = fail()
+
     override fun getRoom(roomId: Int): Result<RoomInfo> = fail()
 
     override fun createRoom(roomInfo: NewRoomInfo): Result<RoomInfo> = fail()

@@ -24,11 +24,13 @@ fun RoomInfo.toShort() = ShortRoomInfo(
     name = name
 )
 
-fun ReservationRequest.toRegistered(userId: Int, reservationId: Int) =
+fun ReservationRequest.toRegistered(userId: Int, reservationId: Int, userName: String, roomName: String) =
     Reservation(
         id = reservationId,
         userId = userId,
         roomId = roomId,
         from = from,
-        until = until
+        until = until,
+        userName = userName,
+        roomName = roomName,
     )
