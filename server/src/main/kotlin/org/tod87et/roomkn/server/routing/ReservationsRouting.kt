@@ -14,6 +14,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
+import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.datetime.Instant
 import kotlinx.datetime.toInstant
@@ -27,6 +28,8 @@ import org.tod87et.roomkn.server.database.ReservationException
 import org.tod87et.roomkn.server.database.SerializationException
 import org.tod87et.roomkn.server.di.injectDatabase
 import org.tod87et.roomkn.server.models.permissions.UserPermission
+import org.tod87et.roomkn.server.models.reservations.FailedReservation
+import org.tod87et.roomkn.server.models.reservations.MultipleReservationResult
 import org.tod87et.roomkn.server.models.reservations.NewReservationBounds
 import org.tod87et.roomkn.server.models.reservations.ReservationRequest
 import org.tod87et.roomkn.server.models.reservations.toUnregisteredReservation
@@ -40,6 +43,10 @@ fun Route.reservationsRouting() {
     authenticate(AuthenticationProvider.SESSION) {
         route("/reserve") {
             reserveRouting(database)
+
+            route("/multiple") {
+                reserveMultipleRouting(database)
+            }
         }
 
         route("/reservations") {
@@ -51,6 +58,7 @@ fun Route.reservationsRouting() {
             }
 
             reserveRouting(database)
+            reservationListRouting(database)
             reservationDeleteRouting(database)
             reservationUpdateRouting(database)
         }
@@ -161,6 +169,53 @@ private fun String?.toResultLongOrDefault(default: Long): Result<Long> {
 }
 
 private fun Route.reserveRouting(database: Database) {
+    post { body: ReservationRequest ->
+        val userId = call.principal<AuthSession>()!!.userId
+        call.requireReservationCreatePermission(database) { return@post call.onMissingPermission() }
+
+        val result = database.createReservation(body.toUnregisteredReservation(userId))
+        result
+            .onSuccess {
+                call.respond(HttpStatusCode.Created, it)
+            }
+            .onFailure {
+                call.handleReservationException(it)
+            }
+    }
+}
+
+private fun Route.reserveMultipleRouting(database: Database) {
+    val logger = KtorSimpleLogger("reservationsRouting")
+
+    post { body: List<ReservationRequest> ->
+        val userId = call.principal<AuthSession>()!!.userId
+        call.requireReservationCreatePermission(database) { return@post call.onMissingPermission() }
+
+        val requests = body.map { it.toUnregisteredReservation(userId) }
+        val result = database.createMultipleReservations(requests)
+        val reserved = result.mapNotNull { it.getOrNull() }
+        val failed = result.mapIndexedNotNull { index, res ->
+            res.exceptionOrNull()?.let { ex ->
+                val msg = when (ex) {
+                    is ConstraintViolationException, is ReservationException -> {
+                        "Failed to add reservation: conflict with other reservations"
+                    }
+
+                    else -> {
+                        logger.warn("unknown error during reserve multiple", ex)
+                        "Server error"
+                    }
+                }
+                FailedReservation(body[index], msg)
+            }
+        }
+        val res = MultipleReservationResult(reserved, failed)
+
+        call.respond(HttpStatusCode.Created, res)
+    }
+}
+
+private fun Route.reservationListRouting(database: Database) {
     get {
         val fromResult = call.request.queryParameters["from"].toResultInstantOrNull()
         val untilResult = call.request.queryParameters["until"].toResultInstantOrNull()
@@ -188,19 +243,6 @@ private fun Route.reserveRouting(database: Database) {
         database.getReservations(userIds, roomIds, from, until, limit, offset)
             .onSuccess {
                 call.respond(HttpStatusCode.OK, it)
-            }
-            .onFailure {
-                call.handleReservationException(it)
-            }
-    }
-    post { body: ReservationRequest ->
-        val userId = call.principal<AuthSession>()!!.userId
-        call.requireReservationCreatePermission(database) { return@post call.onMissingPermission() }
-
-        val result = database.createReservation(body.toUnregisteredReservation(userId))
-        result
-            .onSuccess {
-                call.respond(HttpStatusCode.Created, it)
             }
             .onFailure {
                 call.handleReservationException(it)

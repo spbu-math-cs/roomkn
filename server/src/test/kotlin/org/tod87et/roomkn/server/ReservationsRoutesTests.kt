@@ -13,6 +13,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.datetime.Instant
 import org.junit.jupiter.api.Test
+import org.tod87et.roomkn.server.models.reservations.MultipleReservationResult
 import org.tod87et.roomkn.server.models.reservations.NewReservationBounds
 import org.tod87et.roomkn.server.models.reservations.Reservation
 import org.tod87et.roomkn.server.models.reservations.ReservationRequest
@@ -27,6 +28,7 @@ class ReservationsRoutesTests {
     private val apiPath = KtorTestEnv.API_PATH
     private val roomsPath = "$apiPath/rooms"
     private val reservePath = "$apiPath/reserve"
+    private val reserveMultiplePath = "$apiPath/reserve/multiple"
     private val reservationsPath = "$apiPath/reservations"
     private fun reservationPath(id: Int) = "$reservationsPath/$id"
 
@@ -237,6 +239,122 @@ class ReservationsRoutesTests {
 
         assertEquals(expectedReservation, resp)
         assertEquals(expectedReservation, KtorTestEnv.database.getReservation(resp.id).getOrThrow())
+    }
+
+    @Test
+    fun reserveMultipleOk() = KtorTestEnv.testJsonApplication { client ->
+        val myId = with(KtorTestEnv) {
+            client.createAndAuthUser()
+        }
+        val room = KtorTestEnv.createRoom("301")
+
+        val reqReservations = listOf(
+            ReservationRequest(
+                room.id,
+                Instant.fromEpochMilliseconds(6.hours.inWholeMilliseconds),
+                Instant.fromEpochMilliseconds(7.hours.inWholeMilliseconds)
+            ),
+            ReservationRequest(
+                room.id,
+                Instant.fromEpochMilliseconds(7.hours.inWholeMilliseconds),
+                Instant.fromEpochMilliseconds(8.hours.inWholeMilliseconds)
+            ),
+        )
+        val resp = client.post(reserveMultiplePath) {
+            contentType(ContentType.Application.Json)
+            setBody(reqReservations)
+        }.body<MultipleReservationResult>()
+
+        assertEquals(2, resp.success.size)
+        assertEquals(0, resp.failure.size)
+
+        val expectedReservations = reqReservations.mapIndexed { idx, it ->
+            it.toRegistered(userId = myId, reservationId = resp.success[idx].id)
+        }
+
+        assertEquals(expectedReservations, resp.success)
+        expectedReservations.forEach { reservation ->
+            assertEquals(
+                reservation,
+                KtorTestEnv.database.getReservation(reservation.id).getOrThrow()
+            )
+        }
+    }
+
+    @Test
+    fun reserveMultipleOkFail() = KtorTestEnv.testJsonApplication { client ->
+        val myId = with(KtorTestEnv) {
+            client.createAndAuthUser()
+        }
+        val room = KtorTestEnv.createRoom("301")
+
+        val reqReservations = listOf(
+            ReservationRequest(
+                room.id,
+                Instant.fromEpochMilliseconds(6.hours.inWholeMilliseconds),
+                Instant.fromEpochMilliseconds(7.hours.inWholeMilliseconds)
+            ),
+            ReservationRequest(
+                room.id,
+                Instant.fromEpochMilliseconds(6.hours.inWholeMilliseconds),
+                Instant.fromEpochMilliseconds(8.hours.inWholeMilliseconds)
+            ),
+        )
+        val resp = client.post(reserveMultiplePath) {
+            contentType(ContentType.Application.Json)
+            setBody(reqReservations)
+        }.body<MultipleReservationResult>()
+
+        assertEquals(1, resp.success.size)
+        assertEquals(1, resp.failure.size)
+
+        val expectedReservation =
+            reqReservations[0].toRegistered(userId = myId, reservationId = resp.success.first().id)
+
+        assertEquals(expectedReservation, resp.success.first())
+
+        assertEquals(
+            expectedReservation,
+            KtorTestEnv.database.getReservation(expectedReservation.id).getOrThrow()
+        )
+    }
+
+    @Test
+    fun reserveMultipleFail() = KtorTestEnv.testJsonApplication { client ->
+        val myId = with(KtorTestEnv) {
+            client.createAndAuthUser()
+        }
+        val room = KtorTestEnv.createRoom("301")
+
+        KtorTestEnv.database.createReservation(
+            UnregisteredReservation(
+                myId,
+                room.id,
+                Instant.fromEpochMilliseconds(6.hours.inWholeMilliseconds),
+                Instant.fromEpochMilliseconds(8.hours.inWholeMilliseconds)
+            )
+        )
+
+        val reqReservations = listOf(
+            ReservationRequest(
+                room.id,
+                Instant.fromEpochMilliseconds(6.hours.inWholeMilliseconds),
+                Instant.fromEpochMilliseconds(7.hours.inWholeMilliseconds)
+            ),
+            ReservationRequest(
+                room.id,
+                Instant.fromEpochMilliseconds(7.hours.inWholeMilliseconds),
+                Instant.fromEpochMilliseconds(8.hours.inWholeMilliseconds)
+            ),
+        )
+
+        val resp = client.post(reserveMultiplePath) {
+            contentType(ContentType.Application.Json)
+            setBody(reqReservations)
+        }.body<MultipleReservationResult>()
+
+        assertEquals(0, resp.success.size)
+        assertEquals(2, resp.failure.size)
     }
 
     @Test
