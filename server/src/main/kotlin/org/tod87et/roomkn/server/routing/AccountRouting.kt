@@ -84,7 +84,7 @@ private fun Route.registerRouting(accountController: AccountController) {
             }
     }
     post("/register/{token}") { body: UnregisteredUserInfo ->
-        val token = call.parameters["token"] ?: return@post call.respondText("Invalid token", status = HttpStatusCode.BadRequest)
+        val token = call.parameters["token"] ?: return@post call.respondText("Empty token", status = HttpStatusCode.BadRequest)
         accountController.validateInvite(token)
             .onSuccess {
                 accountController.registerUser(body)

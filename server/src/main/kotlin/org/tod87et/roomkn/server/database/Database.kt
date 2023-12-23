@@ -63,7 +63,8 @@ interface Database {
     fun deleteUser(userId: Int): Result<Unit>
     fun getUserPermissions(userId: Int): Result<List<UserPermission>>
     fun updateUserPermissions(userId: Int, permissions: List<UserPermission>): Result<Unit>
-    fun createInvite(inviteRequest: InviteRequest): Result<Unit>
+    fun createInvite(token: String, inviteRequest: InviteRequest): Result<Unit>
+    fun validateInvite(token: String): Result<InviteRequest>
 
 
     /**

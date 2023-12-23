@@ -344,9 +344,6 @@ class DatabaseSession private constructor(private val database: Database) :
             }
         }
 
-    override fun createInvite(inviteRequest: InviteRequest): Result<Unit> {
-        TODO("Not yet implemented")
-    }
 
     override fun registerUser(user: RegistrationUserInfo): Result<UserInfo> = queryWrapper {
         transaction(database) {
@@ -406,6 +403,10 @@ class DatabaseSession private constructor(private val database: Database) :
     }
 
     override fun validateInvite(token: String): Result<Unit> {
+        TODO("Not yet implemented")
+    }
+
+    override fun createInvite(token: String, inviteRequest: InviteRequest): Result<Unit> {
         TODO("Not yet implemented")
     }
 

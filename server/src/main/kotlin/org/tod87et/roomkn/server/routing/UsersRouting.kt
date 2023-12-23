@@ -129,7 +129,13 @@ private fun Route.setUserPermissions(database: Database) {
 private fun Route.generateInvite(database: Database) {
     post("/invite") { body: InviteRequest ->
         call.requirePermission(database) { return@post call.onMissingPermission() }
-        database.createInvite(body).okResponseWithHandleException(call)
+        val token = generateToken(body)
+        val tokenResult = database.createInvite(token, body)
+        tokenResult.onSuccess {
+            call.respondText(token, status = HttpStatusCode.OK)
+        }.onFailure {
+            call.handleException(it)
+        }
     }
 }
 
