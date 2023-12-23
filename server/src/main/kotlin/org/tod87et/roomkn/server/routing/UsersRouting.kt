@@ -1,5 +1,6 @@
 package org.tod87et.roomkn.server.routing
 
+import com.auth0.jwt.JWT
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
@@ -13,8 +14,10 @@ import io.ktor.server.routing.patch
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
+import org.koin.java.KoinJavaComponent.inject
 import org.koin.ktor.ext.inject
 import org.tod87et.roomkn.server.auth.AccountController
+import org.tod87et.roomkn.server.auth.AuthConfig
 import org.tod87et.roomkn.server.auth.AuthenticationProvider
 import org.tod87et.roomkn.server.auth.NoSuchUserException
 import org.tod87et.roomkn.server.database.Database
@@ -124,6 +127,11 @@ private fun Route.setUserPermissions(database: Database) {
 
         database.updateUserPermissions(id, body).okResponseWithHandleException(call)
     }
+}
+
+private fun generateToken(invite: InviteRequest) : String {
+    val config: AuthConfig by inject()
+    TODO()
 }
 
 private fun Route.generateInvite(database: Database) {
