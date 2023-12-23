@@ -217,6 +217,62 @@ function BookingForm({room_id, triggerGetReservations, min_res_time, max_res_tim
 
     const is_reserve_disabled = (getMinutesByTime(from) >= getMinutesByTime(until)) || (date < getTodayDate())
 
+    const timePickers = (
+        <Box>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <TimePicker
+                    label="From"
+                    value={dayjs('1970-01-01 '+ from)}
+                    onChange={(newValue) => {
+                        console.log(makeTimeMinutes(newValue.hour() * 60 + newValue.minute()))
+                        setFrom(makeTimeMinutes(newValue.hour() * 60 + newValue.minute()))
+                    }}
+                    format="HH:mm"
+                    sx={{ margin: 1}}
+                />
+                <TimePicker
+                    label="Until"
+                    value={dayjs('1970-01-01 '+ until)}
+                    onChange={(newValue) => {
+                        console.log(newValue.hour() * 60 + newValue.minute())
+                        setUntil(makeTimeMinutes(newValue.hour() * 60 + newValue.minute()))
+                    }}
+                    format="HH:mm"
+                    sx={{ margin: 1}}
+                />
+            </LocalizationProvider>
+        </Box>
+    )
+
+    const repeatChoose = (
+        <Box>
+            <FormControl sx={{ margin: 1}}>
+                <InputLabel id="repeated-select-label">Repeat:</InputLabel>
+                <Select
+                    label="Repeat:"
+                    labelId="repeated-select-label"
+                    value = {repeat}
+                    onChange = {(e) => {setRepeat(e.target.value)}}
+                >
+                    <MenuItem value = "no-repeat"> Do not repeat</MenuItem>
+                    <MenuItem value = "every-day"> Every day</MenuItem>
+                    <MenuItem value = "every-week"> Every week</MenuItem>
+                </Select>
+            </FormControl>
+
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                    type="date" value={dayjs(repeatUntil)}
+                    onChange={(v) => {setRepeatUntil(dateFormat(v.toDate()))}}
+                    label="Repeat until:"
+                    format="DD.MM.YYYY"
+                    sx={{margin: 1, display: repeat === 'no-repeat' ? 'none' : ''}}
+
+                />
+            </LocalizationProvider>
+        </Box>
+    )
+
     return (
         <ContentWrapper page_name='Reservation'>
             <Typography fontSize="18pt" sx={{display: isActive ? '' : 'none'}}>
@@ -239,50 +295,13 @@ function BookingForm({room_id, triggerGetReservations, min_res_time, max_res_tim
                             marks={timeMarks}
                         />
                     </Box>
-                    <Stack direction="row" spacing={1} sx={{paddingRight: "10pt", paddingLeft: "10pt"}} >
-                        <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            <TimePicker
-                                label="From"
-                                value={dayjs('1970-01-01 '+ from)}
-                                onChange={(newValue) => {
-                                    console.log(makeTimeMinutes(newValue.hour() * 60 + newValue.minute()))
-                                    setFrom(makeTimeMinutes(newValue.hour() * 60 + newValue.minute()))
-                                }}
-                                format="HH:mm"
-                                sx={{mr: 1, mb: 2}}
-                            />
-                            <TimePicker
-                                label="Until"
-                                value={dayjs('1970-01-01 '+ until)}
-                                onChange={(newValue) => {
-                                    console.log(newValue.hour() * 60 + newValue.minute())
-                                    setUntil(makeTimeMinutes(newValue.hour() * 60 + newValue.minute()))
-                                }}
-                                format="HH:mm"
-                            />
-                        </LocalizationProvider>
-                        <FormControl>
-                            <InputLabel id="repeated-select-label">Repeat:</InputLabel>
-                            <Select
-                                label="Repeat:"
-                                labelId="repeated-select-label"
-                                value = {repeat}
-                                onChange = {(e) => {setRepeat(e.target.value)}}
-                            >
-                                <MenuItem value = "no-repeat"> Do not repeat</MenuItem>
-                                <MenuItem value = "every-day"> Every day</MenuItem>
-                                <MenuItem value = "every-week"> Every week</MenuItem>
-                            </Select>
-                        </FormControl>
-
-                        <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            <DatePicker
-                                type="date" value={dayjs(repeatUntil)}
-                                onChange={(v) => {setRepeatUntil(dateFormat(v.toDate()))}}
-                                label="Repeat until:"
-                                format="DD.MM.YYYY"
-                            />
-                        </LocalizationProvider>
+                    <Stack direction="row" spacing={1} sx={{paddingRight: "10pt", paddingLeft: "10pt", display: {xs: 'none', lg: 'flex'}}} >
+                        {timePickers}
+                        {repeatChoose}
+                    </Stack>
+                    <Stack direction="column" spacing={1} sx={{paddingRight: "10pt", paddingLeft: "10pt", display: {xs: 'flex', lg: 'none'}}} >
+                        {timePickers}
+                        {repeatChoose}
                     </Stack>
 
 
