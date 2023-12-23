@@ -132,28 +132,14 @@ function BookingForm({room_id, triggerGetReservations, min_res_time, max_res_tim
         defaultReservationList
     )
 
-    function GetTriggerFetch(reservation) {
-        const reservationDate = fromAPITime(reservation.from).date
-
-        function callback(result, statusCode) {
-            if (statusCode === 400) setNewMessageSnackbar("Reservation on date" + reservationDate + ": error: " + result)
-            else if (statusCode === 409)
-                setNewMessageSnackbar("Reservation on date" + reservationDate +
-                    ":impossible to reserve(at this time classroom already reserved)")
-            else if (statusCode === 201) setNewMessageSnackbar("Reservation on date" + reservationDate + ":reservation succeeded!")
-            else setNewMessageSnackbar("Reservation on date" + reservationDate + ":status Code: " + statusCode)
+    function reservationsCallback(result, statusCode) {
+        if (statusCode === 200) {
+            console.log("reserved: " + result)
         }
-
-        let {triggerFetch} = useSomeAPI('/api/v0/reserve', reservation, "POST", callback)
-        return triggerFetch
-    }
-
-    const triggerFetchList = reservationList.map((reservation) => GetTriggerFetch(reservation))
-
-    const massTriggerFetch = () => {
-        triggerFetchList.forEach((el) => el())
         triggerGetReservations()
     }
+
+    const {triggerFetch} = useSomeAPI('/api/v0/reserve/multiple', reservationList, "POST", reservationsCallback)
 
     function updateReservationsList() {
         if (repeat === "no-repeat") {
@@ -218,7 +204,7 @@ function BookingForm({room_id, triggerGetReservations, min_res_time, max_res_tim
         console.log("massHandleSubmit repeat: " + repeat + " repeat until: " + repeatUntil)
 
         updateReservationsList()
-        massTriggerFetch()
+        triggerFetch()
     }
 
     const is_reserve_disabled = (getMinutesByTime(from) >= getMinutesByTime(until)) || (date < getTodayDate())
