@@ -2,14 +2,14 @@ package org.tod87et.roomkn.server.database
 
 import kotlinx.datetime.Instant
 import org.tod87et.roomkn.server.models.permissions.UserPermission
-import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 import org.tod87et.roomkn.server.models.reservations.Reservation
+import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
+import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
+import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
 import org.tod87et.roomkn.server.models.rooms.RoomInfo
 import org.tod87et.roomkn.server.models.rooms.ShortRoomInfo
-import org.tod87et.roomkn.server.models.users.ShortUserInfo
-import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
 import org.tod87et.roomkn.server.models.users.FullUserInfo
-import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
+import org.tod87et.roomkn.server.models.users.ShortUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfoWithNull
 import org.tod87et.roomkn.server.models.users.UserInfo
@@ -68,4 +68,7 @@ interface Database {
      * Clear database for TEST/DEBUG purpose
      */
     fun clear(): Result<Unit>
+
+    fun createMultipleReservations(reservations: List<UnregisteredReservation>): List<Result<Reservation>> =
+        reservations.map { createReservation(it) }
 }
