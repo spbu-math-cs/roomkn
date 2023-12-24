@@ -157,39 +157,7 @@ function Reservation({reservation, display_user}) {
     )
 }
 
-function ReservationSkeleton({id, display_user}) {
-
-    return (
-        <TableRow
-            key={id}
-            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-        >
-            <TableCell component="th" scope="row">
-                <Skeleton/>
-            </TableCell>
-            <TableCell align="right">
-                <Skeleton/>
-            </TableCell>
-            <TableCell align="right" sx={{display: display_user}}>
-                <Skeleton/>
-            </TableCell>
-            <TableCell align="right">
-                <Skeleton/>
-            </TableCell>
-            <TableCell align="right">
-                <Skeleton/>
-            </TableCell>
-            <TableCell align="right">
-                <Skeleton/>
-            </TableCell>
-            <TableCell align="right">
-                <Button variant="outlined" color="error" disable sx={{maxWidth: "40pt"}}>delete</Button>
-            </TableCell>
-        </TableRow>
-    )
-}
-
-function useGetReservations(orderBy, from, until, userList, roomList, offset, limit) {
+function get_params(from, until, userList, roomList, offset, limit) {
     const params = new URLSearchParams()
     if (userList.length > 0) params.append("user_ids", userList)
     if (roomList.length > 0)  params.append("room_ids", roomList)
@@ -198,7 +166,13 @@ function useGetReservations(orderBy, from, until, userList, roomList, offset, li
     params.append("from", toAPITime(from, "00:00"))
     params.append("until", toAPITime(until, "23:59"))
 
-    const url = "/api/v0/reservations?" + params.toString()
+    return params.toString()
+}
+
+function useGetReservations(orderBy, from, until, userList, roomList, offset, limit) {
+    const params = get_params(from, until, userList, roomList, offset, limit)
+
+    const url = "/api/v0/reservations?" + params
 
     console.log("url: " + url)
 
@@ -374,18 +348,13 @@ function Filters({triggerGetReservations, display_user}) {
                             format="DD.MM.YYYY"
                 />
             </LocalizationProvider>
-            {/*<TextField id="date" label="From" type="date" defaultValue={from} onChange={(e) => {setFrom(e.target.value)}}/>*/}
-            {/*<TextField id="date" label="Until" type="date" defaultValue={until} onChange={(e) => {setUntil(e.target.value)}}/>*/}
             <Button variant="contained" color="success" onClick={onUpdate}>Update</Button>
         </Stack>
     )
 }
 
-function Reservations({reservations, orderBy, display_user, reservationsPerPage}) {
+function Reservations({reservations, orderBy, display_user}) {
 
-    // if (reservations.length === 0) return (
-    //     <></>
-    // )
     const drawList = []
 
     reservations.sort((a, b) => {
@@ -405,9 +374,6 @@ function Reservations({reservations, orderBy, display_user, reservationsPerPage}
     reservations.forEach((reservation) => {
         drawList.push(<Reservation reservation={reservation} display_user={display_user}/> )
     })
-    while (drawList.length < reservationsPerPage) {
-        drawList.push(<ReservationSkeleton id={1} display_user={display_user}/>)
-    }
 
     return drawList
 }
@@ -418,18 +384,6 @@ export function ReservationsList({is_admin=false, user_id=null}) {
     const [reservationsCount, setReservationsCount] = React.useState(100);
 
     const offset = (page) * reservationsPerPage
-
-    function getSizeCallback(result, statusCode) {
-        console.log("result: " + result)
-        console.log("statusCode:"  + statusCode)
-        if (statusCode === 200 && result != null) {
-            setReservationsCount(result);
-        }
-    }
-
-    let {triggerFetch: triggerFetchSize} = useSomeAPI('/api/v0/reservations/size', null, 'GET', getSizeCallback)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => triggerFetchSize(), [])
 
     let default_users = []
     if (user_id != null) {
@@ -444,6 +398,19 @@ export function ReservationsList({is_admin=false, user_id=null}) {
     const [rooms, setRooms] = useState([])
 
     const {reservations, triggerGetReservations} = useGetReservations(orderBy, from, until, users, rooms, offset, reservationsPerPage)
+
+    function getSizeCallback(result, statusCode) {
+        console.log("result: " + result)
+        console.log("statusCode:"  + statusCode)
+        if (statusCode === 200 && result != null) {
+            setReservationsCount(result);
+        }
+    }
+
+    const params = get_params(from, until, users, rooms)
+    let {triggerFetch: triggerFetchSize} = useSomeAPI('/api/v0/reservations/size?' + params, null, 'GET', getSizeCallback)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => triggerFetchSize(), [from, until, users, rooms])
 
 
     const {setNewMessageSnackbar} = useContext(SnackbarContext)
