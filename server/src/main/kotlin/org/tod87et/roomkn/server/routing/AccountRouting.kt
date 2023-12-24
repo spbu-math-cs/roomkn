@@ -13,14 +13,18 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.sessions.sessions
 import io.ktor.server.sessions.set
+import java.security.MessageDigest
 import org.koin.ktor.ext.inject
 import org.tod87et.roomkn.server.auth.AccountController
+import org.tod87et.roomkn.server.auth.AuthConfig
 import org.tod87et.roomkn.server.auth.AuthFailedException
 import org.tod87et.roomkn.server.auth.AuthSession
 import org.tod87et.roomkn.server.auth.AuthenticationProvider
 import org.tod87et.roomkn.server.auth.NoSuchUserException
 import org.tod87et.roomkn.server.auth.RegistrationFailedException
 import org.tod87et.roomkn.server.auth.userId
+import org.tod87et.roomkn.server.database.Database
+import org.tod87et.roomkn.server.di.injectDatabase
 import org.tod87et.roomkn.server.models.users.LoginUserInfo
 import org.tod87et.roomkn.server.models.users.UnregisteredUserInfo
 import org.tod87et.roomkn.server.models.users.UserId
@@ -83,9 +87,16 @@ private fun Route.registerRouting(accountController: AccountController) {
                 call.handleException(it)
             }
     }
+    val database by injectDatabase()
+    val config: AuthConfig by inject()
     post("/register/{token}") { body: UnregisteredUserInfo ->
         val token = call.parameters["token"] ?: return@post call.respondText("Empty token", status = HttpStatusCode.BadRequest)
-        accountController.validateInvite(token)
+        val digestThreadLocal = ThreadLocal.withInitial {
+            MessageDigest.getInstance(config.hashingAlgorithmId)
+        }
+        val digest = digestThreadLocal.get()
+        digest.update(token.toByteArray())
+        database.updateInvite(digest.digest())
             .onSuccess {
                 accountController.registerUser(body)
                     .onSuccess { authSession ->

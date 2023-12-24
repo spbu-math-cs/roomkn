@@ -66,10 +66,11 @@ interface Database {
     fun getUserPermissions(userId: Int): Result<List<UserPermission>>
     fun updateUserPermissions(userId: Int, permissions: List<UserPermission>): Result<Unit>
     fun createInvite(tokenHash: ByteArray, inviteRequest: InviteRequest): Result<Unit>
-    fun validateInvite(tokenHash: ByteArray): Result<Boolean>
-    fun updateInvite(tokenHash: ByteArray): Result<Boolean>
+    fun validateInvite(tokenHash: ByteArray): Result<Unit>
+    fun updateInvite(tokenHash: ByteArray): Result<Unit>
     fun getInvites(limit: Int = Int.MAX_VALUE, offset: Long = 0L): Result<List<Invite>>
     fun getInvite(inviteId: Int): Result<Invite>
+    fun deleteInvite(inviteId: Int): Result<Unit>
 
     /**
      * Clear database for TEST/DEBUG purpose

@@ -166,25 +166,46 @@ private fun Route.generateInvite(database: Database) {
 
 private fun Route.getInvitations(database: Database) {
     get {
-        TODO("check admin + code")
+        call.requirePermission(database) { return@get call.onMissingPermission() }
+        val limit: Int = call.request.queryParameters["limit"]?.toIntOrNull() ?: Int.MAX_VALUE
+        val offset: Long = call.request.queryParameters["offset"]?.toLongOrNull() ?: 0
+        database.getInvites(limit, offset)
+            .onSuccess { call.respond(it) }
+            .onFailure { call.handleException(it) }
     }
 }
 
 private fun Route.getInvitation(database: Database) {
-    get("/{id}"){
-        TODO("check admin + code")
+    get("/{id}") {
+        call.requirePermission(database) { return@get call.onMissingPermission() }
+        val id = call.parameters["id"]?.toInt() ?: return@get call.onMissingId()
+        database.getInvite(id)
+            .onSuccess { call.respond(it) }
+            .onFailure { call.handleException(it) }
     }
 }
 
 private fun Route.deleteInvitation(database: Database) {
     delete("/{id}") {
-        TODO("check admin + code")
+        call.requirePermission(database) { return@delete call.onMissingPermission() }
+        val id = call.parameters["id"]?.toInt() ?: return@delete call.onMissingId()
+        database.deleteInvite(id).okResponseWithHandleException(call)
     }
 }
 
 private fun Route.validateInvitationToken(database: Database) {
+    val config: AuthConfig by inject()
     get("/invite/validate-token/{token} ") {
-        TODO("code")
+        val token = call.parameters["token"] ?: return@get call.respondText(
+            "Invalid or missing token",
+            status = HttpStatusCode.BadRequest
+        )
+        val digestThreadLocal = ThreadLocal.withInitial {
+            MessageDigest.getInstance(config.hashingAlgorithmId)
+        }
+        val digest = digestThreadLocal.get()
+        digest.update(token.toByteArray())
+        database.validateInvite(digest.digest()).okResponseWithHandleException(call)
     }
 }
 

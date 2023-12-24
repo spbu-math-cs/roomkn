@@ -9,6 +9,7 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SortOrder
+import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
@@ -425,30 +426,30 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
-    override fun validateInvite(tokenHash: ByteArray): Result<Boolean> = queryWrapper {
+    override fun validateInvite(tokenHash: ByteArray): Result<Unit> = queryWrapper {
         transaction(database) {
             val now = Clock.System.now()
             val count =
                 InviteTokens.select { (inviteTokenHash eq tokenHash) and (remaining greater 0) and (InviteTokens.expirationDate greater now) }
                     .count()
-            count > 0
+            if (count == 0L) throw MissingElementException()
         }
     }
 
-    override fun updateInvite(tokenHash: ByteArray): Result<Boolean> = queryWrapper {
+    override fun updateInvite(tokenHash: ByteArray): Result<Unit> = queryWrapper {
         transaction(database) {
             val now = Clock.System.now()
-            val row =
-                InviteTokens.select { inviteTokenHash eq tokenHash }.firstOrNull() ?: throw MissingElementException()
             val count =
                 InviteTokens.update({
                     (inviteTokenHash eq tokenHash) and
                             (remaining greater 0) and
                             (InviteTokens.expirationDate greater now)
                 }) {
-                    it[remaining] = row[remaining] - 1
+                    with(SqlExpressionBuilder) {
+                        it[remaining] = remaining - 1
+                    }
                 }
-            count > 0
+            if (count == 0) throw MissingElementException()
         }
     }
 
@@ -479,6 +480,13 @@ class DatabaseSession private constructor(private val database: Database) :
                 until = row[expirationDate],
                 size = row[size],
             )
+        }
+    }
+
+    override fun deleteInvite(inviteId: Int): Result<Unit> = queryWrapper {
+        transaction(database) {
+            val cnt = InviteTokens.deleteWhere { id eq inviteId }
+            if (cnt == 0) throw MissingElementException()
         }
     }
 
