@@ -114,6 +114,7 @@ private class CredentialsDatabaseMock : CredentialsDatabase {
 
 private class DatabaseMock : Database {
     override fun getRooms(limit: Int, offset: Long): Result<List<ShortRoomInfo>> = fail()
+    override fun getRoomsSize(): Result<Long> = fail()
 
     override fun getRoomsShort(ids: List<Int>): Result<List<ShortRoomInfo>> = fail()
 
@@ -158,6 +159,13 @@ private class DatabaseMock : Database {
         sortOrder: SortOrder?
     ): Result<List<Reservation>> = fail()
 
+    override fun getReservationsSize(
+        usersIds: List<Int>,
+        roomsIds: List<Int>,
+        from: Instant?,
+        until: Instant?
+    ): Result<Long> = fail()
+
     override fun getReservation(reservationId: Int): Result<Reservation> = fail()
 
     override fun updateReservation(
@@ -172,6 +180,7 @@ private class DatabaseMock : Database {
         fail()
 
     override fun getUsers(limit: Int, offset: Long): Result<List<ShortUserInfo>> = fail()
+    override fun getUsersSize(): Result<Long> = fail()
 
     override fun getFullUsers(limit: Int, offset: Long): Result<List<FullUserInfo>> = fail()
 
