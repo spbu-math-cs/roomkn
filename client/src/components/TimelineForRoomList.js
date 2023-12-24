@@ -223,7 +223,8 @@ function Timeline({
                       show_time_labels=false,
                       show_reservation_labels=false,
                       currentReservation=null,
-                      height=50
+                      height=50,
+                      loading_finished=false
                   }) {
 
     const theme = useTheme();
@@ -242,7 +243,7 @@ function Timeline({
 
     let can_draw = true
 
-    if (reservations == null) {
+    if (reservations == null || !loading_finished) {
         return (
             <Skeleton variant="rectangular" sx={{width: 100/100, height: height}}/>
         )

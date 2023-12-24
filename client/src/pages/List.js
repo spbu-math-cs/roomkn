@@ -37,12 +37,9 @@ function getTodayDate(format = "yyyy-mm-dd") {
 
 function GetReservationsInSegment(room_id, dateFrom, dateUntil) {
 
-    let {triggerFetch} = useSomeAPI('/api/v0/rooms/' + room_id + '/reservations', null, 'GET', ReservationsCallback)
+    let {triggerFetch, finished} = useSomeAPI('/api/v0/rooms/' + room_id + '/reservations', null, 'GET', ReservationsCallback)
 
-    let [reservs, setReservs] = useState({
-        reservations: null,
-        triggerGetReservations: triggerFetch
-    })
+    let [reservations, setReservations] = useState(null)
 
     //eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [dateFrom, dateUntil])
@@ -50,22 +47,21 @@ function GetReservationsInSegment(room_id, dateFrom, dateUntil) {
     function ReservationsCallback(result, statusCode) {
         console.log("all reservations for room " + room_id + " are (status code: " + statusCode + " ):")
         if (statusCode === 200 && result != null) {
-            setReservs({
-                reservations: result.filter((reservation) => (
+            setReservations(
+                result.filter((reservation) => (
                     fromAPITime(reservation.from).date <= dateUntil &&
                     fromAPITime(reservation.until).date >= dateFrom
-                )),
-                triggerGetReservations: triggerFetch
-            })
+                )))
         } else {
-            setReservs({
-                reservations: null,
-                triggerGetReservations: triggerFetch
-            })
+            setReservations(null)
         }
     }
 
-    return reservs
+    return {
+        reservations: reservations,
+        triggerGetReservations: triggerFetch,
+        loading_finished: finished,
+    }
 }
 
 function updateDate(date, diff) {
@@ -75,7 +71,7 @@ function updateDate(date, diff) {
 }
 
 function TimelineForRoom({room, fromDate, untilDate, show_time_labels}) {
-    const {reservations} = GetReservationsInSegment(room.id, fromDate, untilDate)
+    const {reservations, loading_finished} = GetReservationsInSegment(room.id, fromDate, untilDate)
 
     let realFromDate = new Date(toAPITime(fromDate, "00:00"))
     // realFromDate.setHours(0, 0)
@@ -91,6 +87,7 @@ function TimelineForRoom({room, fromDate, untilDate, show_time_labels}) {
             untilTimelineDate={realUntilDate}
             show_time_labels={show_time_labels}
             height={50}
+            loading_finished={loading_finished}
         />
     )
 }
@@ -132,27 +129,50 @@ function DateSelect({from, setFromDate, until, setUntilDate}) {
         setUntilDate(dateFormat(dateUntil))
     }
 
+    const datePickers = (
+        <Box>
+            <DatePicker id="date" label="From" type="date" value={dayjs(from)}
+                        onChange={(v) => {
+                            setFromDate(dateFormat(v.toDate()));
+                        }}
+                        format="DD.MM.YYYY"
+                        sx={{mb: 1}}
+            />
+            <DatePicker id="date" label="Until" type="date" value={dayjs(until)}
+                        onChange={(v) => {
+                            setUntilDate(dateFormat(v.toDate()));
+                        }}
+                        format="DD.MM.YYYY"
+            />
+        </Box>
+    )
+
+    const button_sx = {
+        paddingTop: "16.5px",
+        paddingBottom: "16.5px",
+        fontSize: 12,
+    }
+
+    const buttons = (
+        <Box>
+            <Button variant="text" onClick={setTodayDay} sx={button_sx}>Today</Button>
+            <Button variant="text" onClick={setTomorrowDay} sx={button_sx}>Tomorrow</Button>
+            <Button variant="text" onClick={setThisWeekDate} sx={button_sx}>This Week</Button>
+            <Button variant="text" onClick={setNextWeekDate} sx={button_sx}>Next Week</Button>
+        </Box>
+    )
+
     return (
-        <Stack direction="row" spacing={1} className="room-list-time">
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DatePicker id="date" label="From" type="date" value={dayjs(from)}
-                            onChange={(v) => {
-                                setFromDate(dateFormat(v.toDate()));
-                            }}
-                            format="DD.MM.YYYY"
-                />
-                <DatePicker id="date" label="Until" type="date" value={dayjs(until)}
-                            onChange={(v) => {
-                                setUntilDate(dateFormat(v.toDate()));
-                            }}
-                            format="DD.MM.YYYY"
-                />
-                <Button variant="contained" onClick={setTodayDay}>Today</Button>
-                <Button variant="contained" onClick={setTomorrowDay}>Tomorrow</Button>
-                <Button variant="contained" onClick={setThisWeekDate}>This Week</Button>
-                <Button variant="contained" onClick={setNextWeekDate}>Next Week</Button>
-            </LocalizationProvider>
-        </Stack>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <Stack direction="row" spacing={1} className="room-list-time" sx={{display: {xs: 'none', lg: 'flex'}}}>
+                {datePickers}
+                {buttons}
+            </Stack>
+            <Stack spacing={1} className="room-list-time" sx={{display: {xs: 'flex', lg: 'none'}}}>
+                {datePickers}
+                {buttons}
+            </Stack>
+        </LocalizationProvider>
     )
 }
 
