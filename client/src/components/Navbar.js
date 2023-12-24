@@ -127,10 +127,21 @@ const NavBarUserMenu = () => {
 }
 
 const UserAvatar = () => {
+    const {currentUser} = useContext(CurrentUserContext)
+
+    const avatar_id = currentUser.user_id % 6;
+
+    const avatar_color = ['#9f3e72', '#cb5e3c', '#5b874b', '#14a37f', '#3d6bb3', '#9500ae'][avatar_id]
+
+    let avatar_letter = ""
+
+    if (currentUser.username != null)
+        avatar_letter = currentUser?.username[0].toUpperCase();
+
     return (
-        <Avatar alt="Azat" src="/azat.png" sx={{ width: 45, height: 45 }}  style={{
-            border: '0.1px solid lightgray'
-        }}/>
+        <Avatar alt="Azat" sx={{ width: 45, height: 45, bgcolor: avatar_color}} >
+            {avatar_letter}
+        </Avatar>
     )
 }
 
