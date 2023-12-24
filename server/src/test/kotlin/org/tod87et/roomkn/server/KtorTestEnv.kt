@@ -27,6 +27,7 @@ import org.tod87et.roomkn.server.auth.userId
 import org.tod87et.roomkn.server.database.CredentialsDatabase
 import org.tod87et.roomkn.server.database.Database
 import org.tod87et.roomkn.server.database.DatabaseSession
+import org.tod87et.roomkn.server.di.ReservationConfig
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 import org.tod87et.roomkn.server.models.rooms.RoomInfo
@@ -51,6 +52,8 @@ object KtorTestEnv {
         .credentialsDatabase(databaseSession)
         .loadFromApplicationConfig(kTorConfig)
         .build()
+
+    private val reservationConfig = ReservationConfig()
 
     init {
         Runtime.getRuntime().addShutdownHook(
@@ -174,6 +177,9 @@ object KtorTestEnv {
         }
         single<AccountController> {
             accountController
+        }
+        single<ReservationConfig> {
+            reservationConfig
         }
     }
 }
