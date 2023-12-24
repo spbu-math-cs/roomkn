@@ -18,6 +18,7 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlinx.datetime.Clock
 import org.junit.jupiter.api.Test
+import org.tod87et.roomkn.server.KtorTestEnv.logout
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.users.FullUserInfo
 import org.tod87et.roomkn.server.models.users.Invite
@@ -25,6 +26,7 @@ import org.tod87et.roomkn.server.models.users.InviteRequest
 import org.tod87et.roomkn.server.models.users.LoginUserInfo
 import org.tod87et.roomkn.server.models.users.PasswordUpdateInfo
 import org.tod87et.roomkn.server.models.users.ShortUserInfo
+import org.tod87et.roomkn.server.models.users.UnregisteredUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfoWithNull
 import org.tod87et.roomkn.server.models.users.UserInfo
@@ -39,6 +41,8 @@ class UsersRoutesTests {
     private val createInvite = "$usersPath/invite"
     private val invitationsPath = "$usersPath/invitations"
     private fun invitationPath(id: Int) = "$usersPath/invitations/$id"
+    private fun checkInviteTokenPath(token: String) = "$apiPath/invite/validate-token/$token"
+    private fun registerTokenPath(token: String) = "$apiPath/register/$token"
 
     @Test
     fun getUsers() = KtorTestEnv.testJsonApplication { client ->
@@ -297,5 +301,29 @@ class UsersRoutesTests {
         response = client.get(invitationPath(id))
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals(token, response.bodyAsText())
+    }
+
+    @Test
+    fun checkInviteValidation() = KtorTestEnv.testJsonApplication { client ->
+        with(KtorTestEnv) {
+            client.createAndAuthAdmin()
+        }
+        val timestamp = Clock.System.now()
+        val invitation = InviteRequest(1, timestamp + 1.hours)
+        var response = client.post(createInvite) {
+            contentType(ContentType.Application.Json)
+            setBody(invitation)
+        }
+        val token = response.bodyAsText()
+        response = client.get(checkInviteTokenPath(token))
+        assertEquals(HttpStatusCode.OK, response.status)
+        client.logout()
+        val newUser = UnregisteredUserInfo("Invited", "new_user@best.mail.com", "1234")
+        response = client.post(registerTokenPath(token)) {
+            contentType(ContentType.Application.Json)
+            setBody(newUser)
+        }
+        response = client.get(checkInviteTokenPath(token))
+        assertEquals(HttpStatusCode.BadRequest, response.status)
     }
 }

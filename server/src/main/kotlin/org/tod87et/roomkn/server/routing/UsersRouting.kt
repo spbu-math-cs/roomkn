@@ -24,6 +24,7 @@ import org.tod87et.roomkn.server.auth.AuthConfig
 import org.tod87et.roomkn.server.auth.AuthenticationProvider
 import org.tod87et.roomkn.server.auth.NoSuchUserException
 import org.tod87et.roomkn.server.database.Database
+import org.tod87et.roomkn.server.database.MissingElementException
 import org.tod87et.roomkn.server.di.injectDatabase
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.users.InviteRequest
@@ -34,6 +35,8 @@ import org.tod87et.roomkn.server.util.defaultExceptionHandler
 import org.tod87et.roomkn.server.util.okResponse
 
 fun Route.usersRouting() {
+    val config: AuthConfig by inject()
+    val threadLocal = ThreadLocal.withInitial { MessageDigest.getInstance(config.hashingAlgorithmId) }
     val database: Database by injectDatabase()
     authenticate(AuthenticationProvider.SESSION) {
         route("/users") {
@@ -44,14 +47,14 @@ fun Route.usersRouting() {
             listUserPermissions(database)
             setUserPermissions(database)
             updateUserCredentials(database)
-            generateInvite(database)
+            generateInvite(database, threadLocal)
             route("/invitations") {
                 getInvitations(database)
                 getInvitationToken(database)
                 deleteInvitation(database)
             }
         }
-        validateInvitationToken(database)
+        validateInvitationToken(database, threadLocal)
     }
 }
 
@@ -145,15 +148,12 @@ private fun generateToken(invite: InviteRequest, config: AuthConfig): String {
         .sign(Algorithm.HMAC256(config.secret))
 }
 
-private fun Route.generateInvite(database: Database) {
+private fun Route.generateInvite(database: Database, threadLocal: ThreadLocal<MessageDigest>) {
     val config: AuthConfig by inject()
     post("/invite") { body: InviteRequest ->
         call.requirePermission(database) { return@post call.onMissingPermission() }
         val token = generateToken(body, config)
-        val digestThreadLocal = ThreadLocal.withInitial {
-            MessageDigest.getInstance(config.hashingAlgorithmId)
-        }
-        val digest = digestThreadLocal.get()
+        val digest = threadLocal.get()
         digest.update(token.toByteArray())
         val tokenResult = database.createInvite(digest.digest(), body)
         tokenResult.onSuccess {
@@ -197,17 +197,13 @@ private fun Route.deleteInvitation(database: Database) {
     }
 }
 
-private fun Route.validateInvitationToken(database: Database) {
-    val config: AuthConfig by inject()
-    get("/invite/validate-token/{token} ") {
+private fun Route.validateInvitationToken(database: Database, threadLocal: ThreadLocal<MessageDigest>) {
+    get("/invite/validate-token/{token}") {
         val token = call.parameters["token"] ?: return@get call.respondText(
             "Invalid or missing token",
             status = HttpStatusCode.BadRequest
         )
-        val digestThreadLocal = ThreadLocal.withInitial {
-            MessageDigest.getInstance(config.hashingAlgorithmId)
-        }
-        val digest = digestThreadLocal.get()
+        val digest = threadLocal.get()
         digest.update(token.toByteArray())
         database.validateInvite(digest.digest()).okResponseWithHandleException(call)
     }
@@ -218,6 +214,10 @@ private suspend fun ApplicationCall.handleException(ex: Throwable) {
     when (ex) {
         is NoSuchUserException -> {
             respondText("No such user", status = HttpStatusCode.BadRequest)
+        }
+
+        is MissingElementException -> { //TODO(makselivanov) change it?
+            respondText("Invalid invite token", status = HttpStatusCode.BadRequest)
         }
 
         else -> {
