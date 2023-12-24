@@ -1,10 +1,10 @@
 import ContentWrapper from "../components/Content";
 
-import React, {useContext} from "react";
+import React, {useContext, useEffect} from "react";
 
 import "@pixi/events";
 import { Stage, Sprite, Text, Graphics, Container } from "@pixi/react";
-import { useEffect, useState } from "react";
+import {useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {empty_map} from "./MapData";
@@ -13,6 +13,22 @@ import useSomeAPI from "../api/FakeAPI";
 import "./Map.css"
 import {Box, MenuItem, Select, Skeleton} from "@mui/material";
 import {SnackbarContext} from "../components/SnackbarAlert";
+
+function useGetRoomNameByMesh(mesh) {
+    const [roomName, setRoomName] = useState(mesh.room_name)
+    function callback(result, statusCode) {
+        if (statusCode === 200) setRoomName(result.name)
+    }
+
+    let {triggerFetch} = useSomeAPI('/api/v0/rooms/' + mesh.room_id, null, 'GET', callback)
+
+    useEffect(() => {
+        if (mesh.room_name != null) setRoomName(mesh.room_name)
+        else triggerFetch()
+    }, [mesh.room_id, mesh.room_name]);
+
+    return roomName
+}
 
 function Room({ room_id, navigate, mesh, window_scale }) {
     const [hover, setHover] = useState(false);
@@ -27,21 +43,13 @@ function Room({ room_id, navigate, mesh, window_scale }) {
     }
     let room_name_element = <></>;
 
-    const is_room = mesh.room_name != null;
+    const is_room = mesh.room_id != null;
 
-    const [roomName, setRoomName] = useState("")
-
-    setRoomName(mesh.room_name)
-
-    // function callback(result, statusCode) {
-    //     if (statusCode === 200) setRoomName(result.name)
-    // }
-    //
-    // let {triggerFetch} = useSomeAPI('/api/v0/rooms/' + mesh.room_name, null, 'GET', callback)
+    const room_name = useGetRoomNameByMesh(mesh)
 
     if (is_room) {
         room_name_element = (
-            <Text text={mesh.room_name} anchor={{ x: 0.5, y: 0.5 }} scale={0.8}/>
+            <Text text={room_name} anchor={{ x: 0.5, y: 0.5 }} scale={0.8}/>
         )
 
         if (hover) {
