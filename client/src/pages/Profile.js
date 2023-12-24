@@ -103,6 +103,7 @@ function PasswordChangeForm({id}) {
 
     const [oldPassword, setOldPassword] = useState('')
     const [newPassword, setNewPassword] = useState('')
+    const [repeatNewPassword, setRepeatNewPassword] = useState('')
 
     const put_data = {
         oldPassword: oldPassword,
@@ -118,6 +119,7 @@ function PasswordChangeForm({id}) {
             setNewMessageSnackbar('Password updated successfully!')
             setOldPassword('')
             setNewPassword('')
+            setRepeatNewPassword('')
         }
         else {
             setNewMessageSnackbar('An error occurred.')
@@ -127,7 +129,11 @@ function PasswordChangeForm({id}) {
     const handleSubmit = (e) => {
         e.preventDefault()
 
-        triggerFetch()
+        if (newPassword === repeatNewPassword) {
+            triggerFetch()
+        } else {
+            setNewMessageSnackbar("Passwords are not equal")
+        }
     }
 
     return (
@@ -137,6 +143,8 @@ function PasswordChangeForm({id}) {
                            onChange={(e) => setOldPassword(e.target.value)}/>
                 <TextField variant="outlined" type={"password"} label="New password" value={newPassword}
                            onChange={(e) => setNewPassword(e.target.value)}/>
+                <TextField variant="outlined" type={"password"} label="Repeat new password" value={repeatNewPassword}
+                           onChange={(e) => setRepeatNewPassword(e.target.value)}/>
                 <Button color="secondary" variant="outlined" onClick={handleSubmit}
                         sx={{width: "100pt"}}>Change</Button>
             </Stack>
