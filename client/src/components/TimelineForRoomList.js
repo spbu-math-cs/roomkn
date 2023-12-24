@@ -99,9 +99,11 @@ function Reservation({
         )
     } else {
         return (
+            <Tooltip arrow placement="top" title={tooltip}>
             <Box sx={sx_row}>
                 <Box sx={sx_wrapper}/>
             </Box>
+            </Tooltip>
         )
     }
 }

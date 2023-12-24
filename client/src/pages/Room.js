@@ -442,10 +442,10 @@ function Room() {
                                 <Timeline reservations={reservations}
                                           fromTimelineDate={fromTimelineDate}
                                           untilTimelineDate={untilTimelineDate}
-                                          show_reservation_labels={true}
+                                          // show_reservation_labels={true}
                                           show_time_labels={true}
                                           currentReservation={currentReservation}
-                                          height={150}
+                                          height={75}
                                 />
                             </Box>
                         </div>
