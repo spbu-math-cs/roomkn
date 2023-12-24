@@ -25,6 +25,7 @@ function useGetRoomNameByMesh(mesh) {
     useEffect(() => {
         if (mesh.room_name != null) setRoomName(mesh.room_name)
         else triggerFetch()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mesh.room_id, mesh.room_name]);
 
     return roomName
