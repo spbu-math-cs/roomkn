@@ -104,10 +104,6 @@ class AccountControllerImpl(
         )
     }
 
-    override fun validateInvite(token: String): Result<Unit> {
-        TODO("Not yet implemented")
-    }
-
     override fun createZeroAdminIfRequested() {
         val username = System.getenv(ENV_ROOMKN_SUPERUSER_NAME)?.takeUnless(String::isBlank) ?: return
 

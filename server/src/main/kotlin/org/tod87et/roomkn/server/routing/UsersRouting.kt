@@ -1,6 +1,7 @@
 package org.tod87et.roomkn.server.routing
 
 import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
@@ -14,7 +15,9 @@ import io.ktor.server.routing.patch
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
-import org.koin.java.KoinJavaComponent.inject
+import java.util.Date
+import kotlinx.datetime.toJavaInstant
+import org.koin.dsl.koinApplication
 import org.koin.ktor.ext.inject
 import org.tod87et.roomkn.server.auth.AccountController
 import org.tod87et.roomkn.server.auth.AuthConfig
@@ -129,15 +132,18 @@ private fun Route.setUserPermissions(database: Database) {
     }
 }
 
-private fun generateToken(invite: InviteRequest) : String {
-    val config: AuthConfig by inject()
-    TODO()
+private fun generateToken(invite: InviteRequest, config: AuthConfig): String {
+    return JWT.create().withAudience(config.audience).withIssuer(config.issuer)
+        .withClaim("size", invite.size)
+        .withExpiresAt(Date.from(invite.until.toJavaInstant()))
+        .sign(Algorithm.HMAC256(config.secret))
 }
 
 private fun Route.generateInvite(database: Database) {
+    val config: AuthConfig by inject()
     post("/invite") { body: InviteRequest ->
         call.requirePermission(database) { return@post call.onMissingPermission() }
-        val token = generateToken(body)
+        val token = generateToken(body, config)
         val tokenResult = database.createInvite(token, body)
         tokenResult.onSuccess {
             call.respondText(token, status = HttpStatusCode.OK)
