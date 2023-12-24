@@ -208,7 +208,7 @@ function useGetReservations(orderBy, from, until, userList, roomList, offset, li
 
     function getReservationsCallback(result, statusCode) {
         console.log("get reservations callback! result: " + result + " status code: " + statusCode)
-        if (result != null && statusCode === 201) {
+        if (result != null && statusCode === 200) {
             //TODO: orderBy
             setResult({
                 reservations: result,

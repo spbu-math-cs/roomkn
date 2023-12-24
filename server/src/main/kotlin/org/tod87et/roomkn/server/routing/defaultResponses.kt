@@ -19,6 +19,10 @@ suspend fun ApplicationCall.onMissingId() {
     respondText("id should be int", status = HttpStatusCode.BadRequest)
 }
 
+suspend fun ApplicationCall.onMalformedIds() {
+    respondText("ids should be a list of int", status = HttpStatusCode.BadRequest)
+}
+
 suspend fun ApplicationCall.onIncorrectTimestamp() {
     respondText("timestamp should be correct Instant", status = HttpStatusCode.BadRequest)
 }

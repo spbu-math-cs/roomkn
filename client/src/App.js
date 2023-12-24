@@ -4,6 +4,8 @@ import {BrowserRouter as Router, Route, Routes} from 'react-router-dom';
 
 import Navbar from './components/Navbar';
 
+import ContentWrapper from "./components/Content";
+
 import RoomList from './pages/List';
 import Map from './pages/Map';
 import Room from './pages/Room';
@@ -24,21 +26,22 @@ import AdminMap from "./pages/admin/AdminMap";
 
 import {createTheme, ThemeProvider} from "@mui/material";
 import AdminReservations from "./pages/admin/AdminReservations";
+import RoomScreenPage from "./pages/RoomScreenPage";
 
 
 function PageNotFound() {
     return (
-        <div>
-            <h2>404 Page not found</h2>
-        </div>
+        <ContentWrapper page_name={"404 Page not found"}>
+            {/*<h2>404 Page not found</h2>*/}
+        </ContentWrapper>
     );
 }
 
 function AccessDenied() {
     return (
-        <div>
-            <h2>403 Access denied</h2>
-        </div>
+        <ContentWrapper page_name={"403 Access denied"}>
+            {/*<h2></h2>*/}
+        </ContentWrapper>
     );
 }
 const theme = createTheme({
@@ -70,6 +73,7 @@ function App() {
                             <Route path='/map' element={<Map/>}/>
                             <Route path='/about' element={<About/>}/>
                             <Route path='/room/*' element={<Room/>}/>
+                            <Route path='/scrn/*' element={<RoomScreenPage/>}/>
                             <Route path='/sign-up' element={<SignUp/>}/>
                             <Route path='/sign-in' element={<SignIn/>}/>
                             <Route path='/my-reservations' element={<UserReservations/>} />

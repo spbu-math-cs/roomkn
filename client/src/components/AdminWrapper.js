@@ -1,5 +1,5 @@
-import {useContext} from "react";
-import {CurrentUserContext, IS_ADMIN_GUEST} from "./Auth";
+import {useContext, useEffect} from "react";
+import {CurrentUserContext, IsAdmin} from "./Auth";
 import {useNavigate} from "react-router-dom";
 
 export function AdminWrapper({children}) {
@@ -7,9 +7,17 @@ export function AdminWrapper({children}) {
 
     const {currentUser} = useContext(CurrentUserContext)
 
-    if (!currentUser?.is_admin && !IS_ADMIN_GUEST) {
-        navigate('/pagenotfound', {replace: true})
-    }
+    const is_admin = IsAdmin()
+
+    // console.log(is_admin,  currentUserPermissions)
+
+
+    useEffect(() => {
+        if (!is_admin) {
+            navigate('/pagenotfound', {replace: true})
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentUser]);
 
     return children
 }

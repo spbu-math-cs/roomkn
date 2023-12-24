@@ -11,4 +11,6 @@ data class Reservation(
     @SerialName("room_id") val roomId: Int,
     val from: Instant,
     val until: Instant,
+    @SerialName("user_name") val userName: String,
+    @SerialName("room_name") val roomName: String,
 )

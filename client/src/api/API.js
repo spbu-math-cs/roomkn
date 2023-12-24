@@ -15,6 +15,14 @@ export function useAPI(url, data=null, method='GET', callback = () => {}) {
     let myResult = null
     let myStatusCode = 0
 
+    function secureCallback(result, statusCode) {
+        try {
+            return callback(result, statusCode)
+        } catch (e) {
+            console.log(e, statusCode, result)
+        }
+    }
+
     useEffect(() => {
         if (fetchFlag === 0) return
 
@@ -56,7 +64,7 @@ export function useAPI(url, data=null, method='GET', callback = () => {}) {
                     setFinished(true)
                     console.log('starting callback for ' + url)
                     console.log('method = ' + method)
-                    callback(myResult, myStatusCode)
+                    secureCallback(myResult, myStatusCode)
                 }).catch(error => {
                     setResult(error)
 
@@ -64,7 +72,7 @@ export function useAPI(url, data=null, method='GET', callback = () => {}) {
 
                     setLoading(false)
                     setFinished(true)
-                    callback(myResult, myStatusCode)
+                    secureCallback(myResult, myStatusCode)
                     setFailed(true)
                 })
             })
@@ -76,7 +84,7 @@ export function useAPI(url, data=null, method='GET', callback = () => {}) {
                 setStatus(0)
                 myStatusCode = 0
                 setFinished(true)
-                callback(myResult, myStatusCode)
+                secureCallback(myResult, myStatusCode)
                 setFailed(true)
             });
         //eslint-disable-next-line react-hooks/exhaustive-deps

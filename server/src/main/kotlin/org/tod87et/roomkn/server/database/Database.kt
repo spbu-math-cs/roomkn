@@ -2,20 +2,21 @@ package org.tod87et.roomkn.server.database
 
 import kotlinx.datetime.Instant
 import org.tod87et.roomkn.server.models.permissions.UserPermission
-import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 import org.tod87et.roomkn.server.models.reservations.Reservation
+import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
+import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
+import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
 import org.tod87et.roomkn.server.models.rooms.RoomInfo
 import org.tod87et.roomkn.server.models.rooms.ShortRoomInfo
-import org.tod87et.roomkn.server.models.users.ShortUserInfo
-import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
 import org.tod87et.roomkn.server.models.users.FullUserInfo
-import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
+import org.tod87et.roomkn.server.models.users.ShortUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfoWithNull
 import org.tod87et.roomkn.server.models.users.UserInfo
 
 interface Database {
     fun getRooms(limit: Int = Int.MAX_VALUE, offset: Long = 0L): Result<List<ShortRoomInfo>>
+    fun getRoomsShort(ids: List<Int>): Result<List<ShortRoomInfo>>
     fun getRoom(roomId: Int): Result<RoomInfo>
     fun createRoom(roomInfo: NewRoomInfo): Result<RoomInfo>
     fun updateRoom(roomId: Int, roomInfo: NewRoomInfo): Result<Unit>
@@ -63,9 +64,11 @@ interface Database {
     fun getUserPermissions(userId: Int): Result<List<UserPermission>>
     fun updateUserPermissions(userId: Int, permissions: List<UserPermission>): Result<Unit>
 
-
     /**
      * Clear database for TEST/DEBUG purpose
      */
     fun clear(): Result<Unit>
+
+    fun createMultipleReservations(reservations: List<UnregisteredReservation>): List<Result<Reservation>> =
+        reservations.map { createReservation(it) }
 }

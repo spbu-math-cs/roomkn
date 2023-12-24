@@ -14,7 +14,7 @@ import {
     Typography,
     useTheme
 } from "@mui/material";
-import { CurrentUserContext } from "../../components/Auth";
+import { CurrentUserContext, CurrentUserPermissionsContext } from "../../components/Auth";
 import PaginatedList from "../../components/PaginatedList";
 
 const permissionsDefault = {
@@ -51,6 +51,9 @@ function PermCheckbox({perm, label, was, on_change}) {
 }
 
 function EditUserRow({user, refresh}) {
+
+    const { currentUser } = useContext(CurrentUserContext)
+    const { setCurrentUserPermissions } = useContext(CurrentUserPermissionsContext)
 
     const [name, setName] = useState(user.username)
     const [email, setEmail] = useState('')
@@ -110,7 +113,11 @@ function EditUserRow({user, refresh}) {
             // console.log('setting perms')
             setPermissionsBefore(JSON.parse(JSON.stringify(tmp_perms)))
             setPermissions(JSON.parse(JSON.stringify(tmp_perms)))
-        } 
+            if (user.id === currentUser.user_id) {
+                console.log('callback: changed global perms')
+                setCurrentUserPermissions(result)
+            }
+        }
     }
 
     console.log('rerendering user')
