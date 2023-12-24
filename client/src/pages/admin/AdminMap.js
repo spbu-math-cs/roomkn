@@ -36,7 +36,7 @@ function MapUploader({setMap, setEditMap}) {
             var map = JSON.parse(event.target.result);
             setMap(map)
             setEditMap(event.target.result)
-            setNewMessageSnackbar("Map uploaded from file")
+            setNewMessageSnackbar("Map uploaded from file!")
         } catch (e) {
             setNewMessageSnackbar("Unable to upload file: " + e)
         }
@@ -65,7 +65,7 @@ function MapPublish({map}) {
 
     function getMapCallback(result, statusCode) {
         if (statusCode === 200) {
-            setNewMessageSnackbar("Map uploaded")
+            setNewMessageSnackbar("Map successfully published!")
         }
     }
 
@@ -86,6 +86,7 @@ function MapUpdate({setMap, editMap}) {
     function update() {
         try {
             setMap(JSON.parse(editMap))
+            setNewMessageSnackbar("Map successfully updated!")
         } catch (e) {
             setNewMessageSnackbar("Unable to update preview: " + e)
         }
