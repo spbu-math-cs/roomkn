@@ -11,7 +11,9 @@ import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
 import org.tod87et.roomkn.server.models.rooms.RoomInfo
 import org.tod87et.roomkn.server.models.rooms.ShortRoomInfo
 import org.tod87et.roomkn.server.models.users.FullUserInfo
+import org.tod87et.roomkn.server.models.users.Invite
 import org.tod87et.roomkn.server.models.users.ShortUserInfo
+import org.tod87et.roomkn.server.models.users.InviteRequest
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfoWithNull
 import org.tod87et.roomkn.server.models.users.UserInfo
@@ -67,6 +69,12 @@ interface Database {
     fun deleteUser(userId: Int): Result<Unit>
     fun getUserPermissions(userId: Int): Result<List<UserPermission>>
     fun updateUserPermissions(userId: Int, permissions: List<UserPermission>): Result<Unit>
+    fun createInvite(tokenHash: ByteArray, inviteRequest: InviteRequest): Result<Unit>
+    fun validateInvite(tokenHash: ByteArray): Result<Unit>
+    fun updateInvite(tokenHash: ByteArray): Result<Unit>
+    fun getInvites(limit: Int = Int.MAX_VALUE, offset: Long = 0L): Result<List<Invite>>
+    fun getInvite(inviteId: Int): Result<Invite>
+    fun deleteInvite(inviteId: Int): Result<Unit>
 
     /**
      * Clear database for TEST/DEBUG purpose

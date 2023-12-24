@@ -12,17 +12,24 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
+import kotlinx.datetime.Clock
 import org.junit.jupiter.api.Test
+import org.tod87et.roomkn.server.KtorTestEnv.logout
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.users.FullUserInfo
+import org.tod87et.roomkn.server.models.users.Invite
+import org.tod87et.roomkn.server.models.users.InviteRequest
 import org.tod87et.roomkn.server.models.users.LoginUserInfo
 import org.tod87et.roomkn.server.models.users.PasswordUpdateInfo
 import org.tod87et.roomkn.server.models.users.ShortUserInfo
+import org.tod87et.roomkn.server.models.users.UnregisteredUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfoWithNull
 import org.tod87et.roomkn.server.models.users.UserInfo
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class UsersRoutesTests {
     private val apiPath = "/api/v0"
@@ -31,6 +38,11 @@ class UsersRoutesTests {
     private fun userPath(id: Int) = "$usersPath/$id"
     private fun userPermissionsPath(id: Int) = "$usersPath/$id/permissions"
     private fun userPasswordPath(id: Int) = "$usersPath/$id/password"
+    private val createInvite = "$usersPath/invite"
+    private val invitationsPath = "$usersPath/invitations"
+    private fun invitationPath(id: Int) = "$usersPath/invitations/$id"
+    private fun checkInviteTokenPath(token: String) = "$apiPath/invite/validate-token/$token"
+    private fun registerTokenPath(token: String) = "$apiPath/register/$token"
 
     @Test
     fun getUsers() = KtorTestEnv.testJsonApplication { client ->
@@ -233,5 +245,85 @@ class UsersRoutesTests {
         }
         assertEquals(HttpStatusCode.OK, resp.status, "Message: ${resp.bodyAsText()}")
         assertEquals(permissions, KtorTestEnv.database.getUserPermissions(id).getOrThrow())
+    }
+
+    @Test
+    fun getInvitations() = KtorTestEnv.testJsonApplication { client ->
+        with(KtorTestEnv) {
+            client.createAndAuthAdmin()
+        }
+        val timestamp = Clock.System.now()
+        val invitations = listOf(InviteRequest(2, timestamp + 1.days), InviteRequest(100, timestamp + 30.days))
+        var response = client.post(createInvite) {
+            contentType(ContentType.Application.Json)
+            setBody(invitations[0])
+        }
+        response = client.post(createInvite) {
+            contentType(ContentType.Application.Json)
+            setBody(invitations[1])
+        }
+        response = client.get(invitationsPath)
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(invitations.toSet(), response.body<List<Invite>>().map { it.toInviteRequest() }.toSet())
+    }
+
+    @Test
+    fun deleteInvitations() = KtorTestEnv.testJsonApplication { client ->
+        with(KtorTestEnv) {
+            client.createAndAuthAdmin()
+        }
+        val timestamp = Clock.System.now()
+        val invitation = InviteRequest(5, timestamp + 1.hours)
+        var response = client.post(createInvite) {
+            contentType(ContentType.Application.Json)
+            setBody(invitation)
+        }
+        val id = client.get(invitationsPath).body<List<Invite>>()[0].id
+        response = client.delete(invitationPath(id))
+        assertEquals(HttpStatusCode.OK, response.status)
+        val list = client.get(invitationsPath).body<List<Invite>>()
+        assertTrue { list.isEmpty() }
+    }
+
+    @Test
+    fun getInviteToken() = KtorTestEnv.testJsonApplication { client ->
+        with(KtorTestEnv) {
+            client.createAndAuthAdmin()
+        }
+        val timestamp = Clock.System.now()
+        val invitation = InviteRequest(5, timestamp + 1.hours)
+        var response = client.post(createInvite) {
+            contentType(ContentType.Application.Json)
+            setBody(invitation)
+        }
+        val token = response.bodyAsText()
+        val id = client.get(invitationsPath).body<List<Invite>>()[0].id
+        response = client.get(invitationPath(id))
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(token, response.bodyAsText())
+    }
+
+    @Test
+    fun checkInviteValidation() = KtorTestEnv.testJsonApplication { client ->
+        with(KtorTestEnv) {
+            client.createAndAuthAdmin()
+        }
+        val timestamp = Clock.System.now()
+        val invitation = InviteRequest(1, timestamp + 1.hours)
+        var response = client.post(createInvite) {
+            contentType(ContentType.Application.Json)
+            setBody(invitation)
+        }
+        val token = response.bodyAsText()
+        response = client.get(checkInviteTokenPath(token))
+        assertEquals(HttpStatusCode.OK, response.status)
+        client.logout()
+        val newUser = UnregisteredUserInfo("Invited", "new_user@best.mail.com", "1234")
+        response = client.post(registerTokenPath(token)) {
+            contentType(ContentType.Application.Json)
+            setBody(newUser)
+        }
+        response = client.get(checkInviteTokenPath(token))
+        assertEquals(HttpStatusCode.BadRequest, response.status)
     }
 }

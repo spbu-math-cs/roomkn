@@ -1,5 +1,7 @@
 package org.tod87et.roomkn.server.routing
 
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
@@ -10,15 +12,22 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.patch
+import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
+import java.security.MessageDigest
+import java.util.Date
+import kotlinx.datetime.toJavaInstant
 import org.koin.ktor.ext.inject
 import org.tod87et.roomkn.server.auth.AccountController
+import org.tod87et.roomkn.server.auth.AuthConfig
 import org.tod87et.roomkn.server.auth.AuthenticationProvider
 import org.tod87et.roomkn.server.auth.NoSuchUserException
 import org.tod87et.roomkn.server.database.Database
+import org.tod87et.roomkn.server.database.MissingElementException
 import org.tod87et.roomkn.server.di.injectDatabase
 import org.tod87et.roomkn.server.models.permissions.UserPermission
+import org.tod87et.roomkn.server.models.users.InviteRequest
 import org.tod87et.roomkn.server.models.users.PasswordUpdateInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfoWithNull
@@ -26,6 +35,8 @@ import org.tod87et.roomkn.server.util.defaultExceptionHandler
 import org.tod87et.roomkn.server.util.okResponse
 
 fun Route.usersRouting() {
+    val config: AuthConfig by inject()
+    val threadLocalDigest = ThreadLocal.withInitial { MessageDigest.getInstance(config.hashingAlgorithmId) }
     val database: Database by injectDatabase()
     authenticate(AuthenticationProvider.SESSION) {
         route("/users") {
@@ -36,7 +47,14 @@ fun Route.usersRouting() {
             listUserPermissions(database)
             setUserPermissions(database)
             updateUserCredentials(database)
+            generateInvite(database, threadLocalDigest)
+            route("/invitations") {
+                getInvitations(database)
+                getInvitationToken(database)
+                deleteInvitation(database)
+            }
         }
+        validateInvitationToken(database, threadLocalDigest)
     }
 }
 
@@ -123,10 +141,83 @@ private fun Route.setUserPermissions(database: Database) {
     }
 }
 
+private fun generateToken(invite: InviteRequest, config: AuthConfig): String {
+    return JWT.create().withAudience(config.audience).withIssuer(config.issuer)
+        .withClaim("size", invite.size)
+        .withExpiresAt(Date.from(invite.until.toJavaInstant()))
+        .sign(Algorithm.HMAC256(config.secret))
+}
+
+private fun Route.generateInvite(database: Database, threadLocalDigest: ThreadLocal<MessageDigest>) {
+    val config: AuthConfig by inject()
+    post("/invite") { body: InviteRequest ->
+        call.requirePermission(database) { return@post call.onMissingPermission() }
+        val token = generateToken(body, config)
+        val digest = threadLocalDigest.get()
+        digest.update(token.toByteArray())
+        val tokenResult = database.createInvite(digest.digest(), body)
+        tokenResult.onSuccess {
+            call.respondText(token, status = HttpStatusCode.OK)
+        }.onFailure {
+            call.handleException(it)
+        }
+    }
+}
+
+private fun Route.getInvitations(database: Database) {
+    get {
+        call.requirePermission(database) { return@get call.onMissingPermission() }
+        val limit: Int = call.request.queryParameters["limit"]?.toIntOrNull() ?: Int.MAX_VALUE
+        val offset: Long = call.request.queryParameters["offset"]?.toLongOrNull() ?: 0
+        database.getInvites(limit, offset)
+            .onSuccess { call.respond(it) }
+            .onFailure { call.handleException(it) }
+    }
+}
+
+private fun Route.getInvitationToken(database: Database) {
+    val config: AuthConfig by inject()
+    get("/{id}") {
+        call.requirePermission(database) { return@get call.onMissingPermission() }
+        val id = call.parameters["id"]?.toInt() ?: return@get call.onMissingId()
+        database.getInvite(id)
+            .onSuccess {
+                val token = generateToken(it.toInviteRequest(), config)
+                call.respondText(token)
+            }
+            .onFailure { call.handleException(it) }
+    }
+}
+
+private fun Route.deleteInvitation(database: Database) {
+    delete("/{id}") {
+        call.requirePermission(database) { return@delete call.onMissingPermission() }
+        val id = call.parameters["id"]?.toInt() ?: return@delete call.onMissingId()
+        database.deleteInvite(id).okResponseWithHandleException(call)
+    }
+}
+
+private fun Route.validateInvitationToken(database: Database, threadLocalDigest: ThreadLocal<MessageDigest>) {
+    get("/invite/validate-token/{token}") {
+        val token = call.parameters["token"] ?: return@get call.respondText(
+            "Invalid or missing token",
+            status = HttpStatusCode.BadRequest
+        )
+        val digest = threadLocalDigest.get()
+        digest.update(token.toByteArray())
+        database.validateInvite(digest.digest()).okResponseWithHandleException(call)
+    }
+}
+
+
 private suspend fun ApplicationCall.handleException(ex: Throwable) {
     when (ex) {
         is NoSuchUserException -> {
             respondText("No such user", status = HttpStatusCode.BadRequest)
+        }
+
+        is MissingElementException -> { //TODO(makselivanov) change it?
+            respondText("Invalid invite token", status = HttpStatusCode.BadRequest)
         }
 
         else -> {
