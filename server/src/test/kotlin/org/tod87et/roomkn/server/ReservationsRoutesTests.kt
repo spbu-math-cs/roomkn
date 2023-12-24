@@ -11,6 +11,7 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import org.jetbrains.exposed.sql.SortOrder
 import org.junit.jupiter.api.Test
@@ -23,6 +24,7 @@ import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
 import org.tod87et.roomkn.server.models.toRegistered
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
@@ -295,6 +297,7 @@ class ReservationsRoutesTests {
 
     @Test
     fun reservationsReserve() = KtorTestEnv.testJsonApplication { client ->
+        val now = Clock.System.now()
         val me = with(KtorTestEnv) {
             client.createAndAuthUserWithInfo()
         }
@@ -302,8 +305,8 @@ class ReservationsRoutesTests {
 
         val reqReservation = ReservationRequest(
             room.id,
-            Instant.fromEpochMilliseconds(6.hours.inWholeMilliseconds),
-            Instant.fromEpochMilliseconds(7.hours.inWholeMilliseconds)
+            now + 6.hours,
+            now + 7.hours
         )
         val resp = client.post(reservationsPath) {
             contentType(ContentType.Application.Json)
@@ -324,6 +327,7 @@ class ReservationsRoutesTests {
 
     @Test
     fun reserve() = KtorTestEnv.testJsonApplication { client ->
+        val now = Clock.System.now()
         val me = with(KtorTestEnv) {
             client.createAndAuthUserWithInfo()
         }
@@ -331,8 +335,8 @@ class ReservationsRoutesTests {
 
         val reqReservation = ReservationRequest(
             room.id,
-            Instant.fromEpochMilliseconds(6.hours.inWholeMilliseconds),
-            Instant.fromEpochMilliseconds(7.hours.inWholeMilliseconds)
+            now + 6.hours,
+            now + 7.hours
         )
         val resp = client.post(reservePath) {
             contentType(ContentType.Application.Json)
@@ -352,6 +356,7 @@ class ReservationsRoutesTests {
 
     @Test
     fun reserveMultipleOk() = KtorTestEnv.testJsonApplication { client ->
+        val now = Clock.System.now()
         val me = with(KtorTestEnv) {
             client.createAndAuthUserWithInfo()
         }
@@ -360,13 +365,13 @@ class ReservationsRoutesTests {
         val reqReservations = listOf(
             ReservationRequest(
                 room.id,
-                Instant.fromEpochMilliseconds(6.hours.inWholeMilliseconds),
-                Instant.fromEpochMilliseconds(7.hours.inWholeMilliseconds)
+                now + 6.hours,
+                now + 7.hours
             ),
             ReservationRequest(
                 room.id,
-                Instant.fromEpochMilliseconds(7.hours.inWholeMilliseconds),
-                Instant.fromEpochMilliseconds(8.hours.inWholeMilliseconds)
+                now + 7.hours,
+                now + 8.hours
             ),
         )
         val resp = client.post(reserveMultiplePath) {
@@ -397,6 +402,8 @@ class ReservationsRoutesTests {
 
     @Test
     fun reserveMultipleOkFail() = KtorTestEnv.testJsonApplication { client ->
+        val now = Clock.System.now()
+
         val me = with(KtorTestEnv) {
             client.createAndAuthUserWithInfo()
         }
@@ -405,13 +412,13 @@ class ReservationsRoutesTests {
         val reqReservations = listOf(
             ReservationRequest(
                 room.id,
-                Instant.fromEpochMilliseconds(6.hours.inWholeMilliseconds),
-                Instant.fromEpochMilliseconds(7.hours.inWholeMilliseconds)
+                now + 6.hours,
+                now + 7.hours
             ),
             ReservationRequest(
                 room.id,
-                Instant.fromEpochMilliseconds(6.hours.inWholeMilliseconds),
-                Instant.fromEpochMilliseconds(8.hours.inWholeMilliseconds)
+                now + 6.hours,
+                now + 8.hours
             ),
         )
         val resp = client.post(reserveMultiplePath) {
@@ -440,6 +447,7 @@ class ReservationsRoutesTests {
 
     @Test
     fun reserveMultipleFail() = KtorTestEnv.testJsonApplication { client ->
+        val now = Clock.System.now()
         val myId = with(KtorTestEnv) {
             client.createAndAuthUser()
         }
@@ -449,24 +457,23 @@ class ReservationsRoutesTests {
             UnregisteredReservation(
                 myId,
                 room.id,
-                Instant.fromEpochMilliseconds(6.hours.inWholeMilliseconds),
-                Instant.fromEpochMilliseconds(8.hours.inWholeMilliseconds)
+                now + 6.hours,
+                now + 8.hours
             )
         )
 
         val reqReservations = listOf(
             ReservationRequest(
                 room.id,
-                Instant.fromEpochMilliseconds(6.hours.inWholeMilliseconds),
-                Instant.fromEpochMilliseconds(7.hours.inWholeMilliseconds)
+                now + 6.hours,
+                now + 7.hours
             ),
             ReservationRequest(
                 room.id,
-                Instant.fromEpochMilliseconds(7.hours.inWholeMilliseconds),
-                Instant.fromEpochMilliseconds(8.hours.inWholeMilliseconds)
+                now + 7.hours,
+                now + 8.hours
             ),
         )
-
         val resp = client.post(reserveMultiplePath) {
             contentType(ContentType.Application.Json)
             setBody(reqReservations)
@@ -474,6 +481,86 @@ class ReservationsRoutesTests {
 
         assertEquals(0, resp.success.size)
         assertEquals(2, resp.failure.size)
+    }
+
+    @Test
+    fun reserveTooLongFail() = KtorTestEnv.testJsonApplication { client ->
+        val now = Clock.System.now()
+        with(KtorTestEnv) {
+            client.createAndAuthUser()
+        }
+        val room = KtorTestEnv.createRoom("301")
+
+        val reqReservation = ReservationRequest(
+            room.id,
+            now + 6.hours,
+            now + 10.days
+        )
+        val resp = client.post(reservePath) {
+            contentType(ContentType.Application.Json)
+            setBody(reqReservation)
+        }
+        assertEquals(HttpStatusCode.Forbidden, resp.status)
+    }
+
+    @Test
+    fun reserveInPastFail() = KtorTestEnv.testJsonApplication { client ->
+        val now = Clock.System.now()
+        with(KtorTestEnv) {
+            client.createAndAuthUser()
+        }
+        val room = KtorTestEnv.createRoom("301")
+
+        val reqReservation = ReservationRequest(
+            room.id,
+            now - 10.days,
+            now - 10.days + 1.hours
+        )
+        val resp = client.post(reservePath) {
+            contentType(ContentType.Application.Json)
+            setBody(reqReservation)
+        }
+        assertEquals(HttpStatusCode.Forbidden, resp.status)
+    }
+
+    @Test
+    fun reserveInFutureFail() = KtorTestEnv.testJsonApplication { client ->
+        val now = Clock.System.now()
+        with(KtorTestEnv) {
+            client.createAndAuthUser()
+        }
+        val room = KtorTestEnv.createRoom("301")
+
+        val reqReservation = ReservationRequest(
+            room.id,
+            now + 100.days,
+            now + 100.days + 1.hours
+        )
+        val resp = client.post(reservePath) {
+            contentType(ContentType.Application.Json)
+            setBody(reqReservation)
+        }
+        assertEquals(HttpStatusCode.Forbidden, resp.status)
+    }
+
+    @Test
+    fun reserveInFutureAdmin() = KtorTestEnv.testJsonApplication { client ->
+        val now = Clock.System.now()
+        with(KtorTestEnv) {
+            client.createAndAuthAdmin()
+        }
+        val room = KtorTestEnv.createRoom("301")
+
+        val reqReservation = ReservationRequest(
+            room.id,
+            now + 100.days,
+            now + 100.days + 1.hours
+        )
+        val resp = client.post(reservePath) {
+            contentType(ContentType.Application.Json)
+            setBody(reqReservation)
+        }
+        assertEquals(HttpStatusCode.Created, resp.status)
     }
 
     @Test

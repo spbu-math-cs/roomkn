@@ -21,7 +21,9 @@ import org.tod87et.roomkn.server.auth.di.authModule
 import org.tod87et.roomkn.server.database.CredentialsDatabase
 import org.tod87et.roomkn.server.database.Database
 import org.tod87et.roomkn.server.di.Di
+import org.tod87et.roomkn.server.di.ReservationConfig
 import org.tod87et.roomkn.server.di.applicationModule
+import org.tod87et.roomkn.server.di.reservationModule
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.reservations.Reservation
 import org.tod87et.roomkn.server.models.reservations.ReservationSortParameter
@@ -68,7 +70,8 @@ class DiTest : KoinTest {
 
                         override val rootPath: String get() = fail()
                     }
-                )
+                ),
+                Di.reservationModule,
             )
         }
 
@@ -77,6 +80,7 @@ class DiTest : KoinTest {
             { assertNotNull(app.koin.get<AccountController>()) },
             { assertNotNull(app.koin.get<Database>()) },
             { assertNotNull(app.koin.get<CredentialsDatabase>()) },
+            { assertNotNull(app.koin.get<ReservationConfig>()) },
         )
     }
 }
