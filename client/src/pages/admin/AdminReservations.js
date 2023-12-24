@@ -135,12 +135,14 @@ function Reservation({reservation}) {
     )
 }
 
-function useGetReservations(orderBy, from, until, userList, roomList) {
+function useGetReservations(sortBy, sortOrder, from, until, userList, roomList) {
     const params = new URLSearchParams()
     if (userList.length > 0) params.append("user_ids", userList)
     if (roomList.length > 0)  params.append("room_ids", roomList)
     params.append("from", toAPITime(from, "00:00"))
     params.append("until", toAPITime(until, "23:59"))
+    params.append("sort_by", sortBy)
+    params.append("sort_order", sortOrder)
 
     const url = "/api/v0/reservations?" + params.toString()
 
@@ -154,9 +156,8 @@ function useGetReservations(orderBy, from, until, userList, roomList) {
     )
 
     function getReservationsCallback(result, statusCode) {
-        console.log("get reservations callback! result: " + result + " status code: " + statusCode)
+        console.log("get reservations callback! result: ", result + " status code: ", statusCode)
         if (result != null && statusCode === 200) {
-            //TODO: orderBy
             setResult({
                 reservations: result,
                 triggerGetReservations: () => {
@@ -205,7 +206,8 @@ function Filters({triggerGetReservations}) {
 
     const {from, setFrom,
         until, setUntil,
-        orderBy, setOrderBy,
+        sortBy, setSortBy,
+        sortOrder, setSortOrder,
         users, setUsers,
         rooms, setRooms} = useContext(FiltersContext)
 
@@ -252,17 +254,31 @@ function Filters({triggerGetReservations}) {
     return (
         <Stack direction="row" spacing = {theme.spacing()}>
             <FormControl sx={{ m: 1, width: 200 }}>
-                <InputLabel id="order-by-label-id">Order by</InputLabel>
+                <InputLabel id="sort-by-lebel-id">Sort by</InputLabel>
                 <Select
-                    label="Order by:"
-                    labelId="order-by-label-id"
-                    id="order-by-select"
-                    value = {orderBy}
-                    onChange = {(e) => {setOrderBy(e.target.value)}}
+                    label="Sort by:"
+                    labelId="sort-by-lebel-id"
+                    id="sort-by-select"
+                    value = {sortBy}
+                    onChange = {(e) => {setSortBy(e.target.value)}}
                 >
-                    <MenuItem value = "reservation-date">Reservation date</MenuItem>
-                    <MenuItem value = "user-name">User name</MenuItem>
-                    <MenuItem value = "room-name">Room name</MenuItem>
+                    <MenuItem value = "date_from">Reservation from date</MenuItem>
+                    <MenuItem value = "date_until">Reservation until date</MenuItem>
+                    <MenuItem value = "owner_name">Owner name</MenuItem>
+                    <MenuItem value = "room_name">Room name</MenuItem>
+                </Select>
+            </FormControl>
+            <FormControl sx={{ m: 1, width: 200 }}>
+                <InputLabel id="sort-order-lebel-id">Sort order:</InputLabel>
+                <Select
+                    label="Sort order:"
+                    labelId="sort-order-lebel-id"
+                    id="sort-order-select"
+                    value = {sortOrder}
+                    onChange = {(e) => {setSortOrder(e.target.value)}}
+                >
+                    <MenuItem value = "asc">Ascending</MenuItem>
+                    <MenuItem value = "desc">Decreasing</MenuItem>
                 </Select>
             </FormControl>
             <FormControl sx={{ m: 1, width: 200 }}>
@@ -311,26 +327,12 @@ function Filters({triggerGetReservations}) {
     )
 }
 
-function Reservations({reservations, orderBy}) {
+function Reservations({reservations}) {
 
     if (reservations.length === 0) return (
         <ContentWrapper page_name="No reservations found"/>
     )
     const drawList = []
-
-    reservations.sort((a, b) => {
-        if (orderBy === "reservation-date") {
-            const a_from_obj = fromAPITime(a.from)
-            const b_from_obj = fromAPITime(b.from)
-            const aFromDate = new Date(a_from_obj.date, a_from_obj.time)
-            const bFromDate = new Date(b_from_obj.date, b_from_obj.time)
-            return aFromDate.getTime() < bFromDate.getTime()
-        }
-        else if (orderBy === "user-name") {
-            return a.user_id < b.user_id
-        }
-        return a.room_id < b.room_id
-    })
 
     reservations.forEach((reservation) => {
         drawList.push(<Reservation reservation={reservation}/> )
@@ -355,11 +357,12 @@ function AdminReservations() {
     const today = getTodayDate()
     const [from, setFrom] = React.useState(today)
     const [until, setUntil] = React.useState(today)
-    const [orderBy, setOrderBy] = useState("reservation-date")
+    const [sortBy, setSortBy] = useState("date_from")
+    const [sortOrder, setSortOrder] = useState("asc")
     const [users, setUsers] = useState([])
     const [rooms, setRooms] = useState([])
 
-    const {reservations, triggerGetReservations} = useGetReservations(orderBy, from, until, users, rooms)
+    const {reservations, triggerGetReservations} = useGetReservations(sortBy, sortOrder, from, until, users, rooms)
 
 
     const {setNewMessageSnackbar} = useContext(SnackbarContext)
@@ -376,7 +379,8 @@ function AdminReservations() {
                 <FiltersContext.Provider value = {{
                     from, setFrom,
                     until, setUntil,
-                    orderBy, setOrderBy,
+                    sortBy, setSortBy,
+                    sortOrder, setSortOrder,
                     users, setUsers,
                     rooms, setRooms
                 }}>
@@ -384,7 +388,7 @@ function AdminReservations() {
                     <ContentWrapper page_name={"Filters"}>
                         <Filters triggerGetReservations={onUpdate}/>
                     </ContentWrapper>
-                    <Reservations reservations={reservations} orderBy={orderBy}/>
+                    <Reservations reservations={reservations}/>
                 </Stack>
             </FiltersContext.Provider>
         </AdminWrapper>)
