@@ -7,33 +7,12 @@ import {
     ListItemButton,
     Stack, Typography,
 } from "@mui/material";
-import {fromAPITime, toAPITime} from "../api/API";
+import {fromAPITime, toAPITime, dateFormat, getTodayDate} from "../api/API";
 import Timeline from "../components/TimelineForRoomList";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
 import {DatePicker} from "@mui/x-date-pickers";
 import dayjs from "dayjs";
-
-function dateFormat(date, format = "yyyy-mm-dd") {
-    var mlz = ""
-    if (date.getMonth() + 1 < 10) mlz = "0"
-    var dlz = ""
-    if (date.getDate() < 10) dlz = "0"
-    const map = {
-        mm: mlz + (date.getMonth() + 1),
-        dd: dlz + date.getDate(),
-        yyyy: date.getFullYear(),
-        // yy: date.getFullYear().toString().slice(-2)
-    }
-
-    return format.replace(/mm|dd|yyyy/gi, matched => map[matched])
-}
-
-function getTodayDate(format = "yyyy-mm-dd") {
-    const date = new Date()
-
-    return dateFormat(date, format)
-}
 
 function GetReservationsInSegment(room_id, dateFrom, dateUntil) {
 

@@ -12,6 +12,7 @@ export function AdminPanel() {
     const users_display = (currentUserPermissions.indexOf("UsersAdmin") > -1) ? "" : "none"
     const reservations_display = (currentUserPermissions.indexOf("ReservationsAdmin") > -1) ? "" : "none"
     const map_display = ''
+    const tokens_display = (currentUserPermissions.indexOf("UsersAdmin") > -1) ? "" : "none"
 
     return (
         <AdminWrapper>
@@ -35,6 +36,11 @@ export function AdminPanel() {
                     <ListItem sx={{display: map_display}}>
                         <NavLink to="/admin/map" className="navlink">
                             Map
+                        </NavLink>
+                    </ListItem>
+                    <ListItem sx={{display: tokens_display}}>
+                        <NavLink to="/admin/invites" className="navlink">
+                            Invite tokens
                         </NavLink>
                     </ListItem>
                 </List>

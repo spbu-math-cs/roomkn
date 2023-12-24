@@ -121,5 +121,26 @@ export function fromAPITime(ins) {
     }
 }
 
+export function dateFormat(date, format = "yyyy-mm-dd") {
+    var mlz = ""
+    if (date.getMonth() + 1 < 10) mlz = "0"
+    var dlz = ""
+    if (date.getDate() < 10) dlz = "0"
+    const map = {
+        mm: mlz + (date.getMonth() + 1),
+        dd: dlz + date.getDate(),
+        yyyy: date.getFullYear(),
+        // yy: date.getFullYear().toString().slice(-2)
+    }
+
+    return format.replace(/mm|dd|yyyy/gi, matched => map[matched])
+}
+
+export function getTodayDate(format = "yyyy-mm-dd") {
+    const date = new Date()
+
+    return dateFormat(date, format)
+}
+
 
 export default useAPI
