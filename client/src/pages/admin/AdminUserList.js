@@ -15,8 +15,11 @@ import {
     useTheme
 } from "@mui/material";
 import { CurrentUserContext, CurrentUserPermissionsContext } from "../../components/Auth";
+import {SnackbarContext} from "../../components/SnackbarAlert";
 
 function EditUserRow({user, refresh}) {
+
+    const {setNewMessageSnackbar} = useContext(SnackbarContext)
 
     const { currentUser } = useContext(CurrentUserContext)
     const { setCurrentUserPermissions } = useContext(CurrentUserPermissionsContext)
@@ -67,6 +70,10 @@ function EditUserRow({user, refresh}) {
     function permPutCallback(result, statusCode) {
         if (statusCode === 200) {
             permGetTriggerFetch()
+            setNewMessageSnackbar("User information updated successfully!")
+        }
+        else {
+            setNewMessageSnackbar("An error occurred.")
         }
     }
 

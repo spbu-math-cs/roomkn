@@ -8,7 +8,7 @@
 
 `npm run build`
 
-Built static files in `./build`
+Builds static files in `./build`
 
 ## Environment variables
 

@@ -13,11 +13,13 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import org.jetbrains.exposed.sql.SortOrder
 import org.junit.jupiter.api.Test
 import org.tod87et.roomkn.server.models.reservations.MultipleReservationResult
 import org.tod87et.roomkn.server.models.reservations.NewReservationBounds
 import org.tod87et.roomkn.server.models.reservations.Reservation
 import org.tod87et.roomkn.server.models.reservations.ReservationRequest
+import org.tod87et.roomkn.server.models.reservations.ReservationSortParameter
 import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
 import org.tod87et.roomkn.server.models.toRegistered
 import kotlin.test.assertEquals
@@ -153,6 +155,113 @@ class ReservationsRoutesTests {
             setOf(reserveOtherIdRoom301SecondHalf, reserveMyIdRoom302SecondHalf),
             bodyResponse.toSet(),
             "Expect only reservations which end after ${timestamp + 90.minutes}"
+        )
+    }
+
+    @Test
+    fun getAllReservationsOrdered() = KtorTestEnv.testJsonApplication { client ->
+        val myId = with(KtorTestEnv) {
+            client.createAndAuthUser("Alice")
+        }
+        val otherId = KtorTestEnv.createUser("Bob")
+        val room301Id = KtorTestEnv.createRoom("301").id
+        val room302Id = KtorTestEnv.createRoom("302").id
+        val timestamp = Instant.parse("2023-12-07T00:00:00+00:00")
+        val reserveMyIdRoom301FirstHalf = KtorTestEnv.database.createReservation(
+            UnregisteredReservation(
+                myId,
+                room301Id,
+                timestamp,
+                timestamp + 1.hours
+            )
+        ).getOrThrow()
+        val reserveMyIdRoom302SecondHalf = KtorTestEnv.database.createReservation(
+            UnregisteredReservation(
+                myId,
+                room302Id,
+                timestamp + 1.hours,
+                timestamp + 2.hours
+            )
+        ).getOrThrow()
+        val reserveOtherIdRoom302FirstHalf = KtorTestEnv.database.createReservation(
+            UnregisteredReservation(
+                otherId,
+                room302Id,
+                timestamp,
+                timestamp + 1.hours
+            )
+        ).getOrThrow()
+        val reserveOtherIdRoom301SecondHalf = KtorTestEnv.database.createReservation(
+            UnregisteredReservation(
+                otherId,
+                room301Id,
+                Instant.parse("3000-01-19T00:00:00+00:00") + 1.hours,
+                Instant.parse("3000-01-19T00:00:00+00:00") + 2.hours
+            )
+        ).getOrThrow()
+
+        var bodyResponse = client.getRequestForAllReservationsWithQueryParams(
+            roomIds = listOf(room301Id),
+            sortParameter = ReservationSortParameter.OWNER_NAME,
+            sortOrder = SortOrder.ASC,
+        ).body<List<Reservation>>()
+        assertEquals(
+            listOf(
+                reserveMyIdRoom301FirstHalf,
+                reserveOtherIdRoom301SecondHalf,
+            ),
+            bodyResponse
+        )
+
+        bodyResponse = client.getRequestForAllReservationsWithQueryParams(
+            roomIds = listOf(room301Id),
+            sortParameter = ReservationSortParameter.OWNER_NAME,
+            sortOrder = SortOrder.DESC,
+        ).body<List<Reservation>>()
+        assertEquals(
+            listOf(
+                reserveOtherIdRoom301SecondHalf,
+                reserveMyIdRoom301FirstHalf,
+            ),
+            bodyResponse
+        )
+
+        bodyResponse = client.getRequestForAllReservationsWithQueryParams(
+            userIds = listOf(myId),
+            sortParameter = ReservationSortParameter.ROOM_NAME,
+            sortOrder = SortOrder.ASC,
+        ).body<List<Reservation>>()
+        assertEquals(
+            listOf(
+                reserveMyIdRoom301FirstHalf,
+                reserveMyIdRoom302SecondHalf,
+            ),
+            bodyResponse
+        )
+
+        bodyResponse = client.getRequestForAllReservationsWithQueryParams(
+            userIds = listOf(myId),
+            sortParameter = ReservationSortParameter.DATE_FROM,
+            sortOrder = SortOrder.DESC,
+        ).body<List<Reservation>>()
+        assertEquals(
+            listOf(
+                reserveMyIdRoom302SecondHalf,
+                reserveMyIdRoom301FirstHalf,
+            ),
+            bodyResponse
+        )
+        bodyResponse = client.getRequestForAllReservationsWithQueryParams(
+            userIds = listOf(myId),
+            sortParameter = ReservationSortParameter.DATE_UNTIL,
+            sortOrder = SortOrder.DESC,
+        ).body<List<Reservation>>()
+        assertEquals(
+            listOf(
+                reserveMyIdRoom302SecondHalf,
+                reserveMyIdRoom301FirstHalf,
+            ),
+            bodyResponse
         )
     }
 
@@ -555,6 +664,8 @@ class ReservationsRoutesTests {
         roomIds: List<Int>? = null,
         from: Instant? = null,
         until: Instant? = null,
+        sortParameter: ReservationSortParameter? = null,
+        sortOrder: SortOrder? = null,
     ): HttpResponse {
         return this.get(reservationsPath) {
             url {
@@ -569,6 +680,12 @@ class ReservationsRoutesTests {
                 }
                 if (until != null) {
                     parameters.append("until", until.toString())
+                }
+                if (sortParameter != null) {
+                    parameters.append("sort_by", sortParameter.toString().lowercase())
+                }
+                if (sortOrder != null) {
+                    parameters.append("sort_order", sortOrder.toString().lowercase())
                 }
             }
         }

@@ -25,6 +25,7 @@ import org.jetbrains.exposed.sql.upsert
 import org.postgresql.util.PSQLException
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.reservations.Reservation
+import org.tod87et.roomkn.server.models.reservations.ReservationSortParameter
 import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
@@ -164,7 +165,7 @@ class DatabaseSession private constructor(private val database: Database) :
         from = from,
         until = until,
         limit = limit,
-        offset = offset
+        offset = offset,
     )
 
     override fun getUserReservations(
@@ -179,7 +180,7 @@ class DatabaseSession private constructor(private val database: Database) :
         from = from,
         until = until,
         limit = limit,
-        offset = offset
+        offset = offset,
     )
 
     override fun getReservations(
@@ -188,9 +189,18 @@ class DatabaseSession private constructor(private val database: Database) :
         from: Instant?,
         until: Instant?,
         limit: Int,
-        offset: Long
+        offset: Long,
+        sortParameter: ReservationSortParameter?,
+        sortOrder: SortOrder?,
     ): Result<List<Reservation>> = queryWrapper {
         transaction(database) {
+            val sortParam = when (sortParameter) {
+                ReservationSortParameter.DATE_FROM -> Reservations.from
+                ReservationSortParameter.DATE_UNTIL -> Reservations.until
+                ReservationSortParameter.OWNER_NAME -> Users.username
+                ReservationSortParameter.ROOM_NAME -> Rooms.name
+                null -> Reservations.from
+            }
             (Reservations innerJoin Users innerJoin Rooms)
                 .select {
                     val userCondition = if (usersIds.isEmpty()) Op.TRUE else Reservations.userId inList usersIds
@@ -201,9 +211,8 @@ class DatabaseSession private constructor(private val database: Database) :
                     userCondition and roomCondition and dateCondition
                 }
                 .orderBy(
-                    Reservations.from to SortOrder.ASC,
-                    Reservations.until to SortOrder.ASC,
-                    Reservations.id to SortOrder.ASC
+                    sortParam to (sortOrder ?: SortOrder.ASC),
+                    Reservations.id to (sortOrder ?: SortOrder.ASC)
                 )
                 .limit(limit, offset)
                 .map {

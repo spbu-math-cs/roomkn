@@ -10,6 +10,7 @@ import kotlin.test.Test
 import kotlin.test.assertNotNull
 import kotlin.test.fail
 import kotlinx.datetime.Instant
+import org.jetbrains.exposed.sql.SortOrder
 import org.junit.jupiter.api.assertAll
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
@@ -25,6 +26,7 @@ import org.tod87et.roomkn.server.di.applicationModule
 import org.tod87et.roomkn.server.di.reservationModule
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.reservations.Reservation
+import org.tod87et.roomkn.server.models.reservations.ReservationSortParameter
 import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
@@ -149,7 +151,9 @@ private class DatabaseMock : Database {
         from: Instant?,
         until: Instant?,
         limit: Int,
-        offset: Long
+        offset: Long,
+        sortParameter: ReservationSortParameter?,
+        sortOrder: SortOrder?
     ): Result<List<Reservation>> = fail()
 
     override fun getReservation(reservationId: Int): Result<Reservation> = fail()
