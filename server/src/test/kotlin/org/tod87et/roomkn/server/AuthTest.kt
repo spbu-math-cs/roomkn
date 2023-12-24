@@ -6,6 +6,7 @@ import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
@@ -17,6 +18,10 @@ import org.tod87et.roomkn.server.models.users.LoginUserInfo
 import org.tod87et.roomkn.server.models.users.UnregisteredUserInfo
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.time.Duration.Companion.days
+import kotlinx.datetime.Clock
+import org.tod87et.roomkn.server.KtorTestEnv.logout
+import org.tod87et.roomkn.server.models.users.InviteRequest
 
 class AuthTest {
     private val apiPath = "/api/v0"
@@ -24,6 +29,8 @@ class AuthTest {
     private val loginPath = "$apiPath/login"
     private val logoutPath = "$apiPath/logout"
     private val validatePath = "$apiPath/auth/validate-token"
+    private fun registerTokenPath(token: String) = "$registerPath/$token"
+    private val createInvitePath = "$apiPath/users/invite"
 
     private val accountManager = KtorTestEnv.accountController
 
@@ -140,6 +147,35 @@ class AuthTest {
 
         val validate = client.get(validatePath)
         assertEquals(HttpStatusCode.Unauthorized, validate.status)
+    }
+
+    @Test
+    fun registerByToken() = testJsonApplication { client ->
+        with(KtorTestEnv) {
+            client.createAndAuthAdmin("admin")
+        }
+        val timestamp = Clock.System.now() + 1.days
+        val invite = InviteRequest(1, timestamp)
+        var response = client.post(createInvitePath) {
+            contentType(ContentType.Application.Json)
+            setBody(invite)
+        }
+        assertEquals(HttpStatusCode.OK, response.status)
+        val token = response.bodyAsText()
+        client.logout()
+        val newUser = UnregisteredUserInfo("Invited", "new_user@best.mail.com", "1234")
+        response = client.get(registerTokenPath(token)) {
+            contentType(ContentType.Application.Json)
+            setBody(newUser)
+        }
+        assertEquals(HttpStatusCode.OK, response.status)
+
+        val uninvitedUser = UnregisteredUserInfo("Uninvited", "bad_user@best.mail.com", "5678")
+        response = client.get(registerTokenPath(token)) {
+            contentType(ContentType.Application.Json)
+            setBody(uninvitedUser)
+        }
+        assertEquals(HttpStatusCode.BadRequest, response.status)
     }
 
     @AfterEach

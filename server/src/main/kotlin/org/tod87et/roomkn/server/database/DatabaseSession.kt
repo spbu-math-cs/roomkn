@@ -62,7 +62,7 @@ class DatabaseSession private constructor(private val database: Database) :
     constructor(dataSource: DataSource) : this(Database.connect(dataSource))
 
     init {
-        transaction(database) { SchemaUtils.create(Users, Rooms, Reservations, ActiveTokens, Map) }
+        transaction(database) { SchemaUtils.create(Users, Rooms, Reservations, ActiveTokens, Map, InviteTokens) }
     }
 
     override fun createRoom(roomInfo: NewRoomInfo): Result<RoomInfo> = queryWrapper {

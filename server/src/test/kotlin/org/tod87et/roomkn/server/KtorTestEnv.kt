@@ -3,6 +3,7 @@ package org.tod87et.roomkn.server
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.cookies.HttpCookies
+import io.ktor.client.request.delete
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -40,6 +41,7 @@ import kotlin.test.assertEquals
 object KtorTestEnv {
     const val API_PATH = "/api/v0"
     const val LOGIN_PATH = "$API_PATH/login"
+    const val LOGOUT_PATH = "$API_PATH/logout"
 
     private val postgres = EmbeddedPostgres.start()
     private val kTorConfig = ApplicationConfig("test.conf")
@@ -110,6 +112,11 @@ object KtorTestEnv {
         ).getOrThrow()
 
         return initialSession.userId
+    }
+
+    suspend fun HttpClient.logout() {
+        val response = delete(LOGOUT_PATH)
+        assertEquals(HttpStatusCode.OK, response.status)
     }
 
     suspend fun HttpClient.createAndAuthUser(
