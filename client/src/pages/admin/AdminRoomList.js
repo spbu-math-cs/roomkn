@@ -54,7 +54,7 @@ function EditRoomRow({room, refresh}) {
     }
 
     function deleteCallback(result, statusCode) {
-        if (statusCode == 200) {
+        if (statusCode === 200) {
             setNewMessageSnackbar("Room deleted successfully!")
             refresh()
         }
@@ -64,7 +64,7 @@ function EditRoomRow({room, refresh}) {
     }
 
     function putCallback(result, statusCode) {
-        if (statusCode == 200) {
+        if (statusCode === 200) {
             setNewMessageSnackbar("Room updated successfully!")
             refresh()
         }
