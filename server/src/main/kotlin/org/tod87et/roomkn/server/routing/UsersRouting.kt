@@ -15,6 +15,7 @@ import io.ktor.server.routing.patch
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
+import java.security.MessageDigest
 import java.util.Date
 import kotlinx.datetime.toJavaInstant
 import org.koin.dsl.koinApplication
@@ -144,7 +145,12 @@ private fun Route.generateInvite(database: Database) {
     post("/invite") { body: InviteRequest ->
         call.requirePermission(database) { return@post call.onMissingPermission() }
         val token = generateToken(body, config)
-        val tokenResult = database.createInvite(token, body)
+        val digestThreadLocal = ThreadLocal.withInitial {
+            MessageDigest.getInstance(config.hashingAlgorithmId)
+        }
+        val digest = digestThreadLocal.get()
+        digest.update(token.toByteArray())
+        val tokenResult = database.createInvite(digest.digest(), body)
         tokenResult.onSuccess {
             call.respondText(token, status = HttpStatusCode.OK)
         }.onFailure {
