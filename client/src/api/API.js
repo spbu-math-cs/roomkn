@@ -91,6 +91,9 @@ export function useAPI(url, data=null, method='GET', callback = () => {}) {
     }, [fetchFlag]);
 
     function triggerFetch() {
+        setLoading(false);
+        setFinished(false);
+        setFailed(false);
         setFetchFlag(fetchFlag + 1)
     }
 

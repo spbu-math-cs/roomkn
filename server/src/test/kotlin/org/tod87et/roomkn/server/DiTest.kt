@@ -10,6 +10,7 @@ import kotlin.test.Test
 import kotlin.test.assertNotNull
 import kotlin.test.fail
 import kotlinx.datetime.Instant
+import org.jetbrains.exposed.sql.SortOrder
 import org.junit.jupiter.api.assertAll
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
@@ -20,15 +21,20 @@ import org.tod87et.roomkn.server.auth.di.authModule
 import org.tod87et.roomkn.server.database.CredentialsDatabase
 import org.tod87et.roomkn.server.database.Database
 import org.tod87et.roomkn.server.di.Di
+import org.tod87et.roomkn.server.di.ReservationConfig
 import org.tod87et.roomkn.server.di.applicationModule
+import org.tod87et.roomkn.server.di.reservationModule
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.reservations.Reservation
+import org.tod87et.roomkn.server.models.reservations.ReservationSortParameter
 import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
 import org.tod87et.roomkn.server.models.rooms.RoomInfo
 import org.tod87et.roomkn.server.models.rooms.ShortRoomInfo
 import org.tod87et.roomkn.server.models.users.FullUserInfo
+import org.tod87et.roomkn.server.models.users.Invite
+import org.tod87et.roomkn.server.models.users.InviteRequest
 import org.tod87et.roomkn.server.models.users.RegistrationUserInfo
 import org.tod87et.roomkn.server.models.users.ShortUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
@@ -66,7 +72,8 @@ class DiTest : KoinTest {
 
                         override val rootPath: String get() = fail()
                     }
-                )
+                ),
+                Di.reservationModule,
             )
         }
 
@@ -75,6 +82,7 @@ class DiTest : KoinTest {
             { assertNotNull(app.koin.get<AccountController>()) },
             { assertNotNull(app.koin.get<Database>()) },
             { assertNotNull(app.koin.get<CredentialsDatabase>()) },
+            { assertNotNull(app.koin.get<ReservationConfig>()) },
         )
     }
 }
@@ -106,6 +114,7 @@ private class CredentialsDatabaseMock : CredentialsDatabase {
 
 private class DatabaseMock : Database {
     override fun getRooms(limit: Int, offset: Long): Result<List<ShortRoomInfo>> = fail()
+    override fun getRoomsSize(): Result<Long> = fail()
 
     override fun getRoomsShort(ids: List<Int>): Result<List<ShortRoomInfo>> = fail()
 
@@ -145,8 +154,17 @@ private class DatabaseMock : Database {
         from: Instant?,
         until: Instant?,
         limit: Int,
-        offset: Long
+        offset: Long,
+        sortParameter: ReservationSortParameter?,
+        sortOrder: SortOrder?
     ): Result<List<Reservation>> = fail()
+
+    override fun getReservationsSize(
+        usersIds: List<Int>,
+        roomsIds: List<Int>,
+        from: Instant?,
+        until: Instant?
+    ): Result<Long> = fail()
 
     override fun getReservation(reservationId: Int): Result<Reservation> = fail()
 
@@ -162,6 +180,7 @@ private class DatabaseMock : Database {
         fail()
 
     override fun getUsers(limit: Int, offset: Long): Result<List<ShortUserInfo>> = fail()
+    override fun getUsersSize(): Result<Long> = fail()
 
     override fun getFullUsers(limit: Int, offset: Long): Result<List<FullUserInfo>> = fail()
 
@@ -179,6 +198,18 @@ private class DatabaseMock : Database {
         userId: Int,
         permissions: List<UserPermission>
     ): Result<Unit> = fail()
+
+    override fun createInvite(tokenHash: ByteArray, inviteRequest: InviteRequest): Result<Unit> = fail()
+
+    override fun validateInvite(tokenHash: ByteArray): Result<Unit> = fail()
+
+    override fun updateInvite(tokenHash: ByteArray): Result<Unit> = fail()
+
+    override fun getInvites(limit: Int, offset: Long): Result<List<Invite>> = fail()
+
+    override fun getInvite(inviteId: Int): Result<Invite> = fail()
+
+    override fun deleteInvite(inviteId: Int): Result<Unit> = fail()
 
     override fun clear(): Result<Unit> = fail()
 }

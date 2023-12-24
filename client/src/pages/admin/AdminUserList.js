@@ -16,6 +16,8 @@ import {
 } from "@mui/material";
 import { CurrentUserContext, CurrentUserPermissionsContext } from "../../components/Auth";
 import PaginatedList from "../../components/PaginatedList";
+import {SnackbarContext} from "../../components/SnackbarAlert";
+
 
 const permissionsDefault = {
     "ReservationsCreate": false,
@@ -51,6 +53,8 @@ function PermCheckbox({perm, label, was, on_change}) {
 }
 
 function EditUserRow({user, refresh}) {
+
+    const {setNewMessageSnackbar} = useContext(SnackbarContext)
 
     const { currentUser } = useContext(CurrentUserContext)
     const { setCurrentUserPermissions } = useContext(CurrentUserPermissionsContext)
@@ -93,6 +97,10 @@ function EditUserRow({user, refresh}) {
     function permPutCallback(result, statusCode) {
         if (statusCode === 200) {
             permGetTriggerFetch()
+            setNewMessageSnackbar("User information updated successfully!")
+        }
+        else {
+            setNewMessageSnackbar("An error occurred.")
         }
     }
 

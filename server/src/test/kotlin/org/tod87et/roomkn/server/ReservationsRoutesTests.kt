@@ -11,16 +11,20 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import org.jetbrains.exposed.sql.SortOrder
 import org.junit.jupiter.api.Test
 import org.tod87et.roomkn.server.models.reservations.MultipleReservationResult
 import org.tod87et.roomkn.server.models.reservations.NewReservationBounds
 import org.tod87et.roomkn.server.models.reservations.Reservation
 import org.tod87et.roomkn.server.models.reservations.ReservationRequest
+import org.tod87et.roomkn.server.models.reservations.ReservationSortParameter
 import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
 import org.tod87et.roomkn.server.models.toRegistered
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
@@ -53,7 +57,7 @@ class ReservationsRoutesTests {
     @Test
     fun getAllReservations() = KtorTestEnv.testJsonApplication { client ->
         val myId = with(KtorTestEnv) {
-            client.createAndAuthUser("Alice")
+            client.createAndAuthAdmin("Alice")
         }
         val otherId = KtorTestEnv.createUser("Bob")
         val room301Id = KtorTestEnv.createRoom("301").id
@@ -91,6 +95,8 @@ class ReservationsRoutesTests {
                 Instant.parse("3000-01-19T00:00:00+00:00") + 2.hours
             )
         ).getOrThrow()
+        var count = client.get("$reservationsPath/size").body<Long>()
+        assertEquals(4, count)
         var bodyResponse = client.getRequestForAllReservationsWithQueryParams().body<List<Reservation>>()
         assertEquals(
             setOf(
@@ -102,6 +108,12 @@ class ReservationsRoutesTests {
             bodyResponse.toSet(),
             "Expect every reservations with empty queries"
         )
+        count = client.get("$reservationsPath/size") {
+            url {
+                parameters.append("user_ids", listOf(myId).joinToString(","))
+            }
+        }.body<Long>()
+        assertEquals(2, count)
         bodyResponse = client.getRequestForAllReservationsWithQueryParams(
             userIds = listOf(myId)
         ).body<List<Reservation>>()
@@ -155,6 +167,113 @@ class ReservationsRoutesTests {
     }
 
     @Test
+    fun getAllReservationsOrdered() = KtorTestEnv.testJsonApplication { client ->
+        val myId = with(KtorTestEnv) {
+            client.createAndAuthAdmin("Alice")
+        }
+        val otherId = KtorTestEnv.createUser("Bob")
+        val room301Id = KtorTestEnv.createRoom("301").id
+        val room302Id = KtorTestEnv.createRoom("302").id
+        val timestamp = Instant.parse("2023-12-07T00:00:00+00:00")
+        val reserveMyIdRoom301FirstHalf = KtorTestEnv.database.createReservation(
+            UnregisteredReservation(
+                myId,
+                room301Id,
+                timestamp,
+                timestamp + 1.hours
+            )
+        ).getOrThrow()
+        val reserveMyIdRoom302SecondHalf = KtorTestEnv.database.createReservation(
+            UnregisteredReservation(
+                myId,
+                room302Id,
+                timestamp + 1.hours,
+                timestamp + 2.hours
+            )
+        ).getOrThrow()
+        val reserveOtherIdRoom302FirstHalf = KtorTestEnv.database.createReservation(
+            UnregisteredReservation(
+                otherId,
+                room302Id,
+                timestamp,
+                timestamp + 1.hours
+            )
+        ).getOrThrow()
+        val reserveOtherIdRoom301SecondHalf = KtorTestEnv.database.createReservation(
+            UnregisteredReservation(
+                otherId,
+                room301Id,
+                Instant.parse("3000-01-19T00:00:00+00:00") + 1.hours,
+                Instant.parse("3000-01-19T00:00:00+00:00") + 2.hours
+            )
+        ).getOrThrow()
+
+        var bodyResponse = client.getRequestForAllReservationsWithQueryParams(
+            roomIds = listOf(room301Id),
+            sortParameter = ReservationSortParameter.OWNER_NAME,
+            sortOrder = SortOrder.ASC,
+        ).body<List<Reservation>>()
+        assertEquals(
+            listOf(
+                reserveMyIdRoom301FirstHalf,
+                reserveOtherIdRoom301SecondHalf,
+            ),
+            bodyResponse
+        )
+
+        bodyResponse = client.getRequestForAllReservationsWithQueryParams(
+            roomIds = listOf(room301Id),
+            sortParameter = ReservationSortParameter.OWNER_NAME,
+            sortOrder = SortOrder.DESC,
+        ).body<List<Reservation>>()
+        assertEquals(
+            listOf(
+                reserveOtherIdRoom301SecondHalf,
+                reserveMyIdRoom301FirstHalf,
+            ),
+            bodyResponse
+        )
+
+        bodyResponse = client.getRequestForAllReservationsWithQueryParams(
+            userIds = listOf(myId),
+            sortParameter = ReservationSortParameter.ROOM_NAME,
+            sortOrder = SortOrder.ASC,
+        ).body<List<Reservation>>()
+        assertEquals(
+            listOf(
+                reserveMyIdRoom301FirstHalf,
+                reserveMyIdRoom302SecondHalf,
+            ),
+            bodyResponse
+        )
+
+        bodyResponse = client.getRequestForAllReservationsWithQueryParams(
+            userIds = listOf(myId),
+            sortParameter = ReservationSortParameter.DATE_FROM,
+            sortOrder = SortOrder.DESC,
+        ).body<List<Reservation>>()
+        assertEquals(
+            listOf(
+                reserveMyIdRoom302SecondHalf,
+                reserveMyIdRoom301FirstHalf,
+            ),
+            bodyResponse
+        )
+        bodyResponse = client.getRequestForAllReservationsWithQueryParams(
+            userIds = listOf(myId),
+            sortParameter = ReservationSortParameter.DATE_UNTIL,
+            sortOrder = SortOrder.DESC,
+        ).body<List<Reservation>>()
+        assertEquals(
+            listOf(
+                reserveMyIdRoom302SecondHalf,
+                reserveMyIdRoom301FirstHalf,
+            ),
+            bodyResponse
+        )
+    }
+
+    @Test
     fun getReservationsByRoom() = KtorTestEnv.testJsonApplication { client ->
         val myId = with(KtorTestEnv) {
             client.createAndAuthUser()
@@ -186,6 +305,7 @@ class ReservationsRoutesTests {
 
     @Test
     fun reservationsReserve() = KtorTestEnv.testJsonApplication { client ->
+        val now = Clock.System.now()
         val me = with(KtorTestEnv) {
             client.createAndAuthUserWithInfo()
         }
@@ -193,8 +313,8 @@ class ReservationsRoutesTests {
 
         val reqReservation = ReservationRequest(
             room.id,
-            Instant.fromEpochMilliseconds(6.hours.inWholeMilliseconds),
-            Instant.fromEpochMilliseconds(7.hours.inWholeMilliseconds)
+            now + 6.hours,
+            now + 7.hours
         )
         val resp = client.post(reservationsPath) {
             contentType(ContentType.Application.Json)
@@ -215,6 +335,7 @@ class ReservationsRoutesTests {
 
     @Test
     fun reserve() = KtorTestEnv.testJsonApplication { client ->
+        val now = Clock.System.now()
         val me = with(KtorTestEnv) {
             client.createAndAuthUserWithInfo()
         }
@@ -222,8 +343,8 @@ class ReservationsRoutesTests {
 
         val reqReservation = ReservationRequest(
             room.id,
-            Instant.fromEpochMilliseconds(6.hours.inWholeMilliseconds),
-            Instant.fromEpochMilliseconds(7.hours.inWholeMilliseconds)
+            now + 6.hours,
+            now + 7.hours
         )
         val resp = client.post(reservePath) {
             contentType(ContentType.Application.Json)
@@ -243,6 +364,7 @@ class ReservationsRoutesTests {
 
     @Test
     fun reserveMultipleOk() = KtorTestEnv.testJsonApplication { client ->
+        val now = Clock.System.now()
         val me = with(KtorTestEnv) {
             client.createAndAuthUserWithInfo()
         }
@@ -251,13 +373,13 @@ class ReservationsRoutesTests {
         val reqReservations = listOf(
             ReservationRequest(
                 room.id,
-                Instant.fromEpochMilliseconds(6.hours.inWholeMilliseconds),
-                Instant.fromEpochMilliseconds(7.hours.inWholeMilliseconds)
+                now + 6.hours,
+                now + 7.hours
             ),
             ReservationRequest(
                 room.id,
-                Instant.fromEpochMilliseconds(7.hours.inWholeMilliseconds),
-                Instant.fromEpochMilliseconds(8.hours.inWholeMilliseconds)
+                now + 7.hours,
+                now + 8.hours
             ),
         )
         val resp = client.post(reserveMultiplePath) {
@@ -288,6 +410,8 @@ class ReservationsRoutesTests {
 
     @Test
     fun reserveMultipleOkFail() = KtorTestEnv.testJsonApplication { client ->
+        val now = Clock.System.now()
+
         val me = with(KtorTestEnv) {
             client.createAndAuthUserWithInfo()
         }
@@ -296,13 +420,13 @@ class ReservationsRoutesTests {
         val reqReservations = listOf(
             ReservationRequest(
                 room.id,
-                Instant.fromEpochMilliseconds(6.hours.inWholeMilliseconds),
-                Instant.fromEpochMilliseconds(7.hours.inWholeMilliseconds)
+                now + 6.hours,
+                now + 7.hours
             ),
             ReservationRequest(
                 room.id,
-                Instant.fromEpochMilliseconds(6.hours.inWholeMilliseconds),
-                Instant.fromEpochMilliseconds(8.hours.inWholeMilliseconds)
+                now + 6.hours,
+                now + 8.hours
             ),
         )
         val resp = client.post(reserveMultiplePath) {
@@ -331,6 +455,7 @@ class ReservationsRoutesTests {
 
     @Test
     fun reserveMultipleFail() = KtorTestEnv.testJsonApplication { client ->
+        val now = Clock.System.now()
         val myId = with(KtorTestEnv) {
             client.createAndAuthUser()
         }
@@ -340,24 +465,23 @@ class ReservationsRoutesTests {
             UnregisteredReservation(
                 myId,
                 room.id,
-                Instant.fromEpochMilliseconds(6.hours.inWholeMilliseconds),
-                Instant.fromEpochMilliseconds(8.hours.inWholeMilliseconds)
+                now + 6.hours,
+                now + 8.hours
             )
         )
 
         val reqReservations = listOf(
             ReservationRequest(
                 room.id,
-                Instant.fromEpochMilliseconds(6.hours.inWholeMilliseconds),
-                Instant.fromEpochMilliseconds(7.hours.inWholeMilliseconds)
+                now + 6.hours,
+                now + 7.hours
             ),
             ReservationRequest(
                 room.id,
-                Instant.fromEpochMilliseconds(7.hours.inWholeMilliseconds),
-                Instant.fromEpochMilliseconds(8.hours.inWholeMilliseconds)
+                now + 7.hours,
+                now + 8.hours
             ),
         )
-
         val resp = client.post(reserveMultiplePath) {
             contentType(ContentType.Application.Json)
             setBody(reqReservations)
@@ -365,6 +489,86 @@ class ReservationsRoutesTests {
 
         assertEquals(0, resp.success.size)
         assertEquals(2, resp.failure.size)
+    }
+
+    @Test
+    fun reserveTooLongFail() = KtorTestEnv.testJsonApplication { client ->
+        val now = Clock.System.now()
+        with(KtorTestEnv) {
+            client.createAndAuthUser()
+        }
+        val room = KtorTestEnv.createRoom("301")
+
+        val reqReservation = ReservationRequest(
+            room.id,
+            now + 6.hours,
+            now + 10.days
+        )
+        val resp = client.post(reservePath) {
+            contentType(ContentType.Application.Json)
+            setBody(reqReservation)
+        }
+        assertEquals(HttpStatusCode.Forbidden, resp.status)
+    }
+
+    @Test
+    fun reserveInPastFail() = KtorTestEnv.testJsonApplication { client ->
+        val now = Clock.System.now()
+        with(KtorTestEnv) {
+            client.createAndAuthUser()
+        }
+        val room = KtorTestEnv.createRoom("301")
+
+        val reqReservation = ReservationRequest(
+            room.id,
+            now - 10.days,
+            now - 10.days + 1.hours
+        )
+        val resp = client.post(reservePath) {
+            contentType(ContentType.Application.Json)
+            setBody(reqReservation)
+        }
+        assertEquals(HttpStatusCode.Forbidden, resp.status)
+    }
+
+    @Test
+    fun reserveInFutureFail() = KtorTestEnv.testJsonApplication { client ->
+        val now = Clock.System.now()
+        with(KtorTestEnv) {
+            client.createAndAuthUser()
+        }
+        val room = KtorTestEnv.createRoom("301")
+
+        val reqReservation = ReservationRequest(
+            room.id,
+            now + 100.days,
+            now + 100.days + 1.hours
+        )
+        val resp = client.post(reservePath) {
+            contentType(ContentType.Application.Json)
+            setBody(reqReservation)
+        }
+        assertEquals(HttpStatusCode.Forbidden, resp.status)
+    }
+
+    @Test
+    fun reserveInFutureAdmin() = KtorTestEnv.testJsonApplication { client ->
+        val now = Clock.System.now()
+        with(KtorTestEnv) {
+            client.createAndAuthAdmin()
+        }
+        val room = KtorTestEnv.createRoom("301")
+
+        val reqReservation = ReservationRequest(
+            room.id,
+            now + 100.days,
+            now + 100.days + 1.hours
+        )
+        val resp = client.post(reservePath) {
+            contentType(ContentType.Application.Json)
+            setBody(reqReservation)
+        }
+        assertEquals(HttpStatusCode.Created, resp.status)
     }
 
     @Test
@@ -468,6 +672,8 @@ class ReservationsRoutesTests {
         roomIds: List<Int>? = null,
         from: Instant? = null,
         until: Instant? = null,
+        sortParameter: ReservationSortParameter? = null,
+        sortOrder: SortOrder? = null,
     ): HttpResponse {
         return this.get(reservationsPath) {
             url {
@@ -482,6 +688,12 @@ class ReservationsRoutesTests {
                 }
                 if (until != null) {
                     parameters.append("until", until.toString())
+                }
+                if (sortParameter != null) {
+                    parameters.append("sort_by", sortParameter.toString().lowercase())
+                }
+                if (sortOrder != null) {
+                    parameters.append("sort_order", sortOrder.toString().lowercase())
                 }
             }
         }

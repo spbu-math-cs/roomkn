@@ -112,7 +112,10 @@ function Reservation({reservation, display_user}) {
     function deleteCallback(result, statusCode) {
         if (statusCode === 200 && result != null) {
             setDeleted(true)
-            setNewMessageSnackbar("reservation deleted!")
+            setNewMessageSnackbar("Reservation deleted!")
+        }
+        else {
+            setNewMessageSnackbar("An error occurred.")
         }
     }
 
