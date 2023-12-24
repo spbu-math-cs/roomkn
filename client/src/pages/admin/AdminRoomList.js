@@ -1,17 +1,16 @@
 import ContentWrapper from "../../components/Content";
 import useSomeAPI from "../../api/FakeAPI";
-import React, {useEffect, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import {NavLink} from "react-router-dom";
 
 import "./AdminRoomList.css"
 import AdminWrapper from "../../components/AdminWrapper";
 import {Box, Button, Stack, TextField, useTheme} from "@mui/material";
-import SnackbarAlert from "../../components/SnackbarAlert";
+import {SnackbarContext} from "../../components/SnackbarAlert";
 
 function EditRoomRow({room, refresh}) {
 
-    let [snackbarVis, setSnackbarVis] = useState(false)
-    let [putStatusCode, setPutStatusCode] = useState(0)
+    let {setNewMessageSnackbar} = useContext(SnackbarContext)
 
     let {triggerFetch} = useSomeAPI('/api/v0/rooms/' + room.id, null, 'GET', roomGetCallback)
     //eslint-disable-next-line react-hooks/exhaustive-deps
@@ -36,8 +35,8 @@ function EditRoomRow({room, refresh}) {
         description: desc
     }
 
-    const {triggerFetch: triggerPut} = useSomeAPI("/api/v0/rooms/" + room.id, put_data, "PUT", putDeleteCallback)
-    const {triggerFetch: triggerDelete} = useSomeAPI("/api/v0/rooms/" + room.id, null, "DELETE", putDeleteCallback)
+    const {triggerFetch: triggerPut} = useSomeAPI("/api/v0/rooms/" + room.id, put_data, "PUT", putCallback)
+    const {triggerFetch: triggerDelete} = useSomeAPI("/api/v0/rooms/" + room.id, null, "DELETE", deleteCallback)
 
 
 
@@ -54,10 +53,24 @@ function EditRoomRow({room, refresh}) {
         triggerDelete()
     }
 
-    function putDeleteCallback(result, statusCode) {
-        setSnackbarVis(true)
-        setPutStatusCode(statusCode)
-        refresh()
+    function deleteCallback(result, statusCode) {
+        if (statusCode === 200) {
+            setNewMessageSnackbar("Room deleted successfully!")
+            refresh()
+        }
+        else {
+            setNewMessageSnackbar("An error occurred.")
+        }
+    }
+
+    function putCallback(result, statusCode) {
+        if (statusCode === 200) {
+            setNewMessageSnackbar("Room updated successfully!")
+            refresh()
+        }
+        else {
+            setNewMessageSnackbar("An error occurred.")
+        }
     }
 
     const theme = useTheme()
@@ -75,9 +88,6 @@ function EditRoomRow({room, refresh}) {
             <Button variant="outlined" color="secondary" onClick={reset}>reset</Button>
             <Button variant="contained" color="success" onClick={put_req}>update</Button>
             <Button variant="outlined" color="error" onClick={delete_req}>delete</Button>
-            <SnackbarAlert label={"Status code: " + putStatusCode} shouldShow={snackbarVis} closeSelf={() => {
-                setSnackbarVis(false)
-            }}/>
         </Stack>
     )
 }
@@ -85,6 +95,8 @@ function EditRoomRow({room, refresh}) {
 function AddRoom({refresh}) {
     const [name, setName] = useState("")
     const [desc, setDesc] = useState("")
+
+    const {setNewMessageSnackbar} = useContext(SnackbarContext)
 
     const put_data = {
         name: name,
@@ -100,6 +112,10 @@ function AddRoom({refresh}) {
     function addCallback(result, statusCode) {
         if (statusCode === 200) {
             refresh()
+            setNewMessageSnackbar("Room added successfully!")
+        }
+        else {
+            setNewMessageSnackbar("An error occurred.")
         }
     }
 
