@@ -6,7 +6,7 @@ import {NavLink} from "react-router-dom";
 import "./AdminRoomList.css"
 import AdminWrapper from "../../components/AdminWrapper";
 import {Box, Button, Skeleton, Stack, TextField, useTheme} from "@mui/material";
-import SnackbarAlert, {SnackbarContext} from "../../components/SnackbarAlert";
+import {SnackbarContext} from "../../components/SnackbarAlert";
 import PaginatedList from "../../components/PaginatedList";
 
 function EditRoomRow({room, refresh}) {
