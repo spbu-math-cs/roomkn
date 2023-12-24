@@ -18,7 +18,6 @@ import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import kotlinx.datetime.toInstant
 import org.jetbrains.exposed.sql.SortOrder
 import org.koin.ktor.ext.inject
 import org.tod87et.roomkn.server.auth.AuthSession
@@ -229,7 +228,7 @@ private fun Route.reserveMultipleRouting(database: Database) {
 
 private fun Route.reservationListRouting(database: Database) {
     get {
-        call.requireReservationCreatePermission(database) { return@get call.onMissingPermission() }
+        call.requireAdminPermission(database) { return@get call.onMissingPermission() }
 
         val from = call.request.queryParameters["from"].toResultInstantOrNull()
             .getOrElse { return@get call.onIncorrectTimestamp() }
@@ -292,7 +291,7 @@ private fun Route.reservationListRouting(database: Database) {
         val userIdsString = call.request.queryParameters["user_ids"]
         val roomIdsString = call.request.queryParameters["room_ids"]
 
-        call.requireReservationCreatePermission(database) { return@get call.onMissingPermission() }
+        call.requireAdminPermission(database) { return@get call.onMissingPermission() }
 
         val userIds = userIdsString?.split(",")?.map {
             it.toIntOrNull() ?: return@get call.respondText(
@@ -343,6 +342,13 @@ private fun ApplicationCall.isReservationAdmin(
 ): Boolean {
     val session = principal<AuthSession>() ?: return false
     return database.getUserPermissions(session.userId).getOrNull()?.contains(UserPermission.ReservationsAdmin) == true
+}
+
+private inline fun ApplicationCall.requireAdminPermission(
+    database: Database,
+    onPermissionMissing: () -> Nothing
+) {
+    requirePermissionOrSelfImpl(null, database, UserPermission.ReservationsAdmin, onPermissionMissing)
 }
 
 private inline fun ApplicationCall.requirePermissionOrSelf(

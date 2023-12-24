@@ -57,7 +57,7 @@ class ReservationsRoutesTests {
     @Test
     fun getAllReservations() = KtorTestEnv.testJsonApplication { client ->
         val myId = with(KtorTestEnv) {
-            client.createAndAuthUser("Alice")
+            client.createAndAuthAdmin("Alice")
         }
         val otherId = KtorTestEnv.createUser("Bob")
         val room301Id = KtorTestEnv.createRoom("301").id
@@ -169,7 +169,7 @@ class ReservationsRoutesTests {
     @Test
     fun getAllReservationsOrdered() = KtorTestEnv.testJsonApplication { client ->
         val myId = with(KtorTestEnv) {
-            client.createAndAuthUser("Alice")
+            client.createAndAuthAdmin("Alice")
         }
         val otherId = KtorTestEnv.createUser("Bob")
         val room301Id = KtorTestEnv.createRoom("301").id
