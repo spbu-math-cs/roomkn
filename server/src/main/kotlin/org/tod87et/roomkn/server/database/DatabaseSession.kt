@@ -1,12 +1,11 @@
 package org.tod87et.roomkn.server.database
 
-import java.sql.Connection
-import javax.sql.DataSource
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -38,6 +37,8 @@ import org.tod87et.roomkn.server.models.users.UpdateUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfoWithNull
 import org.tod87et.roomkn.server.models.users.UserCredentialsInfo
 import org.tod87et.roomkn.server.models.users.UserInfo
+import java.sql.Connection
+import javax.sql.DataSource
 import org.tod87et.roomkn.server.database.Database as RooMknDatabase
 
 class DatabaseSession private constructor(private val database: Database) :
@@ -207,15 +208,7 @@ class DatabaseSession private constructor(private val database: Database) :
                 ReservationSortParameter.ROOM_NAME -> Rooms.name
                 null -> Reservations.from
             }
-            (Reservations innerJoin Users innerJoin Rooms)
-                .select {
-                    val userCondition = if (usersIds.isEmpty()) Op.TRUE else Reservations.userId inList usersIds
-                    val roomCondition = if (roomsIds.isEmpty()) Op.TRUE else Reservations.roomId inList roomsIds
-                    val untilCondition = if (until == null) Op.TRUE else Reservations.from less until
-                    val fromCondition = if (from == null) Op.TRUE else (Reservations.until greater from)
-                    val dateCondition = untilCondition and fromCondition
-                    userCondition and roomCondition and dateCondition
-                }
+            selectReservations(usersIds, roomsIds, until, from)
                 .orderBy(
                     sortParam to (sortOrder ?: SortOrder.ASC),
                     Reservations.id to (sortOrder ?: SortOrder.ASC)
@@ -242,16 +235,25 @@ class DatabaseSession private constructor(private val database: Database) :
         until: Instant?
     ): Result<Long> = queryWrapper {
         transaction(database) {
-            (Reservations innerJoin Users innerJoin Rooms)
-                .select {
-                    val userCondition = if (usersIds.isEmpty()) Op.TRUE else Reservations.userId inList usersIds
-                    val roomCondition = if (roomsIds.isEmpty()) Op.TRUE else Reservations.roomId inList roomsIds
-                    val untilCondition = if (until == null) Op.TRUE else Reservations.from less until
-                    val fromCondition = if (from == null) Op.TRUE else (Reservations.until greater from)
-                    val dateCondition = untilCondition and fromCondition
-                    userCondition and roomCondition and dateCondition
-                }.count()
+            selectReservations(usersIds, roomsIds, until, from).count()
         }
+    }
+
+    private fun selectReservations(
+        usersIds: List<Int>,
+        roomsIds: List<Int>,
+        until: Instant?,
+        from: Instant?
+    ): Query {
+        return (Reservations innerJoin Users innerJoin Rooms)
+            .select {
+                val userCondition = if (usersIds.isEmpty()) Op.TRUE else Reservations.userId inList usersIds
+                val roomCondition = if (roomsIds.isEmpty()) Op.TRUE else Reservations.roomId inList roomsIds
+                val untilCondition = if (until == null) Op.TRUE else Reservations.from less until
+                val fromCondition = if (from == null) Op.TRUE else (Reservations.until greater from)
+                val dateCondition = untilCondition and fromCondition
+                userCondition and roomCondition and dateCondition
+            }
     }
 
     private fun Transaction.tryCreateReservation(reservation: UnregisteredReservation): Reservation? {
