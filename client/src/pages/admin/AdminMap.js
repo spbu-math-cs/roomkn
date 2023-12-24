@@ -101,6 +101,8 @@ function MapUpdate({setMap, editMap}) {
 
 function MapDownload({setMap, setEditMap}) {
 
+    const {setNewMessageSnackbar} = useContext(SnackbarContext)
+
     const {map: downloaded_map, triggerGetMap} = GetMap()
 
     function download() {
@@ -110,6 +112,7 @@ function MapDownload({setMap, setEditMap}) {
     useEffect(() => {
         setMap(downloaded_map)
         setEditMap(JSON.stringify(downloaded_map))
+        setNewMessageSnackbar("Downloaded map from the server!")
 
         // setNewMessageSnackbar("Map downloaded from server")
         // eslint-disable-next-line react-hooks/exhaustive-deps
