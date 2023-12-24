@@ -164,14 +164,14 @@ class AuthTest {
         val token = response.bodyAsText()
         client.logout()
         val newUser = UnregisteredUserInfo("Invited", "new_user@best.mail.com", "1234")
-        response = client.get(registerTokenPath(token)) {
+        response = client.post(registerTokenPath(token)) {
             contentType(ContentType.Application.Json)
             setBody(newUser)
         }
         assertEquals(HttpStatusCode.OK, response.status)
-
+        client.logout()
         val uninvitedUser = UnregisteredUserInfo("Uninvited", "bad_user@best.mail.com", "5678")
-        response = client.get(registerTokenPath(token)) {
+        response = client.post(registerTokenPath(token)) {
             contentType(ContentType.Application.Json)
             setBody(uninvitedUser)
         }
