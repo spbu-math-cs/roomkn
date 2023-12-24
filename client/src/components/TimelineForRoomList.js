@@ -1,10 +1,9 @@
 import {fromAPITime} from '../api/API';
 import "./TimelineForRoomList.css"
 import "./Timeline.css"
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext} from 'react';
 import {Box, Divider, Skeleton, Stack, Tooltip, Typography, useMediaQuery, useTheme} from "@mui/material";
 import {CurrentUserContext} from "./Auth";
-import useSomeAPI from "../api/FakeAPI";
 
 function Reservation({
                          reservation,
@@ -17,29 +16,7 @@ function Reservation({
 
     const {currentUser} = useContext(CurrentUserContext)
 
-    let [reservedUsername, setReservedUsername] = useState('')
-
-    let {triggerFetch} = useSomeAPI('/api/v0/users/' + reservation.user_id, null, 'GET', userCallback)
-
-    function userCallback(result, statusCode) {
-        if (statusCode === 200 && result != null) {
-            setReservedUsername(result?.username)
-        }
-    }
-
-    useEffect(() => {
-        if (!is_current_reservation && show_reservation_labels)
-            triggerFetch()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reservation])
-
-
-    useEffect(() => {
-        if (is_current_reservation) {
-            setReservedUsername(currentUser.username)
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentUser])
+    const reservedUsername = reservation.user_name
 
     const fromReservationObj = fromAPITime(reservation.from)
     const untilReservationObj = fromAPITime(reservation.until)
@@ -78,10 +55,15 @@ function Reservation({
         height: height,
         zIndex: -1,
     }
+    if (currentUser?.user_id === reservation.user_id) {
+        sx_wrapper.background = "#5555ffff"
+        sx_wrapper.zIndex = 1
+    }
     if (is_current_reservation) {
         sx_wrapper.background = "#9999ff77"
         sx_wrapper.zIndex = 1
     }
+
 
     const tooltip = (
         <Stack spacing={2} direction="row">
