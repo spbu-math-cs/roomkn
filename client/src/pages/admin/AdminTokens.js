@@ -2,6 +2,7 @@ import ContentWrapper from "../../components/Content";
 import useSomeAPI from "../../api/FakeAPI";
 import React, {useContext, useEffect, useState} from "react";
 import {NavLink} from "react-router-dom";
+import copy from 'copy-to-clipboard';
 
 import "./AdminRoomList.css"
 import AdminWrapper from "../../components/AdminWrapper";
@@ -9,6 +10,11 @@ import {Box, Button, SnackbarContent, Stack, TextField, useTheme} from "@mui/mat
 import {SnackbarAlert, SnackbarContext} from "../../components/SnackbarAlert";
 
 import {dateFormat, getTodayDate} from "../../api/API"
+import { DatePicker } from "@mui/x-date-pickers";
+import dayjs from "dayjs";
+
+import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
+import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
 
 function TokenRow({tokenInfo, refresh}) {
 
@@ -58,7 +64,7 @@ function TokenRow({tokenInfo, refresh}) {
             <Box sx={{minWidth: "30pt"}}>{tokenInfo.id}</Box>
             <TextField InputLabelProps={{shrink: true, readonly: true}}
                        label="Value"
-                       variant="outlined" value={token}/>
+                       variant="outlined" value={constructInviteLink(token)}/>
             <TextField variant="outlined" label="Until" value={tokenInfo.until}/>
             <TextField variant="outlined" label="Remaining people" value={tokenInfo.remaining}/>
             <Button variant="contained" color="success" onClick={get_req}>retrieve</Button>
@@ -70,6 +76,8 @@ function TokenRow({tokenInfo, refresh}) {
 function AddToken({refresh}) {
     const [until, setUntil] = useState(getTodayDate())
     const [people, setPeople] = useState(1)
+    const [token, setToken] = useState('')
+    const [tokenVisible, setTokenVisible] = useState(false)
 
     let {setNewMessageSnackbar} = useContext(SnackbarContext)
 
@@ -81,12 +89,20 @@ function AddToken({refresh}) {
     const {triggerFetch} = useSomeAPI("/api/v0/users/invite", put_data, "POST", createCallback)
 
     const add_req = () => {
+        setTokenVisible(false)
         triggerFetch()
     }
 
     function createCallback(result, statusCode) {
         if (statusCode === 200) {
-            // TODO clipboard
+
+            let fullToken = constructInviteLink(result)
+
+            // copy to clipboard
+            copy(constructInviteLink(result))
+
+            setToken(fullToken)
+            setTokenVisible(true)
             setNewMessageSnackbar("Token created! The invite link has been copied to the clipboard.")
             refresh()
         }
@@ -99,9 +115,17 @@ function AddToken({refresh}) {
 
     return (
         <Stack direction="row" spacing={theme.spacing()}>
-            <TextField label="Expires on" variant="outlined" value={until} onChange={(e) => setUntil(e.target.value)}/>
-            <TextField label="Number of people able to be invited" variant="outlined" value={people} onChange={(e) => setPeople(e.target.value)}/>
-            <Button variant="contained" color="success" onClick={add_req}>create</Button>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker id="date" label="Expires on" type="date" value={dayjs(until)}
+                            onChange={(v) => {
+                                setUntil(dateFormat(v.toDate()));
+                            }}
+                            format="DD.MM.YYYY"
+                    />
+                <TextField label="Max people" variant="outlined" value={people} onChange={(e) => setPeople(e.target.value)}/>
+                <Button variant="contained" color="success" onClick={add_req}>create</Button>
+                {tokenVisible && <TextField InputLabelProps={{readonly: true}} label="Generated link" variant="outlined" value={token}/>}
+            </LocalizationProvider>
         </Stack>
     )
 }
@@ -150,6 +174,12 @@ export function AdminTokenList() {
             </ContentWrapper>
         </AdminWrapper>
     )
+}
+
+function constructInviteLink(token) {
+    const inviteLink = window.location.href.split('admin')[0] + 'invite/' + token
+    console.log(inviteLink)
+    return inviteLink
 }
 
 export default AdminTokenList
