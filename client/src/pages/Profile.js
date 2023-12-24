@@ -99,6 +99,51 @@ function ProfileChangeForm({id, actUsername, actEmail, triggerRefetch}) {
     );
 }
 
+function PasswordChangeForm({id}) {
+
+    const [oldPassword, setOldPassword] = useState('')
+    const [newPassword, setNewPassword] = useState('')
+
+    const put_data = {
+        oldPassword: oldPassword,
+        newPassword: newPassword
+    }
+
+    let {triggerFetch} = useSomeAPI('/api/v0/users/' + id + '/password', put_data, 'PUT', passwordChangeCallback)
+
+    const {setNewMessageSnackbar} = useContext(SnackbarContext)
+
+    function passwordChangeCallback(result, statusCode) {
+        if (statusCode === 200) {
+            setNewMessageSnackbar('Password updated successfully!')
+            setOldPassword('')
+            setNewPassword('')
+        }
+        else {
+            setNewMessageSnackbar('An error occurred.')
+        }
+    }
+
+    const handleSubmit = (e) => {
+        e.preventDefault()
+
+        triggerFetch()
+    }
+
+    return (
+        <ContentWrapper page_name="Change password">
+            <Stack spacing={1}>
+                <TextField variant="outlined" type={"password"} label="Old password" value={oldPassword}
+                           onChange={(e) => setOldPassword(e.target.value)}/>
+                <TextField variant="outlined" type={"password"} label="New password" value={newPassword}
+                           onChange={(e) => setNewPassword(e.target.value)}/>
+                <Button color="secondary" variant="outlined" onClick={handleSubmit}
+                        sx={{width: "100pt"}}>Change</Button>
+            </Stack>
+        </ContentWrapper>
+    );
+}
+
 const Profile = () => {
 
     let [presult, setPresult] = useState(null)
@@ -158,6 +203,7 @@ const Profile = () => {
                 <Typography sx={{fontSize: 24}}>
                     <ProfileChangeForm id={currentUser?.user_id} actUsername={presult.username} actEmail={presult.email}
                                        triggerRefetch={triggerFetch}></ProfileChangeForm>
+                    <PasswordChangeForm id={currentUser?.user_id}></PasswordChangeForm>
                 </Typography>
             </Stack>
         )
