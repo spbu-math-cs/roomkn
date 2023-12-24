@@ -18,7 +18,6 @@ import io.ktor.server.routing.route
 import java.security.MessageDigest
 import java.util.Date
 import kotlinx.datetime.toJavaInstant
-import org.koin.dsl.koinApplication
 import org.koin.ktor.ext.inject
 import org.tod87et.roomkn.server.auth.AccountController
 import org.tod87et.roomkn.server.auth.AuthConfig
@@ -46,7 +45,13 @@ fun Route.usersRouting() {
             setUserPermissions(database)
             updateUserCredentials(database)
             generateInvite(database)
+            route("/invitations") {
+                getInvitations(database)
+                getInvitation(database)
+                deleteInvitation(database)
+            }
         }
+        validateInvitationToken(database)
     }
 }
 
@@ -158,6 +163,31 @@ private fun Route.generateInvite(database: Database) {
         }
     }
 }
+
+private fun Route.getInvitations(database: Database) {
+    get {
+        TODO("check admin + code")
+    }
+}
+
+private fun Route.getInvitation(database: Database) {
+    get("/{id}"){
+        TODO("check admin + code")
+    }
+}
+
+private fun Route.deleteInvitation(database: Database) {
+    delete("/{id}") {
+        TODO("check admin + code")
+    }
+}
+
+private fun Route.validateInvitationToken(database: Database) {
+    get("/invite/validate-token/{token} ") {
+        TODO("code")
+    }
+}
+
 
 private suspend fun ApplicationCall.handleException(ex: Throwable) {
     when (ex) {
