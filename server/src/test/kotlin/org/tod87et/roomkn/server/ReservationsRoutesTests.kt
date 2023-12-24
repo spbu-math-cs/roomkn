@@ -451,7 +451,7 @@ class ReservationsRoutesTests {
             contentType(ContentType.Application.Json)
             setBody(reqReservation)
         }
-        assertEquals(HttpStatusCode.OK, resp.status)
+        assertEquals(HttpStatusCode.Created, resp.status)
     }
 
     @Test
