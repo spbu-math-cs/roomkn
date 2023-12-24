@@ -23,7 +23,6 @@ import org.tod87et.roomkn.server.auth.AuthenticationProvider
 import org.tod87et.roomkn.server.auth.NoSuchUserException
 import org.tod87et.roomkn.server.auth.RegistrationFailedException
 import org.tod87et.roomkn.server.auth.userId
-import org.tod87et.roomkn.server.database.Database
 import org.tod87et.roomkn.server.database.MissingElementException
 import org.tod87et.roomkn.server.di.injectDatabase
 import org.tod87et.roomkn.server.models.users.LoginUserInfo
@@ -35,12 +34,12 @@ import org.tod87et.roomkn.server.util.defaultExceptionHandler
 
 fun Route.accountRouting() {
     val config: AuthConfig by inject()
-    val threadLocal = ThreadLocal.withInitial { MessageDigest.getInstance(config.hashingAlgorithmId) }
+    val threadLocalDigest = ThreadLocal.withInitial { MessageDigest.getInstance(config.hashingAlgorithmId) }
     val accountController: AccountController by inject()
     loginRouting(accountController)
     logoutRouting(accountController)
     validateTokenRouting()
-    registerRouting(accountController, threadLocal)
+    registerRouting(accountController, threadLocalDigest)
 }
 
 private fun Route.loginRouting(accountController: AccountController) {
@@ -81,7 +80,7 @@ private fun Route.validateTokenRouting() {
     }
 }
 
-private fun Route.registerRouting(accountController: AccountController, threadLocal: ThreadLocal<MessageDigest>) {
+private fun Route.registerRouting(accountController: AccountController, threadLocalDigest: ThreadLocal<MessageDigest>) {
     post("/register") { body: UnregisteredUserInfo ->
         accountController.registerUser(body)
             .onSuccess { authSession ->
@@ -95,7 +94,7 @@ private fun Route.registerRouting(accountController: AccountController, threadLo
     val database by injectDatabase()
     post("/register/{token}") { body: UnregisteredUserInfo ->
         val token = call.parameters["token"] ?: return@post call.respondText("Empty token", status = HttpStatusCode.BadRequest)
-        val digest = threadLocal.get()
+        val digest = threadLocalDigest.get()
         digest.update(token.toByteArray())
         database.updateInvite(digest.digest())
             .onSuccess {

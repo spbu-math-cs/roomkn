@@ -36,7 +36,7 @@ import org.tod87et.roomkn.server.util.okResponse
 
 fun Route.usersRouting() {
     val config: AuthConfig by inject()
-    val threadLocal = ThreadLocal.withInitial { MessageDigest.getInstance(config.hashingAlgorithmId) }
+    val threadLocalDigest = ThreadLocal.withInitial { MessageDigest.getInstance(config.hashingAlgorithmId) }
     val database: Database by injectDatabase()
     authenticate(AuthenticationProvider.SESSION) {
         route("/users") {
@@ -47,14 +47,14 @@ fun Route.usersRouting() {
             listUserPermissions(database)
             setUserPermissions(database)
             updateUserCredentials(database)
-            generateInvite(database, threadLocal)
+            generateInvite(database, threadLocalDigest)
             route("/invitations") {
                 getInvitations(database)
                 getInvitationToken(database)
                 deleteInvitation(database)
             }
         }
-        validateInvitationToken(database, threadLocal)
+        validateInvitationToken(database, threadLocalDigest)
     }
 }
 
@@ -148,12 +148,12 @@ private fun generateToken(invite: InviteRequest, config: AuthConfig): String {
         .sign(Algorithm.HMAC256(config.secret))
 }
 
-private fun Route.generateInvite(database: Database, threadLocal: ThreadLocal<MessageDigest>) {
+private fun Route.generateInvite(database: Database, threadLocalDigest: ThreadLocal<MessageDigest>) {
     val config: AuthConfig by inject()
     post("/invite") { body: InviteRequest ->
         call.requirePermission(database) { return@post call.onMissingPermission() }
         val token = generateToken(body, config)
-        val digest = threadLocal.get()
+        val digest = threadLocalDigest.get()
         digest.update(token.toByteArray())
         val tokenResult = database.createInvite(digest.digest(), body)
         tokenResult.onSuccess {
@@ -197,13 +197,13 @@ private fun Route.deleteInvitation(database: Database) {
     }
 }
 
-private fun Route.validateInvitationToken(database: Database, threadLocal: ThreadLocal<MessageDigest>) {
+private fun Route.validateInvitationToken(database: Database, threadLocalDigest: ThreadLocal<MessageDigest>) {
     get("/invite/validate-token/{token}") {
         val token = call.parameters["token"] ?: return@get call.respondText(
             "Invalid or missing token",
             status = HttpStatusCode.BadRequest
         )
-        val digest = threadLocal.get()
+        val digest = threadLocalDigest.get()
         digest.update(token.toByteArray())
         database.validateInvite(digest.digest()).okResponseWithHandleException(call)
     }
