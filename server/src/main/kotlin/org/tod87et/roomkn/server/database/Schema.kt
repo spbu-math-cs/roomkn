@@ -51,6 +51,7 @@ object InviteTokens: Table() {
     val id: Column<Int> = integer("id").autoIncrement()
     val expirationDate: Column<Instant> = timestamp("expirationDate")
     val remaining: Column<Int> = integer("remaining")
+    val size: Column<Int> = integer("size")
     override val primaryKey = PrimaryKey(Map.id)
 }
 

@@ -24,8 +24,10 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import org.jetbrains.exposed.sql.upsert
 import org.postgresql.util.PSQLException
+import org.tod87et.roomkn.server.database.InviteTokens.expirationDate
 import org.tod87et.roomkn.server.database.InviteTokens.inviteTokenHash
 import org.tod87et.roomkn.server.database.InviteTokens.remaining
+import org.tod87et.roomkn.server.database.InviteTokens.size
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.reservations.Reservation
 import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
@@ -436,7 +438,8 @@ class DatabaseSession private constructor(private val database: Database) :
     override fun updateInvite(tokenHash: ByteArray): Result<Boolean> = queryWrapper {
         transaction(database) {
             val now = Clock.System.now()
-            val row = InviteTokens.select { inviteTokenHash eq tokenHash }.firstOrNull() ?: throw MissingElementException()
+            val row =
+                InviteTokens.select { inviteTokenHash eq tokenHash }.firstOrNull() ?: throw MissingElementException()
             val count =
                 InviteTokens.update({
                     (inviteTokenHash eq tokenHash) and
@@ -449,12 +452,34 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
-    override fun getInvites(): Result<List<Invite>> {
-        TODO("Not yet implemented")
+    override fun getInvites(limit: Int, offset: Long): Result<List<Invite>> = queryWrapper {
+        transaction(database) {
+            val now = Clock.System.now()
+            InviteTokens.select { remaining greater 0 and (expirationDate greater now) }
+                .orderBy(expirationDate to SortOrder.ASC).limit(limit, offset).map {
+                    Invite(
+                        id = it[InviteTokens.id],
+                        remaining = it[remaining],
+                        size = it[size],
+                        until = it[expirationDate],
+                    )
+                }
+        }
     }
 
-    override fun getInvite(inviteId: Int): Result<Invite> {
-        TODO("Not yet implemented")
+    override fun getInvite(inviteId: Int): Result<Invite> = queryWrapper {
+        transaction(database) {
+            val now = Clock.System.now()
+            val row =
+                InviteTokens.select { (remaining greater 0) and (expirationDate greater now) and (InviteTokens.id eq inviteId) }
+                    .firstOrNull() ?: throw MissingElementException()
+            Invite(
+                id = row[InviteTokens.id],
+                remaining = row[remaining],
+                until = row[expirationDate],
+                size = row[size],
+            )
+        }
     }
 
     override fun createInvite(tokenHash: ByteArray, inviteRequest: InviteRequest): Result<Unit> = queryWrapper {
@@ -463,6 +488,7 @@ class DatabaseSession private constructor(private val database: Database) :
                 it[inviteTokenHash] = tokenHash
                 it[remaining] = inviteRequest.size
                 it[expirationDate] = inviteRequest.until
+                it[size] = inviteRequest.size
             }
         }
     }

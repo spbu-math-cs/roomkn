@@ -68,7 +68,7 @@ interface Database {
     fun createInvite(tokenHash: ByteArray, inviteRequest: InviteRequest): Result<Unit>
     fun validateInvite(tokenHash: ByteArray): Result<Boolean>
     fun updateInvite(tokenHash: ByteArray): Result<Boolean>
-    fun getInvites(): Result<List<Invite>>
+    fun getInvites(limit: Int = Int.MAX_VALUE, offset: Long = 0L): Result<List<Invite>>
     fun getInvite(inviteId: Int): Result<Invite>
 
     /**
