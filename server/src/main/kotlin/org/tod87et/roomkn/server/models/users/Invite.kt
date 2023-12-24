@@ -9,4 +9,8 @@ data class Invite(
     val remaining: Int,
     val size: Int,
     val until: Instant,
-)
+) {
+    fun toInviteRequest(): InviteRequest {
+        return InviteRequest(size, until)
+    }
+}

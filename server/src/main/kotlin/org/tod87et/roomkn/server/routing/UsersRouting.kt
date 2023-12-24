@@ -47,7 +47,7 @@ fun Route.usersRouting() {
             generateInvite(database)
             route("/invitations") {
                 getInvitations(database)
-                getInvitation(database)
+                getInvitationToken(database)
                 deleteInvitation(database)
             }
         }
@@ -175,12 +175,16 @@ private fun Route.getInvitations(database: Database) {
     }
 }
 
-private fun Route.getInvitation(database: Database) {
+private fun Route.getInvitationToken(database: Database) {
+    val config: AuthConfig by inject()
     get("/{id}") {
         call.requirePermission(database) { return@get call.onMissingPermission() }
         val id = call.parameters["id"]?.toInt() ?: return@get call.onMissingId()
         database.getInvite(id)
-            .onSuccess { call.respond(it) }
+            .onSuccess {
+                val token = generateToken(it.toInviteRequest(), config)
+                call.respondText(token)
+            }
             .onFailure { call.handleException(it) }
     }
 }
