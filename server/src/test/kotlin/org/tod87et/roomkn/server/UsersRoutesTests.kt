@@ -41,6 +41,8 @@ class UsersRoutesTests {
         val id1 = KtorTestEnv.createUser("Bob")
         val id2 = KtorTestEnv.createUser("Alice")
 
+        val count = client.get("$usersPath/size").body<Long>()
+        assertEquals(3, count)
         val response = client.get(usersPath)
         assertEquals(HttpStatusCode.OK, response.status, "Message: ${response.bodyAsText()}\n")
         val users = response.body<List<ShortUserInfo>>()

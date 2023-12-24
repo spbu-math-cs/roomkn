@@ -59,6 +59,16 @@ private fun Route.listUsers(database: Database) {
                 .onFailure { call.handleException(it) }
         }
     }
+    get("/size") {
+        call.requirePermission(database) { return@get call.onMissingPermission() }
+        database.getUsersSize()
+            .onSuccess {
+                call.respond(it)
+            }
+            .onFailure {
+                call.handleException(it)
+            }
+    }
 }
 
 private fun Route.deleteUser(database: Database) {

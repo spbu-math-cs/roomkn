@@ -133,6 +133,12 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
+    override fun getRoomsSize(): Result<Long> = queryWrapper {
+        transaction(database) {
+            Rooms.selectAll().count()
+        }
+    }
+
     override fun getRoomsShort(ids: List<Int>): Result<List<ShortRoomInfo>> = queryWrapper {
         transaction(database) {
             Rooms.selectAll()
@@ -229,6 +235,25 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
+    override fun getReservationsSize(
+        usersIds: List<Int>,
+        roomsIds: List<Int>,
+        from: Instant?,
+        until: Instant?
+    ): Result<Long> = queryWrapper {
+        transaction(database) {
+            (Reservations innerJoin Users innerJoin Rooms)
+                .select {
+                    val userCondition = if (usersIds.isEmpty()) Op.TRUE else Reservations.userId inList usersIds
+                    val roomCondition = if (roomsIds.isEmpty()) Op.TRUE else Reservations.roomId inList roomsIds
+                    val untilCondition = if (until == null) Op.TRUE else Reservations.from less until
+                    val fromCondition = if (from == null) Op.TRUE else (Reservations.until greater from)
+                    val dateCondition = untilCondition and fromCondition
+                    userCondition and roomCondition and dateCondition
+                }.count()
+        }
+    }
+
     private fun Transaction.tryCreateReservation(reservation: UnregisteredReservation): Reservation? {
         val from = reservation.from
         val until = reservation.until
@@ -317,6 +342,12 @@ class DatabaseSession private constructor(private val database: Database) :
                 .orderBy(Users.username to SortOrder.ASC, Users.id to SortOrder.ASC)
                 .limit(limit, offset)
                 .map { ShortUserInfo(it[Users.id], it[Users.username], it[Users.email]) }
+        }
+    }
+
+    override fun getUsersSize(): Result<Long> = queryWrapper {
+        transaction(database) {
+            Users.selectAll().count()
         }
     }
 

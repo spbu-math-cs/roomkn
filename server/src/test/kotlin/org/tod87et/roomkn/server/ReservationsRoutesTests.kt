@@ -95,6 +95,8 @@ class ReservationsRoutesTests {
                 Instant.parse("3000-01-19T00:00:00+00:00") + 2.hours
             )
         ).getOrThrow()
+        var count = client.get("$reservationsPath/size").body<Long>()
+        assertEquals(4, count)
         var bodyResponse = client.getRequestForAllReservationsWithQueryParams().body<List<Reservation>>()
         assertEquals(
             setOf(
@@ -106,6 +108,12 @@ class ReservationsRoutesTests {
             bodyResponse.toSet(),
             "Expect every reservations with empty queries"
         )
+        count = client.get("$reservationsPath/size") {
+            url {
+                parameters.append("user_ids", listOf(myId).joinToString(","))
+            }
+        }.body<Long>()
+        assertEquals(2, count)
         bodyResponse = client.getRequestForAllReservationsWithQueryParams(
             userIds = listOf(myId)
         ).body<List<Reservation>>()
