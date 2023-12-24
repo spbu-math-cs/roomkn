@@ -9,20 +9,20 @@ export function PaginatedList({children, endpoint, resultHandler, additional_dep
 
     const [page, setPage] = React.useState(1);
     const [pageCount, setPageCount] = React.useState(2);
-    const [size, setSize] = React.useState(20);
+    const [size, setSize] = React.useState(0);
     const [elementsOnPage, setElementsOnPage] = React.useState(limit);
+    const [offset, setOffset] = React.useState(0);
+
 
     useEffect(() => {
         setPageCount(Math.ceil(size / limit))
-        if (size - offset > limit) {
+        if (size - offset >= limit) {
             setElementsOnPage(limit)
         } else {
             setElementsOnPage(size - offset)
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [size])
-
-    const [offset, setOffset] = React.useState(0);
+    }, [size, offset])
 
     const [result, setResult] = React.useState(null);
     const [statusCode, setStatusCode] = React.useState(null);
