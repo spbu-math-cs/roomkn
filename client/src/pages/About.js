@@ -25,19 +25,19 @@ const About = () => {
                 <Grid item xs={8}>
                     <Stack spacing={1}>
                         <Box>
-                            RooMKN is a classroom booking service for educational institutions or companies
+                            RooMKN is a classroom booking service for educational institutions or companies.
                         </Box>
 
                         <Box>
-                            Our service provides ability instantly book a room or view rooms on a map
+                            Our service provides ability to instantly book a room or view rooms on a map.
                         </Box>
 
                         <Box>
-                            Our service also provide administration tools using which admins can edit the map, rooms, reservations and users info
+                            Our service also provides administration tools using which admins can edit the map, rooms, reservations and users info.
                         </Box>
 
                         <Box>
-                            Our project is open-source and licensed under terms of the Apache License 2.0. Its source can be found on <Link href={"https://github.com/spbu-math-cs/roomkn"} data-test-id="external-link">github</Link>
+                            Our project is open-source and licensed under the terms of the Apache License 2.0. Its source can be found on <Link href={"https://github.com/spbu-math-cs/roomkn"} data-test-id="external-link">github</Link>.
                         </Box>
 
                     </Stack>
@@ -82,28 +82,28 @@ const About = () => {
                     </Box>
                 </Grid>
                 <Sprint sprint_name={"First Sprint"}>
-                    We made the first version of the app
+                    We made the first version of the app.
                 </Sprint>
                 <Sprint sprint_name={"Second Sprint"}>
-                    RooMKN gained basic functionality such as retrieving room list and room information and room booking
+                    RooMKN gained basic functionality such as retrieving room list and room information and the ability to book rooms.
                 </Sprint>
                 <Sprint sprint_name={"Third Sprint"}>
-                    We added authorisation, starting from that sprint, only registered users can book rooms
+                    We added authorization. Starting from that sprint, only registered users can book rooms.
                 </Sprint>
                 <Sprint sprint_name={"Fourth Sprint"}>
-                    We added admin panel and user profile page
+                    We added admin panel and user profile page.
                 </Sprint>
                 <Sprint sprint_name={"Fifth Sprint"}>
-                    We added user reservations pages and reworked the design
+                    We added user reservations pages and reworked the design.
                 </Sprint>
                 <Sprint sprint_name={"Sixth Sprint"}>
-                    We added map
+                    We added a map page.
                 </Sprint>
                 <Sprint sprint_name={"Seventh Sprint"}>
-                    We added registration links
-
-                    We adapted web design for mobile devices
-
+                    We added registration links.
+                    <div/>
+                    We adapted web design for mobile devices.
+                    <div/>
                     RooMKN is now available on <Link href="https://roomkn.kpnn.ru">https://roomkn.kpnn.ru</Link>
                 </Sprint>
             </Grid>
