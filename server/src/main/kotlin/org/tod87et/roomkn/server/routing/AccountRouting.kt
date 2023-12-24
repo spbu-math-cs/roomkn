@@ -24,6 +24,7 @@ import org.tod87et.roomkn.server.auth.NoSuchUserException
 import org.tod87et.roomkn.server.auth.RegistrationFailedException
 import org.tod87et.roomkn.server.auth.userId
 import org.tod87et.roomkn.server.database.Database
+import org.tod87et.roomkn.server.database.MissingElementException
 import org.tod87et.roomkn.server.di.injectDatabase
 import org.tod87et.roomkn.server.models.users.LoginUserInfo
 import org.tod87et.roomkn.server.models.users.UnregisteredUserInfo
@@ -124,6 +125,10 @@ private suspend fun ApplicationCall.handleException(ex: Throwable) {
 
         is RegistrationFailedException -> {
             respondText(ex.message ?: "User data conflict", status = HttpStatusCode.Conflict)
+        }
+
+        is MissingElementException -> {
+            respondText(ex.message ?: "No such invite", status = HttpStatusCode.BadRequest)
         }
 
         else -> {
