@@ -75,6 +75,7 @@ function App() {
                             <Route path='/room/*' element={<Room/>}/>
                             <Route path='/scrn/*' element={<RoomScreenPage/>}/>
                             <Route path='/sign-up' element={<SignUp/>}/>
+                            <Route path='/invite/*' element={<SignUp/>}/>
                             <Route path='/sign-in' element={<SignIn/>}/>
                             <Route path='/my-reservations' element={<UserReservations/>} />
                             {/* <Route path='/contact' element={<Contact />} />
