@@ -8,15 +8,53 @@ import AdminWrapper from "../../components/AdminWrapper";
 import {
     Button,
     Checkbox,
-    FormControlLabel,
+    FormControlLabel, Skeleton,
     Stack,
     TextField,
     Typography,
     useTheme
 } from "@mui/material";
 import { CurrentUserContext, CurrentUserPermissionsContext } from "../../components/Auth";
+import PaginatedList from "../../components/PaginatedList";
+import {SnackbarContext} from "../../components/SnackbarAlert";
+
+
+const permissionsDefault = {
+    "ReservationsCreate": false,
+    "ReservationsAdmin": false,
+    "RoomsAdmin": false,
+    "UsersAdmin": false,
+    "GroupsAdmin": false
+}
+
+function PermCheckbox({perm, label, was, on_change}) {
+
+    var boxColor
+
+    if (perm) {
+        if (was) boxColor = 'primary'
+        else boxColor = 'success'
+    }
+    else {
+        if (was) boxColor = 'secondary'
+        else boxColor = 'error'
+    }
+
+    return (
+        <FormControlLabel
+            control={<Checkbox checked={perm} color={boxColor} onChange={on_change}/>}
+            label={
+                <Typography color={boxColor}>
+                    {label}
+                </Typography>
+            }
+        />
+    )
+}
 
 function EditUserRow({user, refresh}) {
+
+    const {setNewMessageSnackbar} = useContext(SnackbarContext)
 
     const { currentUser } = useContext(CurrentUserContext)
     const { setCurrentUserPermissions } = useContext(CurrentUserPermissionsContext)
@@ -27,14 +65,6 @@ function EditUserRow({user, refresh}) {
     const put_data = {
         username: name,
         email: email
-    }
-
-    const permissionsDefault = {
-        "ReservationsCreate": false,
-        "ReservationsAdmin": false,
-        "RoomsAdmin": false,
-        "UsersAdmin": false,
-        "GroupsAdmin": false
     }
 
     const [permissions, setPermissions] = useState(permissionsDefault)
@@ -67,6 +97,10 @@ function EditUserRow({user, refresh}) {
     function permPutCallback(result, statusCode) {
         if (statusCode === 200) {
             permGetTriggerFetch()
+            setNewMessageSnackbar("User information updated successfully!")
+        }
+        else {
+            setNewMessageSnackbar("An error occurred.")
         }
     }
 
@@ -91,32 +125,7 @@ function EditUserRow({user, refresh}) {
                 console.log('callback: changed global perms')
                 setCurrentUserPermissions(result)
             }
-        } 
-    }
-
-    function PermCheckbox({perm, label, was, on_change}) {
-
-        var boxColor
-        
-        if (perm) {
-            if (was) boxColor = 'primary'
-            else boxColor = 'success'
         }
-        else {
-            if (was) boxColor = 'secondary'
-            else boxColor = 'error'
-        }
-
-        return (
-            <FormControlLabel
-                control={<Checkbox checked={perm} color={boxColor} onChange={on_change}/>}
-                label={
-                    <Typography color={boxColor}>
-                        {label}
-                    </Typography>
-                }
-            />
-        )
     }
 
     console.log('rerendering user')
@@ -168,20 +177,43 @@ function EditUserRow({user, refresh}) {
 
     return (
         <ContentWrapper page_name={user.id}>
-            <Stack>
-                <TextField sx={{maxWidth: "400px", paddingBottom: "20px"}} label="Username" value={name}
+            <Stack direction="row">
+                <TextField sx={{maxWidth: "400px", paddingRight: "20px"}} label="Username" value={name}
                            onChange={(e) => setName(e.target.value)}/>
                 <TextField sx={{maxWidth: "400px"}} label="Email" value={email}
                            onChange={(e) => setEmail(e.target.value)}/>
-                <Typography fontSize="18pt">Permissions</Typography>
-                <Stack sx={{paddingLeft: "10pt"}}>
-                    {permissions_draw}
-                </Stack>
-                <Stack direction="row" spacing={theme.spacing()}>
-                    <Button variant="outlined" color="secondary" onClick={reset}>reset</Button>
-                    <Button variant="contained" color="success" onClick={put_req}>update</Button>
-                    <Button variant="outlined" color="error" onClick={delete_req}>delete</Button>
-                </Stack>
+            </Stack>
+            <Typography fontSize="18pt">Permissions</Typography>
+            <Stack sx={{paddingLeft: 2, paddingBottom: 2}}>
+                {permissions_draw}
+            </Stack>
+            <Stack direction="row" spacing={theme.spacing()}>
+                <Button variant="outlined" color="secondary" onClick={reset}>reset</Button>
+                <Button variant="contained" color="success" onClick={put_req}>update</Button>
+                <Button variant="outlined" color="error" onClick={delete_req}>delete</Button>
+            </Stack>
+        </ContentWrapper>
+    )
+}
+
+function EditUserRowSkeleton() {
+    const theme = useTheme();
+
+    return (
+        <ContentWrapper page_name={<Skeleton/>}>
+            <Stack direction="row">
+                <TextField sx={{maxWidth: "400px", paddingRight: "20px"}} label="Username" disabled/>
+                <TextField sx={{maxWidth: "400px"}} label="Email" />
+            </Stack>
+            <Typography fontSize="18pt">Permissions</Typography>
+            <Stack sx={{paddingLeft: 2, paddingBottom: 2}}>
+                {/*{permissions_draw}*/}
+                <Skeleton variant="rectangular" sx={{width: 300, height:100, fontSize: 20}}/>
+            </Stack>
+            <Stack direction="row" spacing={theme.spacing()}>
+                <Button variant="outlined" color="secondary" disabled>reset</Button>
+                <Button variant="contained" color="success" disabled>update</Button>
+                <Button variant="outlined" color="error" disabled>delete</Button>
             </Stack>
         </ContentWrapper>
     )
@@ -218,18 +250,17 @@ function AddUser({refresh}) {
 
 export function AdminUserList() {
 
-    let [drawList, setDrawList] = useState([])
-
     const {currentUser, setCurrentUser} = useContext(CurrentUserContext)
 
-    let {triggerFetch} = useSomeAPI('/api/v0/users', null, 'GET', listCallback)
+    const [fetchFlag, setFetchFlag] = useState([])
+    function triggerFetch() {
+        setFetchFlag(fetchFlag+1)
+    }
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => triggerFetch(), [])
-
-    function listCallback(result, statusCode) {
+    function resultHandler(result, statusCode, elementsOnPage) {
+        const newList = []
         if (statusCode === 200) {
-            const newList = []
+
             result.forEach((user) => {
                 if (user.id === currentUser?.user_id) {
                     if (user.username !== currentUser?.username) {
@@ -244,8 +275,13 @@ export function AdminUserList() {
                     <EditUserRow user={user} key={user.id} refresh={triggerFetch}/>
                 )
             })
-            setDrawList(newList)
         }
+        while (newList.length < elementsOnPage) {
+            newList.push(
+                <EditUserRowSkeleton/>
+            )
+        }
+        return newList
     }
 
     const page_name = (
@@ -260,8 +296,9 @@ export function AdminUserList() {
     return (
         <AdminWrapper>
 
-            <ContentWrapper page_name={page_name}/>
-            {drawList}
+            <ContentWrapper page_name={page_name}>
+                <PaginatedList endpoint={'/api/v0/users'} resultHandler={resultHandler} limit={10} fetchFlag={fetchFlag}/>
+            </ContentWrapper>
             <AddUser refresh={triggerFetch}/>
         </AdminWrapper>
     )

@@ -5,7 +5,7 @@ import React, {useEffect, useState} from "react";
 import {
     Box, Button,
     ListItemButton,
-    Stack, Typography,
+    Stack, Typography, Skeleton,
 } from "@mui/material";
 import {fromAPITime, toAPITime} from "../api/API";
 import Timeline from "../components/TimelineForRoomList";
@@ -13,6 +13,7 @@ import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
 import {DatePicker} from "@mui/x-date-pickers";
 import dayjs from "dayjs";
+import PaginatedList from "../components/PaginatedList";
 
 function dateFormat(date, format = "yyyy-mm-dd") {
     var mlz = ""
@@ -37,12 +38,9 @@ function getTodayDate(format = "yyyy-mm-dd") {
 
 function GetReservationsInSegment(room_id, dateFrom, dateUntil) {
 
-    let {triggerFetch} = useSomeAPI('/api/v0/rooms/' + room_id + '/reservations', null, 'GET', ReservationsCallback)
+    let {triggerFetch, finished} = useSomeAPI('/api/v0/rooms/' + room_id + '/reservations', null, 'GET', ReservationsCallback)
 
-    let [reservs, setReservs] = useState({
-        reservations: null,
-        triggerGetReservations: triggerFetch
-    })
+    let [reservations, setReservations] = useState(null)
 
     //eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [dateFrom, dateUntil])
@@ -50,22 +48,21 @@ function GetReservationsInSegment(room_id, dateFrom, dateUntil) {
     function ReservationsCallback(result, statusCode) {
         console.log("all reservations for room " + room_id + " are (status code: " + statusCode + " ):")
         if (statusCode === 200 && result != null) {
-            setReservs({
-                reservations: result.filter((reservation) => (
+            setReservations(
+                result.filter((reservation) => (
                     fromAPITime(reservation.from).date <= dateUntil &&
                     fromAPITime(reservation.until).date >= dateFrom
-                )),
-                triggerGetReservations: triggerFetch
-            })
+                )))
         } else {
-            setReservs({
-                reservations: null,
-                triggerGetReservations: triggerFetch
-            })
+            setReservations(null)
         }
     }
 
-    return reservs
+    return {
+        reservations: reservations,
+        triggerGetReservations: triggerFetch,
+        loading_finished: finished,
+    }
 }
 
 function updateDate(date, diff) {
@@ -75,7 +72,7 @@ function updateDate(date, diff) {
 }
 
 function TimelineForRoom({room, fromDate, untilDate, show_time_labels}) {
-    const {reservations} = GetReservationsInSegment(room.id, fromDate, untilDate)
+    const {reservations, loading_finished} = GetReservationsInSegment(room.id, fromDate, untilDate)
 
     let realFromDate = new Date(toAPITime(fromDate, "00:00"))
     // realFromDate.setHours(0, 0)
@@ -91,6 +88,7 @@ function TimelineForRoom({room, fromDate, untilDate, show_time_labels}) {
             untilTimelineDate={realUntilDate}
             show_time_labels={show_time_labels}
             height={50}
+            loading_finished={loading_finished}
         />
     )
 }
@@ -115,7 +113,7 @@ function DateSelect({from, setFromDate, until, setUntilDate}) {
     function setThisWeekDate() {
         const dateFrom = new Date()
         const dateUntil = new Date()
-        const fromDelta = -dateFrom.getDay() + 1, untilDelta = 7 - dateUntil.getDay()
+        const fromDelta = (7 - dateFrom.getDay()) % 7 - 6, untilDelta = (7 - dateUntil.getDay()) % 7
         dateFrom.setDate(dateFrom.getDate() + fromDelta)
         dateUntil.setDate(dateUntil.getDate() + untilDelta)
         setFromDate(dateFormat(dateFrom))
@@ -125,34 +123,74 @@ function DateSelect({from, setFromDate, until, setUntilDate}) {
     function setNextWeekDate() {
         const dateFrom = new Date()
         const dateUntil = new Date()
-        const fromDelta = -dateFrom.getDay() + 1 + 7, untilDelta = 7 - dateUntil.getDay() + 7
+        const fromDelta = (7 - dateFrom.getDay()) % 7 + 1, untilDelta = (7 - dateUntil.getDay()) % 7 + 7
         dateFrom.setDate(dateFrom.getDate() + fromDelta)
         dateUntil.setDate(dateUntil.getDate() + untilDelta)
         setFromDate(dateFormat(dateFrom))
         setUntilDate(dateFormat(dateUntil))
     }
 
+    const datePickers = (
+        <Box>
+            <DatePicker id="date" label="From" type="date" value={dayjs(from)}
+                        onChange={(v) => {
+                            setFromDate(dateFormat(v.toDate()));
+                        }}
+                        format="DD.MM.YYYY"
+                        sx={{mb: 1}}
+            />
+            <DatePicker id="date" label="Until" type="date" value={dayjs(until)}
+                        onChange={(v) => {
+                            setUntilDate(dateFormat(v.toDate()));
+                        }}
+                        format="DD.MM.YYYY"
+            />
+        </Box>
+    )
+
+    const button_sx = {
+        paddingTop: "16.5px",
+        paddingBottom: "16.5px",
+        fontSize: 12,
+    }
+
+    const buttons = (
+        <Box>
+            <Button variant="text" onClick={setTodayDay} sx={button_sx}>Today</Button>
+            <Button variant="text" onClick={setTomorrowDay} sx={button_sx}>Tomorrow</Button>
+            <Button variant="text" onClick={setThisWeekDate} sx={button_sx}>This Week</Button>
+            <Button variant="text" onClick={setNextWeekDate} sx={button_sx}>Next Week</Button>
+        </Box>
+    )
+
     return (
-        <Stack direction="row" spacing={1} className="room-list-time">
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DatePicker id="date" label="From" type="date" value={dayjs(from)}
-                            onChange={(v) => {
-                                setFromDate(dateFormat(v.toDate()));
-                            }}
-                            format="DD.MM.YYYY"
-                />
-                <DatePicker id="date" label="Until" type="date" value={dayjs(until)}
-                            onChange={(v) => {
-                                setUntilDate(dateFormat(v.toDate()));
-                            }}
-                            format="DD.MM.YYYY"
-                />
-                <Button variant="contained" onClick={setTodayDay}>Today</Button>
-                <Button variant="contained" onClick={setTomorrowDay}>Tomorrow</Button>
-                <Button variant="contained" onClick={setThisWeekDate}>This Week</Button>
-                <Button variant="contained" onClick={setNextWeekDate}>Next Week</Button>
-            </LocalizationProvider>
-        </Stack>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <Stack direction="row" spacing={1} className="room-list-time" sx={{display: {xs: 'none', lg: 'flex'}}}>
+                {datePickers}
+                {buttons}
+            </Stack>
+            <Stack spacing={1} className="room-list-time" sx={{display: {xs: 'flex', lg: 'none'}}}>
+                {datePickers}
+                {buttons}
+            </Stack>
+        </LocalizationProvider>
+    )
+}
+
+function TimelineSkeleton() {
+    return (
+        <Skeleton variant="rectangular" sx={{width: 100/100, height:50, fontSize: 20}}/>
+    )
+}
+
+function RoomRowSkeleton() {
+    return (
+        <ListItemButton data-test-id={"link-"}>
+            <Stack direction="row" alignItems="center" width="100%" spacing={5}>
+                <Skeleton sx={{width: 5/100, fontSize: 20}} />
+                <TimelineSkeleton/>
+            </Stack>
+        </ListItemButton>
     )
 }
 
@@ -178,45 +216,40 @@ function RoomRow({room, from, until, is_first_room_row}) {
 
 function RoomList() {
 
-    let [draw_list, setDrawList] = useState([])
-
     const today = getTodayDate()
 
     const [from, setFrom] = useState(today)
     const [until, setUntil] = useState(today)
 
-    const [roomList, setRoomList] = useState([])
-
-    function my_callback(result, statusCode) {
-        console.log("result: " + result)
-        console.log("statusCode:"  + statusCode)
-        if (statusCode === 200 && result != null) {
-            setRoomList(result);
-            console.log(result)
-        }
-    }
-
-    let {triggerFetch} = useSomeAPI('/api/v0/rooms', null, 'GET', my_callback)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => triggerFetch(), [])
-
-    useEffect(() => {
+    function resultHandler(result, statusCode, elementsOnPage) {
         let is_first_room_row = true
         const new_draw_list = []
-        roomList.forEach((room) => {
-            new_draw_list.push(<RoomRow room={room} from={from} until={until} is_first_room_row={is_first_room_row}/>)
-            is_first_room_row = false
-        })
-        setDrawList(new_draw_list)
-    }, [from, until, roomList]);
+        if (statusCode === 200 && result != null) {
+            result.forEach((room) => {
+                new_draw_list.push(
+                    <>
+                        <RoomRow room={room}
+                                 from={from}
+                                 until={until}
+                                 is_first_room_row={is_first_room_row}/>
+                    </>
+                )
+                is_first_room_row = false
+            })
+        }
+        while (new_draw_list.length < elementsOnPage) {
+            new_draw_list.push(
+                <RoomRowSkeleton/>
+            )
+        }
+        return new_draw_list
+    }
 
     return (
         <ContentWrapper page_name="Classrooms">
-            <Stack direction = "column">
+            <PaginatedList endpoint={'/api/v0/rooms'} resultHandler={resultHandler} additional_deps={[from, until]} limit={5}>
                 <DateSelect from = {from} setFromDate={setFrom} until = {until} setUntilDate={setUntil}/>
-                {draw_list}
-            </Stack>
-
+            </PaginatedList>
         </ContentWrapper>
     );
 }

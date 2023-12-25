@@ -1,14 +1,14 @@
 package org.tod87et.roomkn.server.database
 
-import java.sql.Connection
-import javax.sql.DataSource
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SortOrder
+import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
@@ -17,26 +17,36 @@ import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import org.jetbrains.exposed.sql.upsert
 import org.postgresql.util.PSQLException
+import org.tod87et.roomkn.server.database.InviteTokens.expirationDate
+import org.tod87et.roomkn.server.database.InviteTokens.inviteTokenHash
+import org.tod87et.roomkn.server.database.InviteTokens.remaining
+import org.tod87et.roomkn.server.database.InviteTokens.size
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.reservations.Reservation
+import org.tod87et.roomkn.server.models.reservations.ReservationSortParameter
 import org.tod87et.roomkn.server.models.reservations.UnregisteredReservation
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
 import org.tod87et.roomkn.server.models.rooms.RoomInfo
 import org.tod87et.roomkn.server.models.rooms.ShortRoomInfo
 import org.tod87et.roomkn.server.models.users.FullUserInfo
+import org.tod87et.roomkn.server.models.users.Invite
+import org.tod87et.roomkn.server.models.users.InviteRequest
 import org.tod87et.roomkn.server.models.users.RegistrationUserInfo
 import org.tod87et.roomkn.server.models.users.ShortUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfoWithNull
 import org.tod87et.roomkn.server.models.users.UserCredentialsInfo
 import org.tod87et.roomkn.server.models.users.UserInfo
+import java.sql.Connection
+import javax.sql.DataSource
 import org.tod87et.roomkn.server.database.Database as RooMknDatabase
 
 class DatabaseSession private constructor(private val database: Database) :
@@ -54,7 +64,7 @@ class DatabaseSession private constructor(private val database: Database) :
     constructor(dataSource: DataSource) : this(Database.connect(dataSource))
 
     init {
-        transaction(database) { SchemaUtils.create(Users, Rooms, Reservations, ActiveTokens, Map) }
+        transaction(database) { SchemaUtils.create(Users, Rooms, Reservations, ActiveTokens, Map, InviteTokens) }
     }
 
     override fun createRoom(roomInfo: NewRoomInfo): Result<RoomInfo> = queryWrapper {
@@ -132,6 +142,12 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
+    override fun getRoomsSize(): Result<Long> = queryWrapper {
+        transaction(database) {
+            Rooms.selectAll().count()
+        }
+    }
+
     override fun getRoomsShort(ids: List<Int>): Result<List<ShortRoomInfo>> = queryWrapper {
         transaction(database) {
             Rooms.selectAll()
@@ -164,7 +180,7 @@ class DatabaseSession private constructor(private val database: Database) :
         from = from,
         until = until,
         limit = limit,
-        offset = offset
+        offset = offset,
     )
 
     override fun getUserReservations(
@@ -179,7 +195,7 @@ class DatabaseSession private constructor(private val database: Database) :
         from = from,
         until = until,
         limit = limit,
-        offset = offset
+        offset = offset,
     )
 
     override fun getReservations(
@@ -188,22 +204,22 @@ class DatabaseSession private constructor(private val database: Database) :
         from: Instant?,
         until: Instant?,
         limit: Int,
-        offset: Long
+        offset: Long,
+        sortParameter: ReservationSortParameter?,
+        sortOrder: SortOrder?,
     ): Result<List<Reservation>> = queryWrapper {
         transaction(database) {
-            (Reservations innerJoin Users innerJoin Rooms)
-                .select {
-                    val userCondition = if (usersIds.isEmpty()) Op.TRUE else Reservations.userId inList usersIds
-                    val roomCondition = if (roomsIds.isEmpty()) Op.TRUE else Reservations.roomId inList roomsIds
-                    val untilCondition = if (until == null) Op.TRUE else Reservations.from less until
-                    val fromCondition = if (from == null) Op.TRUE else (Reservations.until greater from)
-                    val dateCondition = untilCondition and fromCondition
-                    userCondition and roomCondition and dateCondition
-                }
+            val sortParam = when (sortParameter) {
+                ReservationSortParameter.DATE_FROM -> Reservations.from
+                ReservationSortParameter.DATE_UNTIL -> Reservations.until
+                ReservationSortParameter.OWNER_NAME -> Users.username
+                ReservationSortParameter.ROOM_NAME -> Rooms.name
+                null -> Reservations.from
+            }
+            selectReservations(usersIds, roomsIds, until, from)
                 .orderBy(
-                    Reservations.from to SortOrder.ASC,
-                    Reservations.until to SortOrder.ASC,
-                    Reservations.id to SortOrder.ASC
+                    sortParam to (sortOrder ?: SortOrder.ASC),
+                    Reservations.id to (sortOrder ?: SortOrder.ASC)
                 )
                 .limit(limit, offset)
                 .map {
@@ -218,6 +234,34 @@ class DatabaseSession private constructor(private val database: Database) :
                     )
                 }
         }
+    }
+
+    override fun getReservationsSize(
+        usersIds: List<Int>,
+        roomsIds: List<Int>,
+        from: Instant?,
+        until: Instant?
+    ): Result<Long> = queryWrapper {
+        transaction(database) {
+            selectReservations(usersIds, roomsIds, until, from).count()
+        }
+    }
+
+    private fun selectReservations(
+        usersIds: List<Int>,
+        roomsIds: List<Int>,
+        until: Instant?,
+        from: Instant?
+    ): Query {
+        return (Reservations innerJoin Users innerJoin Rooms)
+            .select {
+                val userCondition = if (usersIds.isEmpty()) Op.TRUE else Reservations.userId inList usersIds
+                val roomCondition = if (roomsIds.isEmpty()) Op.TRUE else Reservations.roomId inList roomsIds
+                val untilCondition = if (until == null) Op.TRUE else Reservations.from less until
+                val fromCondition = if (from == null) Op.TRUE else (Reservations.until greater from)
+                val dateCondition = untilCondition and fromCondition
+                userCondition and roomCondition and dateCondition
+            }
     }
 
     private fun Transaction.tryCreateReservation(reservation: UnregisteredReservation): Reservation? {
@@ -311,6 +355,12 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
+    override fun getUsersSize(): Result<Long> = queryWrapper {
+        transaction(database) {
+            Users.selectAll().count()
+        }
+    }
+
     override fun getFullUsers(limit: Int, offset: Long): Result<List<FullUserInfo>> = queryWrapper {
         transaction(database) {
             Users.selectAll()
@@ -358,6 +408,7 @@ class DatabaseSession private constructor(private val database: Database) :
                 if (cnt == 0) throw MissingElementException()
             }
         }
+
 
     override fun registerUser(user: RegistrationUserInfo): Result<UserInfo> = queryWrapper {
         transaction(database) {
@@ -413,6 +464,82 @@ class DatabaseSession private constructor(private val database: Database) :
             val now = Clock.System.now()
 
             ActiveTokens.deleteWhere { expirationDate lessEq now }
+            InviteTokens.deleteWhere { (expirationDate lessEq now) or (remaining lessEq 0) }
+        }
+    }
+
+    override fun validateInvite(tokenHash: ByteArray): Result<Unit> = queryWrapper {
+        transaction(database) {
+            val now = Clock.System.now()
+            val count =
+                InviteTokens.select { (inviteTokenHash eq tokenHash) and (remaining greater 0) and (InviteTokens.expirationDate greater now) }
+                    .count()
+            if (count == 0L) throw MissingElementException()
+        }
+    }
+
+    override fun updateInvite(tokenHash: ByteArray): Result<Unit> = queryWrapper {
+        transaction(database) {
+            val now = Clock.System.now()
+            val count =
+                InviteTokens.update({
+                    (inviteTokenHash eq tokenHash) and
+                            (remaining greater 0) and
+                            (InviteTokens.expirationDate greater now)
+                }) {
+                    with(SqlExpressionBuilder) {
+                        it[remaining] = remaining - 1
+                    }
+                }
+            if (count == 0) throw MissingElementException()
+        }
+    }
+
+    override fun getInvites(limit: Int, offset: Long): Result<List<Invite>> = queryWrapper {
+        transaction(database) {
+            val now = Clock.System.now()
+            InviteTokens.select { remaining greater 0 and (expirationDate greater now) }
+                .orderBy(expirationDate to SortOrder.ASC).limit(limit, offset).map {
+                    Invite(
+                        id = it[InviteTokens.id],
+                        remaining = it[remaining],
+                        size = it[size],
+                        until = it[expirationDate],
+                    )
+                }
+        }
+    }
+
+    override fun getInvite(inviteId: Int): Result<Invite> = queryWrapper {
+        transaction(database) {
+            val now = Clock.System.now()
+            val row =
+                InviteTokens.select { (remaining greater 0) and (expirationDate greater now) and (InviteTokens.id eq inviteId) }
+                    .firstOrNull() ?: throw MissingElementException()
+            Invite(
+                id = row[InviteTokens.id],
+                remaining = row[remaining],
+                until = row[expirationDate],
+                size = row[size],
+            )
+        }
+    }
+
+    override fun deleteInvite(inviteId: Int): Result<Unit> = queryWrapper {
+        transaction(database) {
+            val cnt = InviteTokens.deleteWhere { id eq inviteId }
+            if (cnt == 0) throw MissingElementException()
+        }
+    }
+
+    override fun createInvite(tokenHash: ByteArray, inviteRequest: InviteRequest): Result<Unit> = queryWrapper {
+        transaction(database) {
+            InviteTokens.insert {
+                it[inviteTokenHash] = tokenHash
+                it[remaining] = inviteRequest.size
+                it[expirationDate] = inviteRequest.until
+                it[size] = inviteRequest.size
+            }
         }
     }
 

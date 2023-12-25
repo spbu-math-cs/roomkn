@@ -23,7 +23,8 @@ import org.tod87et.roomkn.server.models.rooms.NewRoomInfo
 import org.tod87et.roomkn.server.models.rooms.NewRoomInfoWithNull
 import org.tod87et.roomkn.server.util.defaultExceptionHandler
 import org.tod87et.roomkn.server.util.okResponse
-import kotlin.math.min
+import org.tod87et.roomkn.server.util.toResultIntOrDefault
+import org.tod87et.roomkn.server.util.toResultLongOrDefault
 
 fun Route.roomsRouting() {
     val database by injectDatabase()
@@ -87,43 +88,33 @@ private fun Route.updateRoom(database: Database) {
 
 private fun Route.rooms(database: Database) {
     get {
-        val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: Int.MAX_VALUE
-        val offset = call.request.queryParameters["offset"]?.toIntOrNull() ?: 0
+        val limitResult = call.request.queryParameters["limit"].toResultIntOrDefault(Int.MAX_VALUE)
+        val offsetResult = call.request.queryParameters["offset"].toResultLongOrDefault(0)
+        val limit = limitResult.getOrElse { return@get call.onIncorrectLimit() }
+        val offset = offsetResult.getOrElse { return@get call.onIncorrectOffset() }
 
-//        FIXME make usable limit offset
-
-        val result = database.getRooms()
-
-        val right = offset + limit
-
-        if (limit < 0 || offset < 0 || offset > right)
+        if (limit < 0 || offset < 0)
             return@get call.respondText(
                 "Incorrect limit or offset",
                 status = HttpStatusCode.BadRequest
             )
 
-        result.onSuccess {
-            call.respond(
-                HttpStatusCode.OK,
-                it.subList(
-                    min(offset, it.size),
-                    min(right, it.size)
-                )
-            )
-        }
-
-        result.onFailure {
-            return@get call.respondText(
-                "Failed to get data from database",
-                status = HttpStatusCode.InternalServerError
-            )
-        }
+        val result = database.getRooms(limit, offset)
+        result
+            .onSuccess { call.respond(it) }
+            .onFailure { call.handleException(it) }
+    }
+    get("/size") {
+        val result = database.getRoomsSize()
+        result
+            .onSuccess { call.respond(it) }
+            .onFailure { call.handleException(it) }
     }
 }
 
 private fun Route.roomsShort(database: Database) {
     get("/list-short") {
-        val ids = (call.request.queryParameters["ids"]?: return@get call.onMalformedIds()).split(",")
+        val ids = (call.request.queryParameters["ids"] ?: return@get call.onMalformedIds()).split(",")
             .map { it.toIntOrNull() ?: return@get call.onMalformedIds() }
 
         database.getRoomsShort(ids)
