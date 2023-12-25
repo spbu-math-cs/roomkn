@@ -22,17 +22,17 @@ export function PaginatedList({children, endpoint, resultHandler, additional_dep
             setElementsOnPage(size - offset)
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [size, offset])
+    }, [size, offset, limit])
 
     const [result, setResult] = React.useState(null);
     const [statusCode, setStatusCode] = React.useState(null);
 
 
-    function getSizeCallback(result, statusCode) {
-        console.log("result: " + result)
-        console.log("statusCode:"  + statusCode)
-        if (statusCode === 200 && result != null) {
-            setSize(result);
+    function getSizeCallback(sizeResult, sizeStatusCode) {
+        console.log("result: " + sizeResult)
+        console.log("statusCode:"  + sizeStatusCode)
+        if (sizeStatusCode === 200 && sizeResult != null) {
+            setSize(sizeResult);
         }
     }
 
@@ -41,16 +41,14 @@ export function PaginatedList({children, endpoint, resultHandler, additional_dep
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetchSize(), [fetchFlag])
 
-    function getListCallback(result, statusCode) {
-        setStatusCode(statusCode)
-        console.log("result: " + result)
-        console.log("statusCode:"  + statusCode)
+    function getListCallback(listResult, listStatusCode) {
+        setStatusCode(listStatusCode)
+        console.log("result: " + listResult)
+        console.log("statusCode:"  + listStatusCode)
         console.log("page:"  + page)
-        if (statusCode === 200 && result != null) {
-            setResult(result);
-
+        if (listStatusCode === 200 && listResult != null) {
+            setResult(listResult);
         }
-
     }
 
     // result handler
