@@ -5,11 +5,17 @@ export const IS_ADMIN_DEFAULT = false;
 export const IS_ADMIN_GUEST = false;
 
 export function AuthorizeWrapper({children}) {
-    const {isAuthorized} = useContext(IsAuthorizedContext)
+    const {currentUser, setCurrentUser} = useContext(CurrentUserContext)
+    const {currentUserPermissions, setCurrentUserPermissions} = useContext(CurrentUserPermissionsContext)
+    const {isAuthorized, setIsAuthorized} = useContext(IsAuthorizedContext)
     const {triggerValidate} = useAuthorizeByCookie()
 
     useEffect(() => {
-        if (isAuthorized == null) {
+        setCurrentUser(getUserDataFromStorage());
+        setIsAuthorized(currentUser?.user_id != null)
+        setCurrentUserPermissions(getUserPermissionsFromStorage());
+
+        if (!isAuthorized) {
             triggerValidate()
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -17,13 +23,18 @@ export function AuthorizeWrapper({children}) {
 
     const {triggerGetPermissions} = useGetCurrentUserPermissions()
 
-    const {currentUser} = useContext(CurrentUserContext)
     useEffect(() => {
-        if (isAuthorized != null) {
+        if (isAuthorized) {
             triggerGetPermissions()
         }
+        SaveUserDataIntoStorage(currentUser)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentUser])
+
+    useEffect(() => {
+        SaveUserPermissionsIntoStorage(currentUserPermissions)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentUserPermissions])
 
     return children
 }
@@ -35,10 +46,12 @@ const emptyUser = {
     username: null
 }
 
+const emptyUserPermissions = []
+
 export function AuthorizationProvider({children}) {
-    const [isAuthorized, setIsAuthorized] = useState(null)
-    const [currentUser, setCurrentUser] = useState(emptyUser)
-    const [currentUserPermissions, setCurrentUserPermissions] = useState([])
+    const [currentUser, setCurrentUser] = useState(getUserDataFromStorage())
+    const [isAuthorized, setIsAuthorized] = useState(currentUser?.user_id != null)
+    const [currentUserPermissions, setCurrentUserPermissions] = useState(getUserPermissionsFromStorage())
 
     return (
         <IsAuthorizedContext.Provider value={{isAuthorized, setIsAuthorized}}>
@@ -103,7 +116,6 @@ export function useAuthorizeByCookie() {
                 }
                 console.log(userData)
                 setCurrentUser(userData)
-                saveUserData(userData)
                 setIsAuthorized(true)
             } else {
                 setIsAuthorized(false)
@@ -171,7 +183,6 @@ export function useAuthorize(username, password) {
                 }
 
                 setCurrentUser(userData)
-                saveUserData(userData)
                 setIsAuthorized(true)
             } else {
                 setIsAuthorized(false)
@@ -207,7 +218,6 @@ export function useLogout() {
     function logoutCallback(result, statusCode) {
         setIsAuthorized(false)
         setCurrentUser({})
-        saveUserData({})
     }
 
     // useEffect(() => {
@@ -221,18 +231,32 @@ export function useLogout() {
     return {result, statusCode, headers, triggerLogout: triggerFetch, finished}
 }
 
-export function getUserData() {
-    const dataString = sessionStorage.getItem('roomkn');
-    return JSON.parse(dataString)
+export function getUserDataFromStorage() {
+    const dataString = localStorage.getItem('roomkn-user-data');
+    try {
+        return JSON.parse(dataString)
+    } catch (e) {
+        return emptyUser
+    }
 }
 
-export function getCSRFToken() {
-    return getUserData?.crsf_token
+export function SaveUserDataIntoStorage(currentUser) {
+    console.log(currentUser, JSON.stringify(currentUser))
+    localStorage.setItem('roomkn-user-data', JSON.stringify(currentUser));
 }
 
-export function saveUserData(userData) {
-    console.log(userData, JSON.stringify(userData))
-    sessionStorage.setItem('roomkn', JSON.stringify(userData));
+export function getUserPermissionsFromStorage() {
+    const dataString = localStorage.getItem('roomkn-user-permissions');
+    try {
+        return JSON.parse(dataString)
+    } catch (e) {
+        return emptyUserPermissions
+    }
+}
+
+export function SaveUserPermissionsIntoStorage(currentUser) {
+    console.log(currentUser, JSON.stringify(currentUser))
+    localStorage.setItem('roomkn-user-permissions', JSON.stringify(currentUser));
 }
 
 export const IsAuthorizedContext = createContext(false)
