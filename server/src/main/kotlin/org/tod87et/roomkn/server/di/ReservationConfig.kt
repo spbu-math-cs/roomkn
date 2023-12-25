@@ -26,9 +26,9 @@ data class ReservationConfig(
         fun fromApplicationConfig(applicationConfig: ApplicationConfig) = ReservationConfig(
             maxPastOffset = applicationConfig.propertyOrNull(KEY_MAX_PAST_OFFSET)?.getString()
                 ?.toIntOrNull()?.minutes ?: DEFAULT_MAX_PAST_OFFSET,
-            maxReservationDuration = applicationConfig.propertyOrNull(KEY_MAX_FUTURE_OFFSET)?.getString()
+            maxFutureOffset = applicationConfig.propertyOrNull(KEY_MAX_FUTURE_OFFSET)?.getString()
                 ?.toIntOrNull()?.minutes ?: DEFAULT_MAX_FUTURE_OFFSET,
-            maxFutureOffset = applicationConfig.propertyOrNull(KEY_MAX_RESERVATION_DURATION)?.getString()
+            maxReservationDuration = applicationConfig.propertyOrNull(KEY_MAX_RESERVATION_DURATION)?.getString()
                 ?.toIntOrNull()?.minutes ?: DEFAULT_MAX_RESERVATION_DURATION,
         )
     }
