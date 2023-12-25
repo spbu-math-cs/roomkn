@@ -2,7 +2,7 @@ import "./SignUp.css";
 import React, {useContext, useEffect} from "react";
 import useSomeAPI from '../api/FakeAPI'
 import ContentWrapper from '../components/Content';
-import {IsAuthorizedContext, CurrentUserContext, saveUserData} from "../components/Auth";
+import {IsAuthorizedContext, CurrentUserContext} from "../components/Auth";
 import {SnackbarContext} from "../components/SnackbarAlert";
 import {Avatar, Box, Button, CssBaseline, Grid, TextField, Typography} from "@mui/material";
 import {NavLink, useMatch, useNavigate} from "react-router-dom";
@@ -70,25 +70,24 @@ function SignUpForm({inviteToken=null}) {
         }
     };
 
-    function registerCallback(result, statusCode) {
-            if (statusCode === 409) setNewMessageSnackbar("Error: user with this username or email already exists")
-            else if (statusCode === 200 && result != null) {
-                    console.log(result)
-                    const userData = {
-                            user_id: result?.id,
-                            username: username,
-                            csrf_token: headers['X-CSRF-Token'],
-                            is_admin: IS_ADMIN_DEFAULT
-                    }
-                    setNewMessageSnackbar("Registration succeeded!");
-                    console.log('user data:')
-                    console.log(userData)
-                    setCurrentUser(userData)
-                    saveUserData(userData)
-                    setIsAuthorized(true)
-            }
-            else setNewMessageSnackbar("statusCode: " + statusCode)
-    }
+        function registerCallback(result, statusCode) {
+                if (statusCode === 409) setNewMessageSnackbar("Error: user with this username or email already exists")
+                else if (statusCode === 200 && result != null) {
+                        console.log(result)
+                        const userData = {
+                                user_id: result?.id,
+                                username: username,
+                                csrf_token: headers['X-CSRF-Token'],
+                                is_admin: IS_ADMIN_DEFAULT
+                        }
+                        setNewMessageSnackbar("Registration succeeded!");
+                        console.log('user data:')
+                        console.log(userData)
+                        setCurrentUser(userData)
+                        setIsAuthorized(true)
+                }
+                else setNewMessageSnackbar("statusCode: " + statusCode)
+        }
 
     return (
         <div>
