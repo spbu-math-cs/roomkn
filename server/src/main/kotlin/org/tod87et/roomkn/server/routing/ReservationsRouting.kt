@@ -228,8 +228,6 @@ private fun Route.reserveMultipleRouting(database: Database) {
 
 private fun Route.reservationListRouting(database: Database) {
     get {
-        call.requireAdminPermission(database) { return@get call.onMissingPermission() }
-
         val from = call.request.queryParameters["from"].toResultInstantOrNull()
             .getOrElse { return@get call.onIncorrectTimestamp() }
 
@@ -290,8 +288,6 @@ private fun Route.reservationListRouting(database: Database) {
         val untilResult = call.request.queryParameters["until"].toResultInstantOrNull()
         val userIdsString = call.request.queryParameters["user_ids"]
         val roomIdsString = call.request.queryParameters["room_ids"]
-
-        call.requireAdminPermission(database) { return@get call.onMissingPermission() }
 
         val userIds = userIdsString?.split(",")?.map {
             it.toIntOrNull() ?: return@get call.respondText(
