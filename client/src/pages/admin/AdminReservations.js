@@ -474,6 +474,7 @@ export function ReservationsList({is_admin=false, user_id=null}) {
                 onPageChange={handleChangePage}
                 rowsPerPage={reservationsPerPage}
                 onRowsPerPageChange={handleChangeRowsPerPage}
+                data-test-id="pagination-input"
             />
         </Box>
     )

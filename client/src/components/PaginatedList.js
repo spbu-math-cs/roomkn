@@ -79,7 +79,7 @@ export function PaginatedList({children, endpoint, resultHandler, additional_dep
                 {draw_list}
             </Stack>
             <Stack alignItems="center">
-                <Pagination count={pageCount} page={page} onChange={handleChangePage} sx={{justifyContent:"center"}} />
+                <Pagination count={pageCount} page={page} onChange={handleChangePage} sx={{justifyContent:"center"}} data-test-id="pagination-input"/>
             </Stack>
         </>
     )
