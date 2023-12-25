@@ -3,7 +3,7 @@ import {getCSRFToken} from "../components/Auth";
 
 const API_HOST = process.env.REACT_APP_REST_SERVER_ADDRESS
 
-export function useAPI(url, data=null, method='GET', callback = () => {}) {
+export function useAPI(url, data=null, method='GET', callback = () => {}, is_json_response=true) {
     const [result, setResult] = useState();
     const [loading, setLoading] = useState(true);
     const [finished, setFinished] = useState(false);
@@ -19,6 +19,7 @@ export function useAPI(url, data=null, method='GET', callback = () => {}) {
         try {
             return callback(result, statusCode)
         } catch (e) {
+
             console.log(e, statusCode, result)
         }
     }
@@ -54,7 +55,8 @@ export function useAPI(url, data=null, method='GET', callback = () => {}) {
                 return r
             })
             .then(r => {
-                r.json().then(rjson => {
+                let res_f = is_json_response ? r.json() : r.text();
+                res_f.then(rjson => {
                     setResult(rjson)
 
                     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -122,6 +124,27 @@ export function fromAPITime(ins) {
         date: tokens[0],
         time: time
     }
+}
+
+export function dateFormat(date, format = "yyyy-mm-dd") {
+    var mlz = ""
+    if (date.getMonth() + 1 < 10) mlz = "0"
+    var dlz = ""
+    if (date.getDate() < 10) dlz = "0"
+    const map = {
+        mm: mlz + (date.getMonth() + 1),
+        dd: dlz + date.getDate(),
+        yyyy: date.getFullYear(),
+        // yy: date.getFullYear().toString().slice(-2)
+    }
+
+    return format.replace(/mm|dd|yyyy/gi, matched => map[matched])
+}
+
+export function getTodayDate(format = "yyyy-mm-dd") {
+    const date = new Date()
+
+    return dateFormat(date, format)
 }
 
 

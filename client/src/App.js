@@ -23,6 +23,7 @@ import AdminPanel from "./pages/admin/AdminPanel";
 import AdminRoomList from "./pages/admin/AdminRoomList";
 import AdminUserList from "./pages/admin/AdminUserList";
 import AdminMap from "./pages/admin/AdminMap";
+import AdminTokenList from './pages/admin/AdminTokens';
 
 import {createTheme, ThemeProvider} from "@mui/material";
 import AdminReservations from "./pages/admin/AdminReservations";
@@ -75,6 +76,7 @@ function App() {
                             <Route path='/room/*' element={<Room/>}/>
                             <Route path='/scrn/*' element={<RoomScreenPage/>}/>
                             <Route path='/sign-up' element={<SignUp/>}/>
+                            <Route path='/invite/*' element={<SignUp/>}/>
                             <Route path='/sign-in' element={<SignIn/>}/>
                             <Route path='/my-reservations' element={<UserReservations/>} />
                             {/* <Route path='/contact' element={<Contact />} />
@@ -91,6 +93,7 @@ function App() {
                             <Route path="admin/users" element={<AdminUserList/>}/>
                             <Route path="admin/reservations" element={<AdminReservations/>}/>
                             <Route path='admin/map' element={<AdminMap/>}/>
+                            <Route path='admin/invites' element={<AdminTokenList/>}/>
                         </Routes>
                         {/*<Footer />*/}
                     </Router>
