@@ -61,8 +61,12 @@ export function GetRoomInfo() {
 }
 
 export function GetReservations(room_id, date) {
+    const params = new URLSearchParams()
+    params.append("room_ids", [room_id])
+    params.append("from", toAPITime(date, "00:00"))
+    params.append("until", toAPITime(date, "23:59"))
 
-    let {triggerFetch, finished} = useSomeAPI('/api/v0/rooms/' + room_id + '/reservations', null, 'GET', ReservationsCallback)
+    let {triggerFetch, finished} = useSomeAPI('/api/v0/reservations?' + params.toString(), null, 'GET', ReservationsCallback)
 
     let [reservations, setReservations] = useState(null)
 
