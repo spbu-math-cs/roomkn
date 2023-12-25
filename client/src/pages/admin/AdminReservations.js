@@ -262,11 +262,11 @@ function Reservation({reservation, display_user, triggerGetReservations}) {
                 {until_obj.time}
             </TableCell>
             <TableCell align="right">
-                <Button variant="outlined" color="warning" onClick={openEditReservation} sx={{maxWidth: "40pt"}}>edit</Button>
+                <Button variant="outlined" color="warning" onClick={openEditReservation} sx={{maxWidth: "40"}}>edit</Button>
                 <EditReservation openEdit={openEdit} setOpenEdit={setOpenEdit} currentReservation={reservation} triggerAllFetch={triggerGetReservations}/>
             </TableCell>
             <TableCell align="right">
-                <Button variant="outlined" color="error" onClick={deleteReservation} sx={{maxWidth: "40pt"}}>delete</Button>
+                <Button variant="outlined" color="error" onClick={deleteReservation} sx={{maxWidth: "40"}}>delete</Button>
             </TableCell>
         </TableRow>
     )
@@ -398,89 +398,103 @@ function Filters({triggerGetReservations, display_user}) {
     }
 
     return (
-        <Stack direction="row" spacing = {theme.spacing()}>
-            <FormControl sx={{ m: 1, width: 200 }}>
-                <InputLabel id="sort-by-lebel-id">Sort by</InputLabel>
-                <Select
-                    label="Sort by:"
-                    labelId="sort-by-lebel-id"
-                    id="sort-by-select"
-                    value = {sortBy}
-                    onChange = {(e) => {setSortBy(e.target.value)}}
-                >
-                    <MenuItem value = "date_from">Reservation from date</MenuItem>
-                    <MenuItem value = "date_until">Reservation until date</MenuItem>
-                    <MenuItem value = "owner_name">Owner name</MenuItem>
-                    <MenuItem value = "room_name">Room name</MenuItem>
-                </Select>
-            </FormControl>
-            <FormControl sx={{ m: 1, width: 200 }}>
-                <InputLabel id="sort-order-lebel-id">Sort order:</InputLabel>
-                <Select
-                    label="Sort order:"
-                    labelId="sort-order-lebel-id"
-                    id="sort-order-select"
-                    value = {sortOrder}
-                    onChange = {(e) => {setSortOrder(e.target.value)}}
-                >
-                    <MenuItem value = "asc">Ascending</MenuItem>
-                    <MenuItem value = "desc">Decreasing</MenuItem>
-                </Select>
-            </FormControl>
-            <FormControl sx={{ m: 1, width: 200, display: display_user }}>
-                <InputLabel id="select-users-label-id">Users:</InputLabel>
-                <Select
-                    multiple
-                    label="Users:"
-                    labelId="select-users-label-id"
-                    id="users-select"
-                    value={users}
-                    onChange={handleChangeUsers}
-                    renderValue={(selected) => selected.map((id) => userMap.get(id)).join(', ')}
-                >
-                    {allUsers.map((user) => (
-                        <MenuItem value={user.id}>
-                            <Checkbox checked={(users.indexOf(user.id) > -1)}/>
-                            <ListItemText primary={user.username} />
-                        </MenuItem>
-                    ))}
-                </Select>
-            </FormControl>
+        <Stack direction={{xs: "col", lg: "row"}} spacing = {theme.spacing()}>
+            <Stack direction="row">
+                <FormControl sx={{ m: 1, width: 200 }}>
+                    <InputLabel id="sort-by-lebel-id">Sort by</InputLabel>
+                    <Select
+                        label="Sort by:"
+                        labelId="sort-by-lebel-id"
+                        id="sort-by-select"
+                        value = {sortBy}
+                        onChange = {(e) => {setSortBy(e.target.value)}}
+                    >
+                        <MenuItem value = "date_from">Reservation from date</MenuItem>
+                        <MenuItem value = "date_until">Reservation until date</MenuItem>
+                        <MenuItem value = "owner_name">Owner name</MenuItem>
+                        <MenuItem value = "room_name">Room name</MenuItem>
+                    </Select>
+                </FormControl>
+                <FormControl sx={{ m: 1, width: 200 }}>
+                    <InputLabel id="sort-order-lebel-id">Sort order:</InputLabel>
+                    <Select
+                        label="Sort order:"
+                        labelId="sort-order-lebel-id"
+                        id="sort-order-select"
+                        value = {sortOrder}
+                        onChange = {(e) => {setSortOrder(e.target.value)}}
+                    >
+                        <MenuItem value = "asc">Ascending</MenuItem>
+                        <MenuItem value = "desc">Decreasing</MenuItem>
+                    </Select>
+                </FormControl>
+            </Stack>
+            <Stack direction="row">
+                <FormControl sx={{ m: 1, width: 200, display: display_user }}>
+                    <InputLabel id="select-users-label-id">Users:</InputLabel>
+                    <Select
+                        multiple
+                        label="Users:"
+                        labelId="select-users-label-id"
+                        id="users-select"
+                        value={users}
+                        onChange={handleChangeUsers}
+                        renderValue={(selected) => selected.map((id) => userMap.get(id)).join(', ')}
+                    >
+                        {allUsers.map((user) => (
+                            <MenuItem value={user.id}>
+                                <Checkbox checked={(users.indexOf(user.id) > -1)}/>
+                                <ListItemText primary={user.username} />
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
 
-            <FormControl sx={{ m: 1, width: 200 }}>
-                <InputLabel id="select-rooms-label-id">Rooms:</InputLabel>
-                <Select
-                    multiple
-                    label="Rooms:"
-                    labelId="select-rooms-label-id"
-                    id="rooms-select"
-                    value={rooms}
-                    onChange={handleChangeRooms}
-                    renderValue={(selected) => selected.map((id) => roomMap.get(id)).join(', ')}
-                >
-                    {allRooms.map((room) => (
-                        <MenuItem value={room.id}>
-                            <Checkbox checked={(rooms.indexOf(room.id) > -1)}/>
-                            <ListItemText primary={room.name} />
-                        </MenuItem>
-                    ))}
-                </Select>
-            </FormControl>
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DatePicker id="date" label="From" type="date" defaultValue={dayjs(from)}
-                            onChange={(v) => {
-                                setFrom(dateFormat(v.toDate()));
-                            }}
-                            format="DD.MM.YYYY"
-                />
-                <DatePicker id="date" label="Until" type="date" defaultValue={dayjs(until)}
-                            onChange={(v) => {
-                                setUntil(dateFormat(v.toDate()));
-                            }}
-                            format="DD.MM.YYYY"
-                />
-            </LocalizationProvider>
-            <Button variant="contained" color="success" onClick={onUpdate}>Update</Button>
+                <FormControl sx={{ m: 1, width: 200 }}>
+                    <InputLabel id="select-rooms-label-id">Rooms:</InputLabel>
+                    <Select
+                        multiple
+                        label="Rooms:"
+                        labelId="select-rooms-label-id"
+                        id="rooms-select"
+                        value={rooms}
+                        onChange={handleChangeRooms}
+                        renderValue={(selected) => selected.map((id) => roomMap.get(id)).join(', ')}
+                    >
+                        {allRooms.map((room) => (
+                            <MenuItem value={room.id}>
+                                <Checkbox checked={(rooms.indexOf(room.id) > -1)}/>
+                                <ListItemText primary={room.name} />
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+            </Stack>
+            <Stack direction="row" >
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <Box  sx={{ m: 1}}>
+                        <DatePicker id="date" label="From" type="date" defaultValue={dayjs(from)}
+                                    onChange={(v) => {
+                                        setFrom(dateFormat(v.toDate()));
+                                    }}
+                                    format="DD.MM.YYYY"
+                        />
+                    </Box>
+                    <Box sx={{ m: 1 }}>
+                        <DatePicker id="date" label="Until" type="date" defaultValue={dayjs(until)}
+                                    onChange={(v) => {
+                                        setUntil(dateFormat(v.toDate()));
+                                    }}
+                                    format="DD.MM.YYYY"
+                        />
+                    </Box>
+                </LocalizationProvider>
+            </Stack>
+            <Stack>
+                <Box sx={{ m: 1, width: 200 }}>
+                    <Button variant="contained" color="success" onClick={onUpdate} maxWidth={50} sx={{height: 56}}>Update</Button>
+                </Box>
+            </Stack>
         </Stack>
     )
 }
@@ -563,11 +577,11 @@ export function ReservationsList({is_admin=false, user_id=null}) {
             }}>
                 <Stack spacing = {2} direction = "column">
                     <Filters triggerGetReservations={onUpdate} display_user={display_user}/>
-                    <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                    <Table sx={{ minWidth: 650 }} aria-label="simple table" >
                         <TableHead>
                             <TableRow>
-                                <TableCell>Reservation Id</TableCell>
-                                <TableCell align="right">Room name</TableCell>
+                                <TableCell>id</TableCell>
+                                <TableCell align="right">Room</TableCell>
                                 <TableCell align="right" sx={{display: display_user}}>User</TableCell>
                                 <TableCell align="right">Date</TableCell>
                                 <TableCell align="right">From</TableCell>
