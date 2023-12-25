@@ -124,10 +124,8 @@ function EditReservation({openEdit, setOpenEdit, currentReservation, triggerAllF
     }, [openEdit])
 
     const new_reservation = {
-        // user_id: currentReservation.user_id,
         from: toAPITime(date, from),
         until: toAPITime(date, until),
-        // room_id: currentReservation.room_id
     }
 
     const {triggerFetch} = useSomeAPI("/api/v0/reservations/" + currentReservation.id, new_reservation, 'PUT', updateReservationCallback)
@@ -195,9 +193,6 @@ function EditReservation({openEdit, setOpenEdit, currentReservation, triggerAllF
                 </Box>
 
             </DialogContent>
-            {/*<Paper sx={{position: "absolute", zIndex: 100}} >*/}
-            {/*    */}
-            {/*</Paper>*/}
         </Dialog>
 
     )
