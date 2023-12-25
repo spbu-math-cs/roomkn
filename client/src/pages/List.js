@@ -48,7 +48,7 @@ function GetReservationsInSegment(room_id, dateFrom, dateUntil) {
     let [reservations, setReservations] = useState(null)
 
     //eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => triggerFetch(), [dateFrom, dateUntil])
+    useEffect(() => triggerFetch(), [room_id, dateFrom, dateUntil])
 
     function ReservationsCallback(result, statusCode) {
         console.log("all reservations for room " + room_id + " are (status code: " + statusCode + " ):")
