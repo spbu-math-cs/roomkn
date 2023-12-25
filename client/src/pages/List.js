@@ -7,7 +7,7 @@ import {
     ListItemButton,
     Stack, Typography, Skeleton,
 } from "@mui/material";
-import {fromAPITime, toAPITime} from "../api/API";
+import {toAPITime} from "../api/API";
 import Timeline from "../components/TimelineForRoomList";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
@@ -38,7 +38,12 @@ function getTodayDate(format = "yyyy-mm-dd") {
 
 function GetReservationsInSegment(room_id, dateFrom, dateUntil) {
 
-    let {triggerFetch, finished} = useSomeAPI('/api/v0/rooms/' + room_id + '/reservations', null, 'GET', ReservationsCallback)
+    const params = new URLSearchParams()
+    params.append("room_ids", [room_id])
+    params.append("from", toAPITime(dateFrom, "00:00"))
+    params.append("until", toAPITime(dateUntil, "23:59"))
+
+    let {triggerFetch, finished} = useSomeAPI('/api/v0/reservations?' + params.toString(), null, 'GET', ReservationsCallback)
 
     let [reservations, setReservations] = useState(null)
 
@@ -48,11 +53,7 @@ function GetReservationsInSegment(room_id, dateFrom, dateUntil) {
     function ReservationsCallback(result, statusCode) {
         console.log("all reservations for room " + room_id + " are (status code: " + statusCode + " ):")
         if (statusCode === 200 && result != null) {
-            setReservations(
-                result.filter((reservation) => (
-                    fromAPITime(reservation.from).date <= dateUntil &&
-                    fromAPITime(reservation.until).date >= dateFrom
-                )))
+            setReservations(result)
         } else {
             setReservations(null)
         }
