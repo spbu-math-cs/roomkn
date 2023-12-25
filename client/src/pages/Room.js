@@ -62,12 +62,9 @@ export function GetRoomInfo() {
 
 export function GetReservations(room_id, date) {
 
-    let {triggerFetch} = useSomeAPI('/api/v0/rooms/' + room_id + '/reservations', null, 'GET', ReservationsCallback)
+    let {triggerFetch, finished} = useSomeAPI('/api/v0/rooms/' + room_id + '/reservations', null, 'GET', ReservationsCallback)
 
-    let [reservs, setReservs] = useState({
-        reservations: null,
-        triggerGetReservations: triggerFetch
-    })
+    let [reservations, setReservations] = useState(null)
 
     console.log("GetReservations invoked with date = " + date)
     console.log("used some api with /api/v0/rooms/" + room_id + "/reservations")
@@ -78,19 +75,17 @@ export function GetReservations(room_id, date) {
 
     function ReservationsCallback(result, statusCode) {
         if (statusCode === 200 && result != null) {
-            setReservs({
-                reservations: result.filter((reservation) => (fromAPITime(reservation.from).date === date)),
-                triggerGetReservations: triggerFetch
-            })
+            setReservations(result.filter((reservation) => (fromAPITime(reservation.from).date === date)))
         } else {
-            setReservs({
-                reservations: null,
-                triggerGetReservations: triggerFetch
-            })
+            setReservations(null)
         }
     }
 
-    return reservs
+    return {
+        reservations,
+        triggerGetReservations: triggerFetch,
+        loading_finished: finished,
+    }
 }
 
 function parseTimeMinutes(timeStr) {
@@ -394,7 +389,7 @@ function Room() {
     const [until, setUntil] = React.useState("11:05")
     const [isActive, setIsActive] = React.useState(false)
     const {result: room_info} = GetRoomInfo()
-    const {reservations, triggerGetReservations} = GetReservations(room_info.id, date)
+    const {reservations, triggerGetReservations, loading_finished} = GetReservations(room_info.id, date)
 
     console.log(reservations)
 
@@ -446,6 +441,7 @@ function Room() {
                                           show_time_labels={true}
                                           currentReservation={currentReservation}
                                           height={75}
+                                          loading_finished={loading_finished}
                                 />
                             </Box>
                         </div>
