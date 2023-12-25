@@ -114,10 +114,11 @@ function EditUserRow({user, refresh}) {
     function permGetCallback(result, statusCode) {
         // console.log('callback entered')
         if (statusCode === 200) {
-            const tmp_perms = permissionsDefault
+            const tmp_perms = {...permissionsDefault}
             for (let perm in result) {
                 tmp_perms[result[perm]] = true;
             }
+            console.log(permissionsDefault, tmp_perms, result)
             // console.log('setting perms')
             setPermissionsBefore(JSON.parse(JSON.stringify(tmp_perms)))
             setPermissions(JSON.parse(JSON.stringify(tmp_perms)))
