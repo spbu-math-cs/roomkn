@@ -7,12 +7,12 @@ import {fromAPITime, toAPITime} from "../../api/API";
 import {
     Box,
     Button,
-    Checkbox,
+    Checkbox, Dialog, DialogContent, DialogTitle,
     FormControl,
     InputLabel,
     ListItemText,
     MenuItem,
-    Select, Skeleton,
+    Select, Skeleton, Slider,
     Stack, Table, TableBody, TableCell, TableHead, TablePagination, TableRow,
     useTheme
 } from "@mui/material";
@@ -21,6 +21,8 @@ import dayjs from "dayjs";
 import {DatePicker} from "@mui/x-date-pickers";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
+import Timeline from "../../components/TimelineForRoomList";
+import {BookingFormDatePickers, GetReservations, makeTimeMinutes, parseTimeMinutes, timeMarks} from "../Room";
 
 const FiltersContext = createContext()
 
@@ -93,7 +95,115 @@ function useGetRoomName(room_id) {
     return room_name
 }
 
-function Reservation({reservation, display_user}) {
+function EditReservation({openEdit, setOpenEdit, currentReservation, triggerAllFetch}) {
+
+    const {setNewMessageSnackbar} = useContext(SnackbarContext)
+
+    const min_res_time = "09:30"
+    const max_res_time = "23:30"
+    const min_booking_time = parseTimeMinutes(min_res_time)
+    const max_booking_time = parseTimeMinutes(max_res_time)
+
+    const from_obj = fromAPITime(currentReservation.from)
+    const until_obj = fromAPITime(currentReservation.until)
+
+    const date = from_obj.date
+
+    const [from, setFrom] = React.useState(from_obj.time)
+    const [until, setUntil] = React.useState(until_obj.time)
+
+    const fromTimelineDate = new Date(toAPITime(from_obj.date, min_res_time))
+    const untilTimelineDate = new Date(toAPITime(until_obj.date, max_res_time))
+
+    const {reservations, triggerGetReservations, loading_finished} = GetReservations(currentReservation.room_id, date, false)
+
+    useEffect(() => {
+        if (openEdit)
+            triggerGetReservations()
+        //eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [openEdit])
+
+    const new_reservation = {
+        // user_id: currentReservation.user_id,
+        from: toAPITime(date, from),
+        until: toAPITime(date, until),
+        // room_id: currentReservation.room_id
+    }
+
+    const {triggerFetch} = useSomeAPI("/api/v0/reservations/" + currentReservation.id, new_reservation, 'PUT', updateReservationCallback)
+
+
+    function updateReservationCallback(result, statusCode) {
+
+        if (statusCode === 200) {
+            setNewMessageSnackbar("Reservation changed")
+            setOpenEdit(false)
+            triggerAllFetch()
+        } else {
+            setNewMessageSnackbar("Failed to edit reservation")
+        }
+    }
+
+    function updateReservation() {
+        triggerFetch()
+    }
+
+    const filtered_reservations = reservations != null ? reservations.filter((r) => r.id !== currentReservation.id) : null
+
+    return (
+        <Dialog open={openEdit} onClose={() => setOpenEdit(false)}>
+            <DialogTitle>Edit reservation</DialogTitle>
+            <DialogContent>
+                <Box maxWidth={500} sx={{height: 100}}>
+                    <Timeline reservations={filtered_reservations}
+                              fromTimelineDate={fromTimelineDate}
+                              untilTimelineDate={untilTimelineDate}
+                              // show_reservation_labels={true}
+                              show_time_labels={true}
+                              currentReservation={new_reservation}
+                              height={75}
+                              loading_finished={loading_finished}
+                    />
+                </Box>
+                <Box>
+                    <Box sx={{paddingRight: 1, paddingLeft: 1, display: { xs: 'none', md: 'flex' }}} fullWidth>
+                        <Slider
+                            fullWidth
+                            track={false}
+                            step={5}
+                            min={min_booking_time}
+                            max={max_booking_time}
+                            value={[parseTimeMinutes(from), parseTimeMinutes(until)]}
+                            onChange={(e) => {
+                                setFrom(makeTimeMinutes(e.target.value[0]));
+                                setUntil(makeTimeMinutes(e.target.value[1]));
+                            }}
+                            valueLabelDisplay="on"
+                            getAriaVal  ueText={makeTimeMinutes}
+                            valueLabelFormat={makeTimeMinutes}
+                            marks={timeMarks}
+                        />
+                    </Box>
+                    <BookingFormDatePickers from={from} setFrom={setFrom} until={until} setUntil={setUntil}/>
+                    <Button color="secondary"
+                            variant="contained"
+                            onClick={updateReservation}
+                            disabled={false}
+                            sx={{width: "100pt"}}>
+                        Update reservation
+                    </Button>
+                </Box>
+
+            </DialogContent>
+            {/*<Paper sx={{position: "absolute", zIndex: 100}} >*/}
+            {/*    */}
+            {/*</Paper>*/}
+        </Dialog>
+
+    )
+}
+
+function Reservation({reservation, display_user, triggerGetReservations}) {
 
     const from_obj = fromAPITime(reservation.from)
     const until_obj = fromAPITime(reservation.until)
@@ -125,6 +235,12 @@ function Reservation({reservation, display_user}) {
         triggerFetch()
     }
 
+    const [openEdit, setOpenEdit] = useState(false)
+
+    function openEditReservation () {
+        setOpenEdit(true)
+    }
+
     if (deleted) return (<></>)
 
     return (
@@ -149,6 +265,10 @@ function Reservation({reservation, display_user}) {
             </TableCell>
             <TableCell align="right">
                 {until_obj.time}
+            </TableCell>
+            <TableCell align="right">
+                <Button variant="outlined" color="warning" onClick={openEditReservation} sx={{maxWidth: "40pt"}}>edit</Button>
+                <EditReservation openEdit={openEdit} setOpenEdit={setOpenEdit} currentReservation={reservation} triggerAllFetch={triggerGetReservations}/>
             </TableCell>
             <TableCell align="right">
                 <Button variant="outlined" color="error" onClick={deleteReservation} sx={{maxWidth: "40pt"}}>delete</Button>
@@ -370,12 +490,12 @@ function Filters({triggerGetReservations, display_user}) {
     )
 }
 
-function Reservations({reservations, display_user}) {
+function Reservations({reservations, display_user, triggerGetReservations}) {
 
     const drawList = []
 
     reservations.forEach((reservation) => {
-        drawList.push(<Reservation reservation={reservation} display_user={display_user}/> )
+        drawList.push(<Reservation reservation={reservation} display_user={display_user} triggerGetReservations={triggerGetReservations}/> )
     })
 
     return drawList
@@ -457,11 +577,12 @@ export function ReservationsList({is_admin=false, user_id=null}) {
                                 <TableCell align="right">Date</TableCell>
                                 <TableCell align="right">From</TableCell>
                                 <TableCell align="right">Until</TableCell>
+                                <TableCell align="right">Edit</TableCell>
                                 <TableCell align="right">Delete</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            <Reservations reservations={reservations} display_user={display_user} reservationsPerPage={reservationsPerPage}/>
+                            <Reservations reservations={reservations} display_user={display_user} reservationsPerPage={reservationsPerPage} triggerGetReservations={triggerGetReservations}/>
                         </TableBody>
                     </Table>
                 </Stack>

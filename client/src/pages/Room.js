@@ -60,7 +60,7 @@ export function GetRoomInfo() {
     return {result, triggerFetch}
 }
 
-export function GetReservations(room_id, date) {
+export function GetReservations(room_id, date, auto_update) {
     const params = new URLSearchParams()
     params.append("room_ids", [room_id])
     params.append("from", toAPITime(date, "00:00"))
@@ -74,7 +74,11 @@ export function GetReservations(room_id, date) {
     console.log("used some api with /api/v0/rooms/" + room_id + "/reservations")
 
     //eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => triggerFetch(), [date])
+    useEffect(() => {
+        if (auto_update)
+            triggerFetch()
+        //eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [date])
 
 
     function ReservationsCallback(result, statusCode) {
@@ -92,23 +96,52 @@ export function GetReservations(room_id, date) {
     }
 }
 
-function parseTimeMinutes(timeStr) {
+export function parseTimeMinutes(timeStr) {
     return Date.parse(`1970-01-01T${timeStr}Z`) / 60000
 }
 
-function makeTimeMinutes(minutes) {
+export function makeTimeMinutes(minutes) {
     let h = (~~(minutes / 60)).toString().padStart(2, "0")
     let m = (minutes % 60).toString().padStart(2, "0")
 
     return h + ":" + m
 }
 
-const timeMarks = [...Array(25).keys()].map((_, idx, __) => {
+export const timeMarks = [...Array(25).keys()].map((_, idx, __) => {
     return {
         value: idx * 60,
         label: idx.toString().padStart(2, "0") + ":00"
     }
 })
+
+export function BookingFormDatePickers({from, setFrom, until, setUntil}) {
+    return (
+        <Box>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <TimePicker
+                    label="From"
+                    value={dayjs('1970-01-01 '+ from)}
+                    onChange={(newValue) => {
+                        console.log(makeTimeMinutes(newValue.hour() * 60 + newValue.minute()))
+                        setFrom(makeTimeMinutes(newValue.hour() * 60 + newValue.minute()))
+                    }}
+                    format="HH:mm"
+                    sx={{ margin: 1}}
+                />
+                <TimePicker
+                    label="Until"
+                    value={dayjs('1970-01-01 '+ until)}
+                    onChange={(newValue) => {
+                        console.log(newValue.hour() * 60 + newValue.minute())
+                        setUntil(makeTimeMinutes(newValue.hour() * 60 + newValue.minute()))
+                    }}
+                    format="HH:mm"
+                    sx={{ margin: 1}}
+                />
+            </LocalizationProvider>
+        </Box>
+    )
+}
 
 function BookingForm({room_id, triggerGetReservations, min_res_time, max_res_time}) {
 
@@ -217,32 +250,7 @@ function BookingForm({room_id, triggerGetReservations, min_res_time, max_res_tim
 
     const is_reserve_disabled = (getMinutesByTime(from) >= getMinutesByTime(until)) || (date < getTodayDate())
 
-    const timePickers = (
-        <Box>
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <TimePicker
-                    label="From"
-                    value={dayjs('1970-01-01 '+ from)}
-                    onChange={(newValue) => {
-                        console.log(makeTimeMinutes(newValue.hour() * 60 + newValue.minute()))
-                        setFrom(makeTimeMinutes(newValue.hour() * 60 + newValue.minute()))
-                    }}
-                    format="HH:mm"
-                    sx={{ margin: 1}}
-                />
-                <TimePicker
-                    label="Until"
-                    value={dayjs('1970-01-01 '+ until)}
-                    onChange={(newValue) => {
-                        console.log(newValue.hour() * 60 + newValue.minute())
-                        setUntil(makeTimeMinutes(newValue.hour() * 60 + newValue.minute()))
-                    }}
-                    format="HH:mm"
-                    sx={{ margin: 1}}
-                />
-            </LocalizationProvider>
-        </Box>
-    )
+    const timePickers = <BookingFormDatePickers from={from} setFrom={setFrom} until={until} setUntil={setUntil}/>
 
     const repeatChoose = (
         <Box>
