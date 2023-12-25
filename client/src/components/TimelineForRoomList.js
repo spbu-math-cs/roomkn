@@ -229,7 +229,7 @@ function Timeline({
 
     if (reservations == null || !loading_finished) {
         return (
-            <Skeleton variant="rectangular" sx={{width: 100/100, height: height}}/>
+            <Skeleton variant="rectangular" sx={{width: 100/100, height: height+2}}/>
         )
     }
 
