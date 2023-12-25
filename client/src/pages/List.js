@@ -5,7 +5,7 @@ import React, {useEffect, useState} from "react";
 import {
     Box, Button,
     ListItemButton,
-    Stack, Typography,
+    Stack, Typography, Skeleton,
 } from "@mui/material";
 import {fromAPITime, toAPITime} from "../api/API";
 import Timeline from "../components/TimelineForRoomList";
@@ -13,6 +13,7 @@ import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
 import {DatePicker} from "@mui/x-date-pickers";
 import dayjs from "dayjs";
+import PaginatedList from "../components/PaginatedList";
 
 function dateFormat(date, format = "yyyy-mm-dd") {
     var mlz = ""
@@ -176,6 +177,23 @@ function DateSelect({from, setFromDate, until, setUntilDate}) {
     )
 }
 
+function TimelineSkeleton() {
+    return (
+        <Skeleton variant="rectangular" sx={{width: 100/100, height:50, fontSize: 20}}/>
+    )
+}
+
+function RoomRowSkeleton() {
+    return (
+        <ListItemButton data-test-id={"link-"}>
+            <Stack direction="row" alignItems="center" width="100%" spacing={5}>
+                <Skeleton sx={{width: 5/100, fontSize: 20}} />
+                <TimelineSkeleton/>
+            </Stack>
+        </ListItemButton>
+    )
+}
+
 function RoomRow({room, from, until, is_first_room_row}) {
 
     const link = "/room/" + String(room.id)
@@ -198,45 +216,40 @@ function RoomRow({room, from, until, is_first_room_row}) {
 
 function RoomList() {
 
-    let [draw_list, setDrawList] = useState([])
-
     const today = getTodayDate()
 
     const [from, setFrom] = useState(today)
     const [until, setUntil] = useState(today)
 
-    const [roomList, setRoomList] = useState([])
-
-    function my_callback(result, statusCode) {
-        console.log("result: " + result)
-        console.log("statusCode:"  + statusCode)
-        if (statusCode === 200 && result != null) {
-            setRoomList(result);
-            console.log(result)
-        }
-    }
-
-    let {triggerFetch} = useSomeAPI('/api/v0/rooms', null, 'GET', my_callback)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => triggerFetch(), [])
-
-    useEffect(() => {
+    function resultHandler(result, statusCode, elementsOnPage) {
         let is_first_room_row = true
         const new_draw_list = []
-        roomList.forEach((room) => {
-            new_draw_list.push(<RoomRow room={room} from={from} until={until} is_first_room_row={is_first_room_row}/>)
-            is_first_room_row = false
-        })
-        setDrawList(new_draw_list)
-    }, [from, until, roomList]);
+        if (statusCode === 200 && result != null) {
+            result.forEach((room) => {
+                new_draw_list.push(
+                    <>
+                        <RoomRow room={room}
+                                 from={from}
+                                 until={until}
+                                 is_first_room_row={is_first_room_row}/>
+                    </>
+                )
+                is_first_room_row = false
+            })
+        }
+        while (new_draw_list.length < elementsOnPage) {
+            new_draw_list.push(
+                <RoomRowSkeleton/>
+            )
+        }
+        return new_draw_list
+    }
 
     return (
         <ContentWrapper page_name="Classrooms">
-            <Stack direction = "column">
+            <PaginatedList endpoint={'/api/v0/rooms'} resultHandler={resultHandler} additional_deps={[from, until]} limit={5}>
                 <DateSelect from = {from} setFromDate={setFrom} until = {until} setUntilDate={setUntil}/>
-                {draw_list}
-            </Stack>
-
+            </PaginatedList>
         </ContentWrapper>
     );
 }

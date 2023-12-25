@@ -5,14 +5,15 @@ import {NavLink} from "react-router-dom";
 
 import "./AdminRoomList.css"
 import AdminWrapper from "../../components/AdminWrapper";
-import {Box, Button, Stack, TextField, useTheme} from "@mui/material";
+import {Box, Button, Skeleton, Stack, TextField, useTheme} from "@mui/material";
 import {SnackbarContext} from "../../components/SnackbarAlert";
+import PaginatedList from "../../components/PaginatedList";
 
 function EditRoomRow({room, refresh}) {
 
     let {setNewMessageSnackbar} = useContext(SnackbarContext)
 
-    let {triggerFetch} = useSomeAPI('/api/v0/rooms/' + room.id, null, 'GET', roomGetCallback)
+    let {triggerFetch, loading} = useSomeAPI('/api/v0/rooms/' + room.id, null, 'GET', roomGetCallback)
     //eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetch(), [])
 
@@ -75,6 +76,12 @@ function EditRoomRow({room, refresh}) {
 
     const theme = useTheme()
 
+    if (loading) {
+        return (
+            <EditRoomRowSkeleton/>
+        )
+    }
+
     return (
         <Stack direction="row" alignItems="baseline" spacing={theme.spacing()}>
             <Box sx={{minWidth: "30pt"}}>{room.id}</Box>
@@ -88,6 +95,25 @@ function EditRoomRow({room, refresh}) {
             <Button variant="outlined" color="secondary" onClick={reset}>reset</Button>
             <Button variant="contained" color="success" onClick={put_req}>update</Button>
             <Button variant="outlined" color="error" onClick={delete_req}>delete</Button>
+        </Stack>
+    )
+}
+
+function EditRoomRowSkeleton() {
+    const theme = useTheme()
+
+    return (
+        <Stack direction="row" alignItems="baseline" spacing={theme.spacing()}>
+            <Skeleton sx={{minWidth: "30pt"}}/>
+            <TextField label="Name" variant="outlined"  disabled/>
+            <TextField InputLabelProps={{shrink: true}}
+                       multiline
+                       maxRows={4}
+                       label="Description"
+                       variant="outlined"  disabled/>
+            <Button variant="outlined" color="secondary" disabled>reset</Button>
+            <Button variant="contained" color="success" disabled>update</Button>
+            <Button variant="outlined" color="error"  disabled>delete</Button>
         </Stack>
     )
 }
@@ -131,24 +157,22 @@ function AddRoom({refresh}) {
 }
 
 export function AdminRoomList() {
-    
-    let [drawList, setDrawList] = useState([])
 
-    let {triggerFetch} = useSomeAPI('/api/v0/rooms', null, 'GET', listCallback)
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => triggerFetch(), [])
-
-    function listCallback(result, statusCode) {
+    function resultHandler(result, statusCode, elementsOnPage) {
+        const newList = []
         if (statusCode === 200) {
-            const newList = []
             result.forEach((room) => {
                 newList.push(
                     <EditRoomRow room={room} key={room.id} refresh={triggerFetch}/>
                 )
             })
-            setDrawList(newList)
         }
+        while (newList.length < elementsOnPage) {
+            newList.push(
+                <EditRoomRowSkeleton/>
+            )
+        }
+        return newList
     }
 
     const page_name = (
@@ -160,14 +184,15 @@ export function AdminRoomList() {
         </div>
     )
 
-    const theme = useTheme()
+    const [fetchFlag, setFetchFlag] = useState([])
+    function triggerFetch() {
+        setFetchFlag(fetchFlag+1)
+    }
 
     return (
         <AdminWrapper>
             <ContentWrapper page_name={page_name}>
-                <Stack spacing={theme.spacing()}>
-                    {drawList}
-                </Stack>
+                <PaginatedList endpoint={'/api/v0/rooms'} resultHandler={resultHandler} limit={10} fetchFlag={fetchFlag}/>
             </ContentWrapper>
             <ContentWrapper page_name="Add room">
                 <AddRoom refresh={triggerFetch}/>
