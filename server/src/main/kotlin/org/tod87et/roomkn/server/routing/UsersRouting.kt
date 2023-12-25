@@ -199,7 +199,8 @@ private fun Route.getInvitationToken(database: Database) {
         val id = call.parameters["id"]?.toInt() ?: return@get call.onMissingId()
         database.getInvite(id)
             .onSuccess {
-                val token = generateToken(it.toSaltedInviteRequest(), config)
+                val saltedInviteRequest = it.toSaltedInviteRequest()
+                val token = generateToken(saltedInviteRequest, config)
                 call.respondText(token)
             }
             .onFailure { call.handleException(it) }

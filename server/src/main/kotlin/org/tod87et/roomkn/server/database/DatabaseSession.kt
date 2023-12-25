@@ -521,8 +521,8 @@ class DatabaseSession private constructor(private val database: Database) :
             SaltedInvite(
                 id = row[InviteTokens.id],
                 remaining = row[remaining],
-                until = row[expirationDate],
                 size = row[size],
+                until = row[expirationDate],
                 salt = row[InviteTokens.salt]
             )
         }
