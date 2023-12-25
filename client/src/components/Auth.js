@@ -6,12 +6,14 @@ export const IS_ADMIN_GUEST = false;
 
 export function AuthorizeWrapper({children}) {
     const {currentUser, setCurrentUser} = useContext(CurrentUserContext)
+    const {currentUserPermissions, setCurrentUserPermissions} = useContext(CurrentUserPermissionsContext)
     const {isAuthorized, setIsAuthorized} = useContext(IsAuthorizedContext)
     const {triggerValidate} = useAuthorizeByCookie()
 
     useEffect(() => {
         setCurrentUser(getUserDataFromStorage());
         setIsAuthorized(currentUser?.user_id != null)
+        setCurrentUserPermissions(getUserPermissionsFromStorage());
 
         if (!isAuthorized) {
             triggerValidate()
@@ -29,6 +31,11 @@ export function AuthorizeWrapper({children}) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentUser])
 
+    useEffect(() => {
+        SaveUserPermissionsIntoStorage(currentUserPermissions)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentUserPermissions])
+
     return children
 }
 
@@ -39,10 +46,12 @@ const emptyUser = {
     username: null
 }
 
+const emptyUserPermissions = []
+
 export function AuthorizationProvider({children}) {
     const [currentUser, setCurrentUser] = useState(getUserDataFromStorage())
     const [isAuthorized, setIsAuthorized] = useState(currentUser?.user_id != null)
-    const [currentUserPermissions, setCurrentUserPermissions] = useState([])
+    const [currentUserPermissions, setCurrentUserPermissions] = useState(getUserPermissionsFromStorage())
 
     return (
         <IsAuthorizedContext.Provider value={{isAuthorized, setIsAuthorized}}>
@@ -223,7 +232,7 @@ export function useLogout() {
 }
 
 export function getUserDataFromStorage() {
-    const dataString = localStorage.getItem('roomkn');
+    const dataString = localStorage.getItem('roomkn-user-data');
     try {
         return JSON.parse(dataString)
     } catch (e) {
@@ -233,7 +242,21 @@ export function getUserDataFromStorage() {
 
 export function SaveUserDataIntoStorage(currentUser) {
     console.log(currentUser, JSON.stringify(currentUser))
-    localStorage.setItem('roomkn', JSON.stringify(currentUser));
+    localStorage.setItem('roomkn-user-data', JSON.stringify(currentUser));
+}
+
+export function getUserPermissionsFromStorage() {
+    const dataString = localStorage.getItem('roomkn-user-permissions');
+    try {
+        return JSON.parse(dataString)
+    } catch (e) {
+        return emptyUserPermissions
+    }
+}
+
+export function SaveUserPermissionsIntoStorage(currentUser) {
+    console.log(currentUser, JSON.stringify(currentUser))
+    localStorage.setItem('roomkn-user-permissions', JSON.stringify(currentUser));
 }
 
 export const IsAuthorizedContext = createContext(false)
