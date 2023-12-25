@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-// import {getCSRFToken} from "../components/Auth";
 
 const API_HOST = process.env.REACT_APP_REST_SERVER_ADDRESS
 
