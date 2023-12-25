@@ -35,7 +35,7 @@ function TokenRow({tokenInfo, refresh}) {
         }
     }
 
-    const {triggerFetch: triggerDelete} = useSomeAPI("/api/v0/users/invitations" + tokenInfo.id, null, "DELETE", deleteTokenCallback)
+    const {triggerFetch: triggerDelete} = useSomeAPI("/api/v0/users/invitations/" + tokenInfo.id, null, "DELETE", deleteTokenCallback)
 
     const get_req = () => {
         if (token !== '') {
