@@ -11,9 +11,9 @@ import {
     FormControl,
     InputLabel,
     ListItemText,
-    MenuItem,
+    MenuItem, Paper,
     Select, Skeleton, Slider,
-    Stack, Table, TableBody, TableCell, TableHead, TablePagination, TableRow,
+    Stack, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow,
     useTheme
 } from "@mui/material";
 import {SnackbarContext} from "../../components/SnackbarAlert";
@@ -262,11 +262,11 @@ function Reservation({reservation, display_user, triggerGetReservations}) {
                 {until_obj.time}
             </TableCell>
             <TableCell align="right">
-                <Button variant="outlined" color="warning" onClick={openEditReservation} sx={{maxWidth: "40"}}>edit</Button>
+                <Button variant="text" color="warning" onClick={openEditReservation} sx={{maxWidth: "40"}}>edit</Button>
                 <EditReservation openEdit={openEdit} setOpenEdit={setOpenEdit} currentReservation={reservation} triggerAllFetch={triggerGetReservations}/>
             </TableCell>
             <TableCell align="right">
-                <Button variant="outlined" color="error" onClick={deleteReservation} sx={{maxWidth: "40"}}>delete</Button>
+                <Button variant="text" color="error" onClick={deleteReservation} sx={{maxWidth: "40"}}>delete</Button>
             </TableCell>
         </TableRow>
     )
@@ -566,7 +566,7 @@ export function ReservationsList({is_admin=false, user_id=null}) {
     const display_user =  is_admin ? '' : 'none'
 
     return (
-        <Box sx={{ml: 4, mr: 4}}>
+        <Box>
             <FiltersContext.Provider value = {{
                 from, setFrom,
                 until, setUntil,
@@ -575,25 +575,27 @@ export function ReservationsList({is_admin=false, user_id=null}) {
                 users, setUsers,
                 rooms, setRooms
             }}>
-                <Stack spacing = {2} direction = "column">
+                <Stack spacing = {2} direction = "column" width="100%">
                     <Filters triggerGetReservations={onUpdate} display_user={display_user}/>
-                    <Table sx={{ minWidth: 650 }} aria-label="simple table" >
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>id</TableCell>
-                                <TableCell align="right">Room</TableCell>
-                                <TableCell align="right" sx={{display: display_user}}>User</TableCell>
-                                <TableCell align="right">Date</TableCell>
-                                <TableCell align="right">From</TableCell>
-                                <TableCell align="right">Until</TableCell>
-                                <TableCell align="right">Edit</TableCell>
-                                <TableCell align="right">Delete</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            <Reservations reservations={reservations} display_user={display_user} reservationsPerPage={reservationsPerPage} triggerGetReservations={triggerGetReservations}/>
-                        </TableBody>
-                    </Table>
+                    <TableContainer component={Paper}>
+                        <Table sx={{ minWidth: 100}} aria-label="simple table">
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>id</TableCell>
+                                    <TableCell align="right">Room</TableCell>
+                                    <TableCell align="right" sx={{display: display_user}}>User</TableCell>
+                                    <TableCell align="right">Date</TableCell>
+                                    <TableCell align="right">From</TableCell>
+                                    <TableCell align="right">Until</TableCell>
+                                    <TableCell align="right">Edit</TableCell>
+                                    <TableCell align="right">Delete</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                <Reservations reservations={reservations} display_user={display_user} reservationsPerPage={reservationsPerPage} triggerGetReservations={triggerGetReservations}/>
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
                 </Stack>
             </FiltersContext.Provider>
             <TablePagination
