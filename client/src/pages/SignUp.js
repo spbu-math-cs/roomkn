@@ -1,11 +1,11 @@
 import "./SignUp.css";
-import React, {useContext} from "react";
+import React, {useContext, useEffect} from "react";
 import useSomeAPI from '../api/FakeAPI'
 import ContentWrapper from '../components/Content';
 import {IsAuthorizedContext, CurrentUserContext, saveUserData} from "../components/Auth";
 import {SnackbarContext} from "../components/SnackbarAlert";
 import {Avatar, Box, Button, CssBaseline, Grid, TextField, Typography} from "@mui/material";
-import {NavLink, useMatch} from "react-router-dom";
+import {NavLink, useMatch, useNavigate} from "react-router-dom";
 import {Container} from "@pixi/react";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Copyright from "../components/Copyright";
@@ -28,6 +28,24 @@ function SignUpForm({inviteToken=null}) {
     }
 
     let inviteTokenEndpoint = inviteToken != null ? '/' + inviteToken : ''
+
+    const {triggerFetch: validateTrigger} = useSomeAPI("/api/v0/invite/validate-token" + inviteTokenEndpoint, null, "GET", validateCallback, false)
+
+    useEffect(() => {
+        if (inviteToken != null) {
+            validateTrigger()
+        }
+        //eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const navigate = useNavigate()
+
+    function validateCallback(result, statusCode) {
+        if (statusCode !== 200) {
+            setNewMessageSnackbar('Incorrect invite link')
+            navigate('/pagenotfound', {replace: true})
+        }
+    }
 
     const { headers,
             triggerFetch
