@@ -401,7 +401,7 @@ function Room() {
     const [until, setUntil] = React.useState("11:05")
     const [isActive, setIsActive] = React.useState(false)
     const {result: room_info} = GetRoomInfo()
-    const {reservations, triggerGetReservations, loading_finished} = GetReservations(room_info.id, date)
+    const {reservations, triggerGetReservations, loading_finished} = GetReservations(room_info.id, date, true)
 
     console.log(reservations)
 
