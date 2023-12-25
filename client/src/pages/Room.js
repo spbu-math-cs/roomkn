@@ -61,8 +61,12 @@ export function GetRoomInfo() {
 }
 
 export function GetReservations(room_id, date) {
+    const params = new URLSearchParams()
+    params.append("room_ids", [room_id])
+    params.append("from", toAPITime(date, "00:00"))
+    params.append("until", toAPITime(date, "23:59"))
 
-    let {triggerFetch, finished} = useSomeAPI('/api/v0/rooms/' + room_id + '/reservations', null, 'GET', ReservationsCallback)
+    let {triggerFetch, finished} = useSomeAPI('/api/v0/reservations?' + params.toString(), null, 'GET', ReservationsCallback)
 
     let [reservations, setReservations] = useState(null)
 
@@ -75,7 +79,7 @@ export function GetReservations(room_id, date) {
 
     function ReservationsCallback(result, statusCode) {
         if (statusCode === 200 && result != null) {
-            setReservations(result.filter((reservation) => (fromAPITime(reservation.from).date === date)))
+            setReservations(result)
         } else {
             setReservations(null)
         }
@@ -437,10 +441,10 @@ function Room() {
                                 <Timeline reservations={reservations}
                                           fromTimelineDate={fromTimelineDate}
                                           untilTimelineDate={untilTimelineDate}
-                                          show_reservation_labels={true}
+                                          // show_reservation_labels={true}
                                           show_time_labels={true}
                                           currentReservation={currentReservation}
-                                          height={150}
+                                          height={75}
                                           loading_finished={loading_finished}
                                 />
                             </Box>

@@ -7,7 +7,7 @@ import {
     ListItemButton,
     Stack, Typography, Skeleton,
 } from "@mui/material";
-import {fromAPITime, toAPITime, dateFormat, getTodayDate} from "../api/API";
+import {toAPITime} from "../api/API";
 import Timeline from "../components/TimelineForRoomList";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
@@ -15,9 +15,35 @@ import {DatePicker} from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import PaginatedList from "../components/PaginatedList";
 
+function dateFormat(date, format = "yyyy-mm-dd") {
+    var mlz = ""
+    if (date.getMonth() + 1 < 10) mlz = "0"
+    var dlz = ""
+    if (date.getDate() < 10) dlz = "0"
+    const map = {
+        mm: mlz + (date.getMonth() + 1),
+        dd: dlz + date.getDate(),
+        yyyy: date.getFullYear(),
+        // yy: date.getFullYear().toString().slice(-2)
+    }
+
+    return format.replace(/mm|dd|yyyy/gi, matched => map[matched])
+}
+
+function getTodayDate(format = "yyyy-mm-dd") {
+    const date = new Date()
+
+    return dateFormat(date, format)
+}
+
 function GetReservationsInSegment(room_id, dateFrom, dateUntil) {
 
-    let {triggerFetch, finished} = useSomeAPI('/api/v0/rooms/' + room_id + '/reservations', null, 'GET', ReservationsCallback)
+    const params = new URLSearchParams()
+    params.append("room_ids", [room_id])
+    params.append("from", toAPITime(dateFrom, "00:00"))
+    params.append("until", toAPITime(dateUntil, "23:59"))
+
+    let {triggerFetch, finished} = useSomeAPI('/api/v0/reservations?' + params.toString(), null, 'GET', ReservationsCallback)
 
     let [reservations, setReservations] = useState(null)
 
@@ -27,11 +53,7 @@ function GetReservationsInSegment(room_id, dateFrom, dateUntil) {
     function ReservationsCallback(result, statusCode) {
         console.log("all reservations for room " + room_id + " are (status code: " + statusCode + " ):")
         if (statusCode === 200 && result != null) {
-            setReservations(
-                result.filter((reservation) => (
-                    fromAPITime(reservation.from).date <= dateUntil &&
-                    fromAPITime(reservation.until).date >= dateFrom
-                )))
+            setReservations(result)
         } else {
             setReservations(null)
         }
