@@ -79,7 +79,7 @@ export function GetReservations(room_id, date) {
 
     function ReservationsCallback(result, statusCode) {
         if (statusCode === 200 && result != null) {
-            setReservations(result.filter((reservation) => (fromAPITime(reservation.from).date === date)))
+            setReservations(result)
         } else {
             setReservations(null)
         }
