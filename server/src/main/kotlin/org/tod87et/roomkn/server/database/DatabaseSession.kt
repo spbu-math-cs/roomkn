@@ -47,6 +47,8 @@ import org.tod87et.roomkn.server.models.users.UserCredentialsInfo
 import org.tod87et.roomkn.server.models.users.UserInfo
 import java.sql.Connection
 import javax.sql.DataSource
+import org.tod87et.roomkn.server.models.users.SaltedInvite
+import org.tod87et.roomkn.server.models.users.SaltedInviteRequest
 import org.tod87et.roomkn.server.database.Database as RooMknDatabase
 
 class DatabaseSession private constructor(private val database: Database) :
@@ -510,17 +512,18 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
-    override fun getInvite(inviteId: Int): Result<Invite> = queryWrapper {
+    override fun getInvite(inviteId: Int): Result<SaltedInvite> = queryWrapper {
         transaction(database) {
             val now = Clock.System.now()
             val row =
                 InviteTokens.select { (remaining greater 0) and (expirationDate greater now) and (InviteTokens.id eq inviteId) }
                     .firstOrNull() ?: throw MissingElementException()
-            Invite(
+            SaltedInvite(
                 id = row[InviteTokens.id],
                 remaining = row[remaining],
                 until = row[expirationDate],
                 size = row[size],
+                salt = row[InviteTokens.salt]
             )
         }
     }
@@ -532,12 +535,13 @@ class DatabaseSession private constructor(private val database: Database) :
         }
     }
 
-    override fun createInvite(tokenHash: ByteArray, inviteRequest: InviteRequest): Result<Unit> = queryWrapper {
+    override fun createInvite(tokenHash: ByteArray, inviteRequest: SaltedInviteRequest): Result<Unit> = queryWrapper {
         transaction(database) {
             InviteTokens.insert {
                 it[inviteTokenHash] = tokenHash
                 it[remaining] = inviteRequest.size
                 it[expirationDate] = inviteRequest.until
+                it[salt] = inviteRequest.salt
                 it[size] = inviteRequest.size
             }
         }
@@ -623,6 +627,8 @@ class DatabaseSession private constructor(private val database: Database) :
             Users.deleteAll()
             Rooms.deleteAll()
             ActiveTokens.deleteAll()
+            InviteTokens.deleteAll()
+            Map.deleteAll()
         }
     }
 

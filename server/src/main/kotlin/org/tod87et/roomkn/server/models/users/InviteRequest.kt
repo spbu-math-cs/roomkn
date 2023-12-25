@@ -7,4 +7,12 @@ import kotlinx.serialization.Serializable
 data class InviteRequest(
     val size: Int,
     val until: Instant,
-)
+) {
+    fun toSalted(salt: ByteArray): SaltedInviteRequest {
+        return SaltedInviteRequest(
+            size,
+            until,
+            salt,
+        )
+    }
+}

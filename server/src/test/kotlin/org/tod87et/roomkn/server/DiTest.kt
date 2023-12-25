@@ -36,6 +36,8 @@ import org.tod87et.roomkn.server.models.users.FullUserInfo
 import org.tod87et.roomkn.server.models.users.Invite
 import org.tod87et.roomkn.server.models.users.InviteRequest
 import org.tod87et.roomkn.server.models.users.RegistrationUserInfo
+import org.tod87et.roomkn.server.models.users.SaltedInvite
+import org.tod87et.roomkn.server.models.users.SaltedInviteRequest
 import org.tod87et.roomkn.server.models.users.ShortUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfoWithNull
@@ -199,7 +201,7 @@ private class DatabaseMock : Database {
         permissions: List<UserPermission>
     ): Result<Unit> = fail()
 
-    override fun createInvite(tokenHash: ByteArray, inviteRequest: InviteRequest): Result<Unit> = fail()
+    override fun createInvite(tokenHash: ByteArray, inviteRequest: SaltedInviteRequest): Result<Unit> = fail()
 
     override fun validateInvite(tokenHash: ByteArray): Result<Unit> = fail()
 
@@ -207,7 +209,7 @@ private class DatabaseMock : Database {
 
     override fun getInvites(limit: Int, offset: Long): Result<List<Invite>> = fail()
 
-    override fun getInvite(inviteId: Int): Result<Invite> = fail()
+    override fun getInvite(inviteId: Int): Result<SaltedInvite> = fail()
 
     override fun deleteInvite(inviteId: Int): Result<Unit> = fail()
 
