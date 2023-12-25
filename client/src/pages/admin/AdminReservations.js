@@ -158,6 +158,7 @@ function Reservation({reservation, display_user}) {
 }
 
 function get_params(sortBy, sortOrder, from, until, userList, roomList, offset, limit) {
+    // alert(sortBy + " " + sortOrder + " " + from + " " + until + " " + userList + " " + roomList + " " + offset + " " + limit)
     const params = new URLSearchParams()
     if (userList.length > 0) params.append("user_ids", userList)
     if (roomList.length > 0)  params.append("room_ids", roomList)
@@ -410,7 +411,7 @@ export function ReservationsList({is_admin=false, user_id=null}) {
         }
     }
 
-    const params = get_params(from, until, users, rooms)
+    const params = get_params(sortBy, sortOrder, from, until, users, rooms, offset, reservationsPerPage)
     let {triggerFetch: triggerFetchSize} = useSomeAPI('/api/v0/reservations/size?' + params, null, 'GET', getSizeCallback)
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => triggerFetchSize(), [from, until, users, rooms])
