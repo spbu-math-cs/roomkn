@@ -16,8 +16,10 @@ import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.pipeline.PipelineContext
+import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import kotlinx.datetime.toInstant
+import org.jetbrains.exposed.sql.SortOrder
+import org.koin.ktor.ext.inject
 import org.tod87et.roomkn.server.auth.AuthSession
 import org.tod87et.roomkn.server.auth.AuthenticationProvider
 import org.tod87et.roomkn.server.auth.userId
@@ -26,15 +28,20 @@ import org.tod87et.roomkn.server.database.Database
 import org.tod87et.roomkn.server.database.MissingElementException
 import org.tod87et.roomkn.server.database.ReservationException
 import org.tod87et.roomkn.server.database.SerializationException
+import org.tod87et.roomkn.server.di.ReservationConfig
 import org.tod87et.roomkn.server.di.injectDatabase
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.reservations.FailedReservation
 import org.tod87et.roomkn.server.models.reservations.MultipleReservationResult
 import org.tod87et.roomkn.server.models.reservations.NewReservationBounds
 import org.tod87et.roomkn.server.models.reservations.ReservationRequest
+import org.tod87et.roomkn.server.models.reservations.ReservationSortParameter
 import org.tod87et.roomkn.server.models.reservations.toUnregisteredReservation
 import org.tod87et.roomkn.server.util.defaultExceptionHandler
 import kotlin.time.Duration.Companion.seconds
+import org.tod87et.roomkn.server.util.toResultInstantOrNull
+import org.tod87et.roomkn.server.util.toResultIntOrDefault
+import org.tod87et.roomkn.server.util.toResultLongOrDefault
 
 private val DEFAULT_RETRY_AFTER = 10.seconds
 
@@ -136,42 +143,26 @@ private fun Route.reservationUpdateRouting(database: Database) {
     }
 }
 
-/**
- * If object is null, return Success(default)
- * If object is not null and toInstant is successful, return Success with result
- * Otherwise return Failure(error)
- */
-private fun String?.toResultInstantOrNull(): Result<Instant?> {
-    return runCatching {
-        if (this == null) {
-            return@runCatching null
-        }
-        this.toInstant()
-    }
-}
 
-private fun String?.toResultIntOrDefault(default: Int): Result<Int> {
-    return runCatching {
-        if (this == null) {
-            return@runCatching default
-        }
-        this.toInt()
-    }
-}
-
-private fun String?.toResultLongOrDefault(default: Long): Result<Long> {
-    return runCatching {
-        if (this == null) {
-            return@runCatching default
-        }
-        this.toLong()
-    }
+private fun String?.toSortOrder(default: SortOrder): SortOrder? = when (this) {
+    null -> default
+    "asc" -> SortOrder.ASC
+    "desc" -> SortOrder.DESC
+    else -> null
 }
 
 private fun Route.reserveRouting(database: Database) {
+    val reservationConfig by inject<ReservationConfig>()
+
     post { body: ReservationRequest ->
         val userId = call.principal<AuthSession>()!!.userId
         call.requireReservationCreatePermission(database) { return@post call.onMissingPermission() }
+        if (!checkReservationBounds(body.from, body.until, reservationConfig) && !call.isReservationAdmin(database)) {
+            return@post call.respondText(
+                "Reservation is too far in past or future or is too long",
+                status = HttpStatusCode.Forbidden
+            )
+        }
 
         val result = database.createReservation(body.toUnregisteredReservation(userId))
         result
@@ -186,12 +177,32 @@ private fun Route.reserveRouting(database: Database) {
 
 private fun Route.reserveMultipleRouting(database: Database) {
     val logger = KtorSimpleLogger("reservationsRouting")
+    val reservationConfig by inject<ReservationConfig>()
 
     post { body: List<ReservationRequest> ->
         val userId = call.principal<AuthSession>()!!.userId
         call.requireReservationCreatePermission(database) { return@post call.onMissingPermission() }
 
-        val requests = body.map { it.toUnregisteredReservation(userId) }
+        val now = Clock.System.now()
+        val isAdmin by lazy(LazyThreadSafetyMode.NONE) { call.isReservationAdmin(database) }
+
+
+        val (initiallyFailed, requests) = body.asSequence().map {
+            if (checkReservationBounds(it.from, it.until, reservationConfig, now) || isAdmin) {
+                Result.success(it.toUnregisteredReservation(userId))
+            } else {
+                Result.failure(
+                    IllegalReservationBoundsException(
+                        FailedReservation(it, "Reservation is too far in past or future or is too long")
+                    )
+                )
+            }
+        }
+            .partition { it.isFailure }
+            .let { (failed, successful) ->
+                failed.map { (it.exceptionOrNull() as IllegalReservationBoundsException).res } to
+                        successful.map { it.getOrThrow() }
+            }
         val result = database.createMultipleReservations(requests)
         val reserved = result.mapNotNull { it.getOrNull() }
         val failed = result.mapIndexedNotNull { index, res ->
@@ -209,7 +220,7 @@ private fun Route.reserveMultipleRouting(database: Database) {
                 FailedReservation(body[index], msg)
             }
         }
-        val res = MultipleReservationResult(reserved, failed)
+        val res = MultipleReservationResult(reserved, initiallyFailed + failed)
 
         call.respond(HttpStatusCode.Created, res)
     }
@@ -217,12 +228,70 @@ private fun Route.reserveMultipleRouting(database: Database) {
 
 private fun Route.reservationListRouting(database: Database) {
     get {
+        call.requireAdminPermission(database) { return@get call.onMissingPermission() }
+
+        val from = call.request.queryParameters["from"].toResultInstantOrNull()
+            .getOrElse { return@get call.onIncorrectTimestamp() }
+
+        val until = call.request.queryParameters["until"].toResultInstantOrNull()
+            .getOrElse { return@get call.onIncorrectTimestamp() }
+
+        val userIds = call.request.queryParameters["user_ids"]?.split(",")?.map {
+            it.toIntOrNull() ?: return@get call.respondText(
+                "id in userIds should be int",
+                status = HttpStatusCode.BadRequest
+            )
+        } ?: listOf()
+
+        val roomIds = call.request.queryParameters["room_ids"]?.split(",")?.map {
+            it.toIntOrNull() ?: return@get call.respondText(
+                "id in roomIds should be int",
+                status = HttpStatusCode.BadRequest
+            )
+        } ?: listOf()
+
+        val limit = call.request.queryParameters["limit"].toResultIntOrDefault(Int.MAX_VALUE)
+            .getOrElse { return@get call.onIncorrectLimit() }
+
+        val offset = call.request.queryParameters["offset"].toResultLongOrDefault(0)
+            .getOrElse { return@get call.onIncorrectOffset() }
+
+        val sortParameter = call.request.queryParameters["sort_by"]?.let {
+            ReservationSortParameter.parse(it) ?: return@get call.respondText(
+                "unknown sort parameter",
+                status = HttpStatusCode.BadRequest
+            )
+        }
+        val sortOrder =
+            call.request.queryParameters["sort_order"].toSortOrder(SortOrder.ASC) ?: return@get call.respondText(
+                "unknown sort order",
+                status = HttpStatusCode.BadRequest
+            )
+
+        database.getReservations(
+            usersIds = userIds,
+            roomsIds = roomIds,
+            from = from,
+            until = until,
+            limit = limit,
+            offset = offset,
+            sortParameter = sortParameter,
+            sortOrder = sortOrder
+        )
+            .onSuccess {
+                call.respond(HttpStatusCode.OK, it)
+            }
+            .onFailure {
+                call.handleReservationException(it)
+            }
+    }
+    get("/size") {
         val fromResult = call.request.queryParameters["from"].toResultInstantOrNull()
         val untilResult = call.request.queryParameters["until"].toResultInstantOrNull()
         val userIdsString = call.request.queryParameters["user_ids"]
         val roomIdsString = call.request.queryParameters["room_ids"]
-        val limitResult = call.request.queryParameters["limit"].toResultIntOrDefault(Int.MAX_VALUE)
-        val offsetResult = call.request.queryParameters["offset"].toResultLongOrDefault(0)
+
+        call.requireAdminPermission(database) { return@get call.onMissingPermission() }
 
         val userIds = userIdsString?.split(",")?.map {
             it.toIntOrNull() ?: return@get call.respondText(
@@ -238,11 +307,9 @@ private fun Route.reservationListRouting(database: Database) {
         } ?: listOf()
         val from = fromResult.getOrElse { return@get call.onIncorrectTimestamp() }
         val until = untilResult.getOrElse { return@get call.onIncorrectTimestamp() }
-        val limit = limitResult.getOrElse { return@get call.onIncorrectLimit() }
-        val offset = offsetResult.getOrElse { return@get call.onIncorrectOffset() }
-        database.getReservations(userIds, roomIds, from, until, limit, offset)
+        database.getReservationsSize(userIds, roomIds, from, until)
             .onSuccess {
-                call.respond(HttpStatusCode.OK, it)
+                call.respond(it)
             }
             .onFailure {
                 call.handleReservationException(it)
@@ -255,6 +322,33 @@ private inline fun ApplicationCall.requireReservationCreatePermission(
     onPermissionMissing: () -> Nothing
 ) {
     requirePermissionOrSelfImpl(null, database, UserPermission.ReservationsCreate, onPermissionMissing)
+}
+
+private fun checkReservationBounds(
+    from: Instant,
+    until: Instant,
+    config: ReservationConfig,
+    now: Instant = Clock.System.now(),
+): Boolean {
+    val notTooFarInPast = until >= now - config.maxPastOffset
+    val notTooFarInFuture = from <= now + config.maxFutureOffset
+    val notTooLong = until - from <= config.maxReservationDuration
+
+    return notTooFarInPast && notTooFarInFuture && notTooLong
+}
+
+private fun ApplicationCall.isReservationAdmin(
+    database: Database
+): Boolean {
+    val session = principal<AuthSession>() ?: return false
+    return database.getUserPermissions(session.userId).getOrNull()?.contains(UserPermission.ReservationsAdmin) == true
+}
+
+private inline fun ApplicationCall.requireAdminPermission(
+    database: Database,
+    onPermissionMissing: () -> Nothing
+) {
+    requirePermissionOrSelfImpl(null, database, UserPermission.ReservationsAdmin, onPermissionMissing)
 }
 
 private inline fun ApplicationCall.requirePermissionOrSelf(
@@ -318,3 +412,6 @@ private suspend fun ApplicationCall.handleUserException(ex: Throwable) {
         }
     }
 }
+
+private class IllegalReservationBoundsException(val res: FailedReservation, cause: Throwable? = null) :
+    Exception(res.message, cause)

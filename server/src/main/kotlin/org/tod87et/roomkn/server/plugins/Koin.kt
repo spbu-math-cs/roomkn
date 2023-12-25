@@ -7,12 +7,13 @@ import org.tod87et.roomkn.server.auth.di.authModule
 import org.tod87et.roomkn.server.database.di.databaseModule
 import org.tod87et.roomkn.server.di.Di
 import org.tod87et.roomkn.server.di.applicationModule
+import org.tod87et.roomkn.server.di.reservationModule
 
 @Suppress("UNUSED") // Used through kTor modules in application.conf
 fun Application.koinModule() {
     install(Koin) {
         with(Di) {
-            modules(applicationModule(environment), databaseModule, authModule)
+            modules(applicationModule(environment), databaseModule, authModule, reservationModule)
         }
     }
 }

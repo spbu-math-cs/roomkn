@@ -36,6 +36,8 @@ class RoomsRoutesTests {
         }
         val room1 = KtorTestEnv.createRoom("301", "The one with a broken desk(")
         val room2 = KtorTestEnv.createRoom("Study room", "Ideal place to study at")
+        val count = client.get("$roomsPath/size").body<Long>()
+        assertEquals(2, count)
         val rooms = client.get(roomsPath).body<List<ShortRoomInfo>>()
 
         assertEquals(setOf(room1.toShort(), room2.toShort()), rooms.toSet())

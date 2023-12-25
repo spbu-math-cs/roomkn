@@ -5,6 +5,7 @@ import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
+import org.tod87et.roomkn.server.database.Reservations.autoIncrement
 
 object Users : Table() {
     val id: Column<Int> = integer("id").autoIncrement()
@@ -43,6 +44,15 @@ object ActiveTokens : Table() {
     val expirationDate: Column<Instant> = timestamp("expirationDate")
 
     override val primaryKey = PrimaryKey(tokenHash, name = "pk_tokens_tokenhash")
+}
+
+object InviteTokens: Table() {
+    val inviteTokenHash: Column<ByteArray> = binary("inviteTokenHash", 32)
+    val id: Column<Int> = integer("id").autoIncrement()
+    val expirationDate: Column<Instant> = timestamp("expirationDate")
+    val remaining: Column<Int> = integer("remaining")
+    val size: Column<Int> = integer("size")
+    override val primaryKey = PrimaryKey(Map.id)
 }
 
 object Map : Table() {
