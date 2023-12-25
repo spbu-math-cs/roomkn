@@ -68,8 +68,8 @@ function TokenRow({tokenInfo, refresh}) {
                        variant="outlined" value={constructInviteLink(token)}/>
             <TextField readOnly variant="outlined" label="Until" value={tokenInfo.until}/>
             <TextField readOnly variant="outlined" label="Remaining people" value={tokenInfo.remaining}/>
-            <Button variant="contained" color="success" onClick={get_req}>show</Button>
-            <Button variant="outlined" color="error" onClick={delete_req}>delete</Button>
+            <Button variant="contained" color="success" onClick={get_req} data-test-id="show-button">show</Button>
+            <Button variant="outlined" color="error" onClick={delete_req} data-test-id="delete-button">delete</Button>
         </Stack>
     )
 }
