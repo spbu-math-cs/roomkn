@@ -6,10 +6,10 @@ import copy from 'copy-to-clipboard';
 
 import "./AdminRoomList.css"
 import AdminWrapper from "../../components/AdminWrapper";
-import {Box, Button, SnackbarContent, Stack, TextField, useTheme} from "@mui/material";
-import {SnackbarAlert, SnackbarContext} from "../../components/SnackbarAlert";
+import {Box, Button, Stack, TextField, useTheme} from "@mui/material";
+import {SnackbarContext} from "../../components/SnackbarAlert";
 
-import {dateFormat, getTodayDate} from "../../api/API"
+import {dateFormat, getTodayDate, toAPITime} from "../../api/API"
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 
@@ -22,7 +22,7 @@ function TokenRow({tokenInfo, refresh}) {
 
     // gets the token string
 
-    let {triggerFetch} = useSomeAPI('/api/v0/users/invitations/' + tokenInfo.id, null, 'GET', tokenGetCallback)
+    let {triggerFetch} = useSomeAPI('/api/v0/users/invitations/' + tokenInfo.id, null, 'GET', tokenGetCallback, false)
     //eslint-disable-next-line react-hooks/exhaustive-deps
     // useEffect(() => triggerFetch(), [])
 
@@ -63,11 +63,12 @@ function TokenRow({tokenInfo, refresh}) {
         <Stack direction="row" alignItems="baseline" spacing={theme.spacing()}>
             <Box sx={{minWidth: "30pt"}}>{tokenInfo.id}</Box>
             <TextField InputLabelProps={{shrink: true, readonly: true}}
-                       label="Value"
+                       disabled={token === ''}
+                       label="Invite link"
                        variant="outlined" value={constructInviteLink(token)}/>
-            <TextField variant="outlined" label="Until" value={tokenInfo.until}/>
-            <TextField variant="outlined" label="Remaining people" value={tokenInfo.remaining}/>
-            <Button variant="contained" color="success" onClick={get_req}>retrieve</Button>
+            <TextField readOnly variant="outlined" label="Until" value={tokenInfo.until}/>
+            <TextField readOnly variant="outlined" label="Remaining people" value={tokenInfo.remaining}/>
+            <Button variant="contained" color="success" onClick={get_req}>show</Button>
             <Button variant="outlined" color="error" onClick={delete_req}>delete</Button>
         </Stack>
     )
@@ -81,14 +82,19 @@ function AddToken({refresh}) {
 
     let {setNewMessageSnackbar} = useContext(SnackbarContext)
 
-    const put_data = {
+    const [putData, setPutData] = useState({
         size: people,
-        until: until
-    }
+        until: toAPITime(until, "23:59")
+    })
 
-    const {triggerFetch} = useSomeAPI("/api/v0/users/invite", put_data, "POST", createCallback)
+
+    const {triggerFetch} = useSomeAPI("/api/v0/users/invite", putData, "POST", createCallback, false)
 
     const add_req = () => {
+        setPutData ({
+            size: people,
+            until: toAPITime(until, "23:59")
+        })
         setTokenVisible(false)
         triggerFetch()
     }
@@ -177,6 +183,7 @@ export function AdminTokenList() {
 }
 
 function constructInviteLink(token) {
+    if (token === '') return ''
     const inviteLink = window.location.href.split('admin')[0] + 'invite/' + token
     console.log(inviteLink)
     return inviteLink

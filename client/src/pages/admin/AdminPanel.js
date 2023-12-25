@@ -40,7 +40,7 @@ export function AdminPanel() {
                     </ListItem>
                     <ListItem sx={{display: tokens_display}}>
                         <NavLink to="/admin/invites" className="navlink">
-                            Invite tokens
+                            Invite links
                         </NavLink>
                     </ListItem>
                 </List>
