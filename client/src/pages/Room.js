@@ -470,7 +470,7 @@ function Room() {
                 onClick={() => setIsActive(true)}
                 sx={{
                     position: 'absolute',
-                    bottom: 36,
+                    bottom: 70,
                     right: 36,
                     display: isAuthorized ? {xs: isActive ? 'none' : '', md: 'none'} : 'none',
                 }}
