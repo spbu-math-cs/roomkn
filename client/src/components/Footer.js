@@ -32,6 +32,7 @@ export function Footer() {
                     setValue(newValue);
                     navigate(paths[newValue], {replace: true})
                 }}
+                data-test-id="bottom-navigation"
             >
                 <BottomNavigationAction label="Rooms" icon={<SchoolIcon />} />
                 <BottomNavigationAction label="Map" icon={<MapIcon />} />
