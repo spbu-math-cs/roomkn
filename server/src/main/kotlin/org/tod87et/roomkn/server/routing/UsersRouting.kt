@@ -57,8 +57,8 @@ fun Route.usersRouting() {
                 deleteInvitation(database)
             }
         }
-        validateInvitationToken(database, threadLocalDigest)
     }
+    validateInvitationToken(database, threadLocalDigest)
 }
 
 private fun Route.listUsers(database: Database) {
