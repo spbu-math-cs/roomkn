@@ -70,13 +70,11 @@ private fun Route.logoutRouting(accountController: AccountController) {
 }
 
 private fun Route.validateTokenRouting() {
-    authenticate(AuthenticationProvider.SESSION) {
-        get("/auth/validate-token") {
-            val session = call.principal<AuthSession>(AuthenticationProvider.SESSION)
-                ?: return@get call.respondText("Unauthorized", status = HttpStatusCode.Unauthorized)
+    get("/auth/validate-token") {
+        val session = call.principal<AuthSession>(AuthenticationProvider.SESSION)
+            ?: return@get call.respondText("Unauthorized", status = HttpStatusCode.Unauthorized)
 
-            call.respond(mapOf("id" to session.userId))
-        }
+        call.respond(mapOf("id" to session.userId))
     }
 }
 
