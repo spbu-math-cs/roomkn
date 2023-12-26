@@ -24,7 +24,7 @@ import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from "dayjs";
 import MenuItem from "@mui/material/MenuItem";
-import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
 
 const CurrentReservationContext = createContext()
 
@@ -467,15 +467,17 @@ function Room() {
             </Box>
             <Fab
                 color="secondary"
+                variant="extended"
                 onClick={() => setIsActive(true)}
                 sx={{
                     position: 'absolute',
-                    bottom: 70,
+                    bottom: 76,
                     right: 36,
                     display: isAuthorized ? {xs: isActive ? 'none' : '', md: 'none'} : 'none',
                 }}
             >
-                <AddIcon/>
+                <EditIcon sx={{mr: 1}}/>
+                New Reservation
             </Fab>
 
         </CurrentReservationContext.Provider>
