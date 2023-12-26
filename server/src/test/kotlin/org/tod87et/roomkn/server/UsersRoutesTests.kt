@@ -13,6 +13,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
@@ -327,5 +328,32 @@ class UsersRoutesTests {
         }
         response = client.get(checkInviteTokenPath(token))
         assertEquals(HttpStatusCode.BadRequest, response.status)
+    }
+
+    @Test
+    fun testDoubleInvitation() = KtorTestEnv.testJsonApplication { client ->
+        with(KtorTestEnv) {
+            client.createAndAuthAdmin()
+        }
+        val timestamp = Clock.System.now()
+        val invitation = InviteRequest(1, timestamp + 1.hours)
+        val firstToken = client.post(createInvite) {
+            contentType(ContentType.Application.Json)
+            setBody(invitation)
+        }.bodyAsText()
+        val secondToken = client.post(createInvite) {
+            contentType(ContentType.Application.Json)
+            setBody(invitation)
+        }.bodyAsText()
+        assertNotEquals(firstToken, secondToken)
+        val newUser = UnregisteredUserInfo("Invited", "new_user@best.mail.com", "1234")
+        client.post(registerTokenPath(firstToken)) {
+            contentType(ContentType.Application.Json)
+            setBody(newUser)
+        }
+        var response = client.get(checkInviteTokenPath(firstToken))
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+        response = client.get(checkInviteTokenPath(secondToken))
+        assertEquals(HttpStatusCode.OK, response.status)
     }
 }

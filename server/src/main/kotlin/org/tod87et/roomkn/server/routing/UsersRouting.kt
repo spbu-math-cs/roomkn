@@ -16,6 +16,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import java.security.MessageDigest
+import java.security.SecureRandom
 import java.util.Date
 import kotlinx.datetime.toJavaInstant
 import org.koin.ktor.ext.inject
@@ -29,6 +30,7 @@ import org.tod87et.roomkn.server.di.injectDatabase
 import org.tod87et.roomkn.server.models.permissions.UserPermission
 import org.tod87et.roomkn.server.models.users.InviteRequest
 import org.tod87et.roomkn.server.models.users.PasswordUpdateInfo
+import org.tod87et.roomkn.server.models.users.SaltedInviteRequest
 import org.tod87et.roomkn.server.models.users.UpdateUserInfo
 import org.tod87et.roomkn.server.models.users.UpdateUserInfoWithNull
 import org.tod87et.roomkn.server.util.defaultExceptionHandler
@@ -37,6 +39,7 @@ import org.tod87et.roomkn.server.util.okResponse
 fun Route.usersRouting() {
     val config: AuthConfig by inject()
     val threadLocalDigest = ThreadLocal.withInitial { MessageDigest.getInstance(config.hashingAlgorithmId) }
+    val threadLocalSecureRandom = ThreadLocal.withInitial { SecureRandom.getInstanceStrong() }
     val database: Database by injectDatabase()
     authenticate(AuthenticationProvider.SESSION) {
         route("/users") {
@@ -47,7 +50,7 @@ fun Route.usersRouting() {
             listUserPermissions(database)
             setUserPermissions(database)
             updateUserCredentials(database)
-            generateInvite(database, threadLocalDigest)
+            generateInvite(database, threadLocalDigest, threadLocalSecureRandom)
             route("/invitations") {
                 getInvitations(database)
                 getInvitationToken(database)
@@ -151,23 +154,28 @@ private fun Route.setUserPermissions(database: Database) {
     }
 }
 
-private fun generateToken(invite: InviteRequest, config: AuthConfig): String {
+@OptIn(ExperimentalStdlibApi::class)
+private fun generateToken(invite: SaltedInviteRequest, config: AuthConfig): String {
     return JWT.create().withAudience(config.audience).withIssuer(config.issuer)
         .withClaim("size", invite.size)
+        .withClaim("salt", invite.salt.toHexString())
         .withExpiresAt(Date.from(invite.until.toJavaInstant()))
         .sign(Algorithm.HMAC256(config.secret))
 }
 
-private fun Route.generateInvite(database: Database, threadLocalDigest: ThreadLocal<MessageDigest>) {
+private fun Route.generateInvite(database: Database, threadLocalDigest: ThreadLocal<MessageDigest>, threadLocalSecureRandom:  ThreadLocal<SecureRandom>) {
     val config: AuthConfig by inject()
     post("/invite") { body: InviteRequest ->
         call.requirePermission(database) { return@post call.onMissingPermission() }
-        val token = generateToken(body, config)
+        val secureRandom = threadLocalSecureRandom.get()
+        val salt = ByteArray(config.saltSize).apply(secureRandom::nextBytes)
+        val saltedBody = body.toSalted(salt)
+        val token = generateToken(saltedBody, config)
         val digest = threadLocalDigest.get()
         digest.update(token.toByteArray())
-        val tokenResult = database.createInvite(digest.digest(), body)
+        val tokenResult = database.createInvite(digest.digest(), saltedBody)
         tokenResult.onSuccess {
-            call.respondText(token, status = HttpStatusCode.OK)
+            call.respondText(token)
         }.onFailure {
             call.handleException(it)
         }
@@ -192,7 +200,8 @@ private fun Route.getInvitationToken(database: Database) {
         val id = call.parameters["id"]?.toInt() ?: return@get call.onMissingId()
         database.getInvite(id)
             .onSuccess {
-                val token = generateToken(it.toInviteRequest(), config)
+                val saltedInviteRequest = it.toSaltedInviteRequest()
+                val token = generateToken(saltedInviteRequest, config)
                 call.respondText(token)
             }
             .onFailure { call.handleException(it) }
