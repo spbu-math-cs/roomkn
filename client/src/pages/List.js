@@ -14,6 +14,7 @@ import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
 import {DatePicker} from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import PaginatedList from "../components/PaginatedList";
+import {useNavigate} from "react-router-dom";
 
 function dateFormat(date, format = "yyyy-mm-dd") {
     var mlz = ""
@@ -197,10 +198,16 @@ function RoomRowSkeleton() {
 
 function RoomRow({room, from, until, is_first_room_row}) {
 
+    const navigate = useNavigate()
+
     const link = "/room/" + String(room.id)
 
+    function onClick() {
+        navigate(link)
+    }
+
     return (
-            <ListItemButton href={link} data-test-id={"link-" + room.id}>
+            <ListItemButton onClick={onClick} data-test-id={"link-" + room.id}>
                 <Stack direction="row" alignItems="center" width="100%" spacing={5}>
                     <Box fontSize={20} sx={{width: 5/100}}>
                         <Typography align={"right"}>
