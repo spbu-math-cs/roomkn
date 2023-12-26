@@ -154,10 +154,11 @@ private fun Route.setUserPermissions(database: Database) {
     }
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 private fun generateToken(invite: SaltedInviteRequest, config: AuthConfig): String {
     return JWT.create().withAudience(config.audience).withIssuer(config.issuer)
         .withClaim("size", invite.size)
-        .withClaim("salt", invite.salt.toString())
+        .withClaim("salt", invite.salt.toHexString())
         .withExpiresAt(Date.from(invite.until.toJavaInstant()))
         .sign(Algorithm.HMAC256(config.secret))
 }
