@@ -12,7 +12,7 @@ import useSomeAPI from "../api/FakeAPI";
 import { SnackbarContext } from "../components/SnackbarAlert";
 import {Container} from "@pixi/react";
 import {Avatar, Box, Button, Grid, TextField, Typography} from "@mui/material";
-import {NavLink, useNavigate} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Copyright from "../components/Copyright";
 
