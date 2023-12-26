@@ -241,7 +241,9 @@ const Navbar = () => {
                     >
                         <NavLink to="/" className="navlink">
                             <Logo/>
-                            ROOMKN
+                            <Typography fontSize={20}>
+                                ROOMKN
+                            </Typography>
                         </NavLink>
                     </Typography>
                     <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>

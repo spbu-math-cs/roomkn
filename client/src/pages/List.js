@@ -17,6 +17,7 @@ import PaginatedList from "../components/PaginatedList";
 import PushPinIcon from '@mui/icons-material/PushPin';
 import {SnackbarContext} from "../components/SnackbarAlert";
 import {getPinnedClassroomsFromStorage, SavePinnedClassroomsIntoStorage} from "../components/PinnedClassrooms";
+import {useNavigate} from "react-router-dom";
 
 function dateFormat(date, format = "yyyy-mm-dd") {
     var mlz = ""
@@ -200,11 +201,17 @@ function RoomRowSkeleton() {
 
 function RoomRow({room, from, until, is_first_room_row, pinnedClassrooms, setPinnedClassrooms, is_pinned}) {
 
+    const navigate = useNavigate()
+
     const link = "/room/" + String(room.id)
+
+    function onClick() {
+        navigate(link)
+    }
 
     const {setNewMessageSnackbar} = useContext(SnackbarContext)
 
-    function onClick() {
+    function onPinClick() {
         const newPinnedClassrooms = []
         pinnedClassrooms.forEach((pinned_room) => {
             if (pinned_room.id !== room.id)
@@ -216,14 +223,14 @@ function RoomRow({room, from, until, is_first_room_row, pinnedClassrooms, setPin
 
     const pinIcon = (
         <IconButton color="primary" sx={{mt: is_first_room_row ? 2 : 0}}>
-            <PushPinIcon onClick={onClick}/>
+            <PushPinIcon onClick={onPinClick}/>
         </IconButton>
     )
 
     return (
         <Stack direction="row" justifyContent="space-around">
             {is_pinned ? pinIcon : <></>}
-            <ListItemButton href={link} data-test-id={"link-" + room.id} sx={{mt: is_first_room_row ? 2 : 0}}>
+            <ListItemButton onClick={onClick} data-test-id={"link-" + room.id} sx={{mt: is_first_room_row ? 2 : 0}}>
                 <Stack direction="row" alignItems="center" width="100%" spacing={5}>
                     <Box fontSize={20} sx={{width: 3/100}}>
                         <Typography align={"right"}>
