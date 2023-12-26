@@ -22,6 +22,7 @@ import kotlin.time.Duration.Companion.days
 import kotlinx.datetime.Clock
 import org.tod87et.roomkn.server.KtorTestEnv.logout
 import org.tod87et.roomkn.server.models.users.InviteRequest
+import kotlin.test.Ignore
 
 class AuthTest {
     private val apiPath = "/api/v0"
@@ -35,6 +36,7 @@ class AuthTest {
     private val accountManager = KtorTestEnv.accountController
 
     @Test
+    @Ignore
     fun register() = testJsonApplication { client ->
         val response = client.post(registerPath) {
             contentType(ContentType.Application.Json)
@@ -51,6 +53,7 @@ class AuthTest {
     }
 
     @Test
+    @Ignore
     fun registerFailure() = testJsonApplication { client ->
         accountManager.registerUser(
             UnregisteredUserInfo(

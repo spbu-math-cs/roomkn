@@ -81,15 +81,8 @@ private fun Route.validateTokenRouting() {
 }
 
 private fun Route.registerRouting(accountController: AccountController, threadLocalDigest: ThreadLocal<MessageDigest>) {
-    post("/register") { body: UnregisteredUserInfo ->
-        accountController.registerUser(body)
-            .onSuccess { authSession ->
-                call.sessions.set(authSession)
-                call.respond(UserId(authSession.userId))
-            }
-            .onFailure {
-                call.handleException(it)
-            }
+    post("/register") {
+        call.respondText("Disabled", status = HttpStatusCode.Forbidden)
     }
     val database by injectDatabase()
     post("/register/{token}") { body: UnregisteredUserInfo ->
