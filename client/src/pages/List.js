@@ -16,6 +16,7 @@ import dayjs from "dayjs";
 import PaginatedList from "../components/PaginatedList";
 import PushPinIcon from '@mui/icons-material/PushPin';
 import {SnackbarContext} from "../components/SnackbarAlert";
+import {getPinnedClassroomsFromStorage, SavePinnedClassroomsIntoStorage} from "../components/PinnedClassrooms";
 
 function dateFormat(date, format = "yyyy-mm-dd") {
     var mlz = ""
@@ -204,31 +205,27 @@ function RoomRow({room, from, until, is_first_room_row, pinnedClassrooms, setPin
     const {setNewMessageSnackbar} = useContext(SnackbarContext)
 
     function onClick() {
-        if (!is_pinned && pinnedClassrooms.length >= 3) {
-            setNewMessageSnackbar("Can't pin more then 3 classrooms!")
-            return
-        }
         const newPinnedClassrooms = []
-        let fl = false;
         pinnedClassrooms.forEach((pinned_room) => {
-            if (pinned_room.id === room.id)
-                fl = true
-            if (!is_pinned || pinned_room.id !== room.id)
+            if (pinned_room.id !== room.id)
                 newPinnedClassrooms.push(pinned_room)
         })
-        if (!fl)
-            newPinnedClassrooms.push(room)
+        setNewMessageSnackbar("Classroom unpinned")
         setPinnedClassrooms(newPinnedClassrooms)
     }
 
+    const pinIcon = (
+        <IconButton color="primary" sx={{mt: is_first_room_row ? 2 : 0}}>
+            <PushPinIcon onClick={onClick}/>
+        </IconButton>
+    )
+
     return (
-        <Stack direction="row" spacing={2} justifyContent="space-around">
-            <IconButton>
-                <PushPinIcon onClick={onClick}/>
-            </IconButton>
-            <ListItemButton href={link} data-test-id={"link-" + room.id}>
+        <Stack direction="row" justifyContent="space-around">
+            {is_pinned ? pinIcon : <></>}
+            <ListItemButton href={link} data-test-id={"link-" + room.id} sx={{mt: is_first_room_row ? 2 : 0}}>
                 <Stack direction="row" alignItems="center" width="100%" spacing={5}>
-                    <Box fontSize={20} sx={{width: 5/100}}>
+                    <Box fontSize={20} sx={{width: 3/100}}>
                         <Typography align={"right"}>
                             {room.name}
                         </Typography>
@@ -241,21 +238,31 @@ function RoomRow({room, from, until, is_first_room_row, pinnedClassrooms, setPin
     );
 }
 
-export function SavePinnedClassroomsIntoStorage(data) {
-    console.log(data, JSON.stringify(data))
-    localStorage.setItem('roomkn-pinned-classrooms', JSON.stringify(data));
-}
+function Pinned({from, until, pinnedClassrooms, setPinnedClassrooms}) {
 
-export function getPinnedClassroomsFromStorage() {
-    const dataString = localStorage.getItem('roomkn-pinned-classrooms');
-    if (dataString == null) {
-        return []
-    }
-    try {
-        return JSON.parse(dataString)
-    } catch (e) {
-        return []
-    }
+    let is_first_room_row = true
+    const new_draw_list = []
+    pinnedClassrooms.forEach((room) => {
+        new_draw_list.push(
+            <>
+                <RoomRow room={room}
+                         from={from}
+                         until={until}
+                         pinnedClassrooms={pinnedClassrooms}
+                         setPinnedClassrooms={setPinnedClassrooms}
+                         is_pinned={true}
+                         is_first_room_row={is_first_room_row}/>
+            </>
+        )
+        is_first_room_row = false
+    })
+
+    return (
+        <>
+            {new_draw_list}
+            {pinnedClassrooms.length > 0 ?   <Divider width={"100%"}/> : ""}
+        </>
+    )
 }
 
 function RoomList() {
@@ -296,30 +303,14 @@ function RoomList() {
         return new_draw_list
     }
 
-    let is_first_room_row = true
-    const new_draw_list = []
-    pinnedClassrooms.forEach((room) => {
-        new_draw_list.push(
-            <>
-                <RoomRow room={room}
-                         from={from}
-                         until={until}
-                         pinnedClassrooms={pinnedClassrooms}
-                         setPinnedClassrooms={setPinnedClassrooms}
-                         is_pinned={true}
-                         is_first_room_row={is_first_room_row}/>
-            </>
-        )
-        is_first_room_row = false
-    })
+
 
 
     return (
         <ContentWrapper page_name="Classrooms">
             <PaginatedList endpoint={'/api/v0/rooms'} resultHandler={resultHandler} additional_deps={[from, until]} limit={5}>
                 <DateSelect from = {from} setFromDate={setFrom} until = {until} setUntilDate={setUntil}/>
-                {new_draw_list}
-                {pinnedClassrooms.length > 0 ?   <Divider /> : ""}
+                <Pinned from={from} until={until} pinnedClassrooms={pinnedClassrooms} setPinnedClassrooms={setPinnedClassrooms}/>
             </PaginatedList>
         </ContentWrapper>
     );
