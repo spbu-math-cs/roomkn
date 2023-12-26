@@ -78,7 +78,6 @@ class AuthTest {
     }
 
     @Test
-    @Ignore
     fun login() = testJsonApplication { client ->
         accountManager.registerUser(
             UnregisteredUserInfo(
@@ -127,7 +126,6 @@ class AuthTest {
     }
 
     @Test
-    @Ignore
     fun logout() = testJsonApplication { client ->
         accountManager.registerUser(
             UnregisteredUserInfo(
