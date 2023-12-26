@@ -47,6 +47,11 @@ private val DEFAULT_RETRY_AFTER = 10.seconds
 
 fun Route.reservationsRouting() {
     val database by injectDatabase()
+
+    route("/reservations") {
+        reservationListRouting(database)
+    }
+
     authenticate(AuthenticationProvider.SESSION) {
         route("/reserve") {
             reserveRouting(database)
@@ -65,7 +70,6 @@ fun Route.reservationsRouting() {
             }
 
             reserveRouting(database)
-            reservationListRouting(database)
             reservationDeleteRouting(database)
             reservationUpdateRouting(database)
         }
@@ -226,6 +230,8 @@ private fun Route.reserveMultipleRouting(database: Database) {
     }
 }
 
+private const val DEFAULT_RESERVATIONS_LIMIT = 200
+
 private fun Route.reservationListRouting(database: Database) {
     get {
         val from = call.request.queryParameters["from"].toResultInstantOrNull()
@@ -248,8 +254,15 @@ private fun Route.reservationListRouting(database: Database) {
             )
         } ?: listOf()
 
-        val limit = call.request.queryParameters["limit"].toResultIntOrDefault(Int.MAX_VALUE)
+        val limit = call.request.queryParameters["limit"].toResultIntOrDefault(DEFAULT_RESERVATIONS_LIMIT)
             .getOrElse { return@get call.onIncorrectLimit() }
+
+        if (call.principal<AuthSession>() == null && limit > DEFAULT_RESERVATIONS_LIMIT) {
+            return@get call.respondText(
+                "limit should <= $DEFAULT_RESERVATIONS_LIMIT",
+                status = HttpStatusCode.BadRequest
+            )
+        }
 
         val offset = call.request.queryParameters["offset"].toResultLongOrDefault(0)
             .getOrElse { return@get call.onIncorrectOffset() }
