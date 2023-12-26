@@ -9,17 +9,19 @@ export function Footer() {
     const location = useLocation()
     const navigate = useNavigate()
 
-    const [value, setValue] = React.useState(3);
+    const [value, setValue] = React.useState(-1);
 
     const paths = ["/", "/map", "/my-reservations"]
 
     useEffect(() => {
         if (location.pathname === "/")
             setValue(0)
-        if (location.pathname === "/map")
+        else if (location.pathname === "/map")
             setValue(1)
-        if (location.pathname === "/my-reservations")
+        else if (location.pathname === "/my-reservations")
             setValue(2)
+        else
+            setValue(-1)
         //eslint-disable-next-line react-hooks/exhaustive-deps
     }, [location])
 
