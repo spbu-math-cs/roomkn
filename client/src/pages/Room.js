@@ -8,7 +8,7 @@ import useSomeAPI from '../api/FakeAPI';
 import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
 import {
     Box,
-    Button,
+    Button, Fab,
     FormControl,
     InputLabel,
     Select,
@@ -24,6 +24,7 @@ import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from "dayjs";
 import MenuItem from "@mui/material/MenuItem";
+import EditIcon from '@mui/icons-material/Edit';
 
 const CurrentReservationContext = createContext()
 
@@ -460,7 +461,7 @@ function Room() {
                     </div>
                 </div>
             </ContentWrapper>
-            <Box sx={{display: isAuthorized ? '' : 'none'}}>
+            <Box sx={{display: isAuthorized ? {xs: isActive ? '' : 'none', md: 'block'} : 'none'}}>
                 <BookingForm
                     room_id={room_info.id}
                     date={date}
@@ -472,6 +473,20 @@ function Room() {
                     max_res_time={max_res_time}
                 />
             </Box>
+            <Fab
+                color="secondary"
+                variant="extended"
+                onClick={() => setIsActive(true)}
+                sx={{
+                    position: 'absolute',
+                    bottom: 76,
+                    right: 36,
+                    display: isAuthorized ? {xs: isActive ? 'none' : '', md: 'none'} : 'none',
+                }}
+            >
+                <EditIcon sx={{mr: 1}}/>
+                New Reservation
+            </Fab>
 
         </CurrentReservationContext.Provider>
     )
