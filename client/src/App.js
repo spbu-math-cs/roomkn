@@ -25,9 +25,10 @@ import AdminUserList from "./pages/admin/AdminUserList";
 import AdminMap from "./pages/admin/AdminMap";
 import AdminTokenList from './pages/admin/AdminTokens';
 
-import {createTheme, ThemeProvider} from "@mui/material";
+import {Box, createTheme, ThemeProvider} from "@mui/material";
 import AdminReservations from "./pages/admin/AdminReservations";
 import RoomScreenPage from "./pages/RoomScreenPage";
+import {Footer} from "./components/Footer";
 
 
 function PageNotFound() {
@@ -69,6 +70,7 @@ function App() {
                 <AuthorizationProvider>
                     <Router>
                         <Navbar/>
+                        <Box sx={{pb: 7}}>
                         <Routes>
                             <Route exact path='/' element={<RoomList/>}/>
                             <Route path='/map' element={<Map/>}/>
@@ -95,7 +97,8 @@ function App() {
                             <Route path='admin/map' element={<AdminMap/>}/>
                             <Route path='admin/invites' element={<AdminTokenList/>}/>
                         </Routes>
-                        {/*<Footer />*/}
+                        </Box>
+                        <Footer />
                     </Router>
                 </AuthorizationProvider>
             </ThemeProvider>

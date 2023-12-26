@@ -3,7 +3,6 @@ package org.tod87et.roomkn.server
 import io.ktor.server.application.Application
 import io.ktor.util.logging.KtorSimpleLogger
 import org.tod87et.roomkn.server.plugins.configureAuthentication
-import org.tod87et.roomkn.server.plugins.configureCORS
 import org.tod87et.roomkn.server.plugins.configureCleanup
 import org.tod87et.roomkn.server.plugins.configureCallLogging
 import org.tod87et.roomkn.server.plugins.configureMap
@@ -17,7 +16,6 @@ fun Application.module() {
 
     logger.info("Initializing RooMKN main module...")
     configureAuthentication()
-    configureCORS()
     configureRouting()
     configureSerialization()
     configureCleanup()
