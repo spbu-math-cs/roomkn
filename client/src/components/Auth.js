@@ -69,6 +69,8 @@ export function AuthorizationProvider({children}) {
 export function IsAdmin() {
     const {currentUserPermissions} = useContext(CurrentUserPermissionsContext)
 
+    if (currentUserPermissions == null) return false
+
     return (currentUserPermissions.indexOf("ReservationsAdmin") > -1)
         || (currentUserPermissions.indexOf("UsersAdmin") > -1)
         || (currentUserPermissions.indexOf("RoomsAdmin") > -1)
