@@ -126,9 +126,9 @@ function SignInForm() {
                                     {/*</Link>*/}
                                 </Grid>
                                 <Grid item>
-                                    <NavLink to="/sign-up" variant="body2">
-                                        {"Don't have an account? Sign Up"}
-                                    </NavLink>
+                                    {/*<NavLink to="/sign-up" variant="body2">*/}
+                                    {/*    {"Don't have an account? Sign Up"}*/}
+                                    {/*</NavLink>*/}
                                 </Grid>
                             </Grid>
                         </Box>
