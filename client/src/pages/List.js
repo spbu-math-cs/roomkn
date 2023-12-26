@@ -1,11 +1,11 @@
 import './List.css'
 import ContentWrapper from "../components/Content"
 import useSomeAPI from "../api/FakeAPI"
-import React, {useEffect, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import {
     Box, Button,
     ListItemButton,
-    Stack, Typography, Skeleton,
+    Stack, Typography, Skeleton, IconButton, Divider,
 } from "@mui/material";
 import {toAPITime} from "../api/API";
 import Timeline from "../components/TimelineForRoomList";
@@ -14,6 +14,8 @@ import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
 import {DatePicker} from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import PaginatedList from "../components/PaginatedList";
+import PushPinIcon from '@mui/icons-material/PushPin';
+import {SnackbarContext} from "../components/SnackbarAlert";
 
 function dateFormat(date, format = "yyyy-mm-dd") {
     var mlz = ""
@@ -195,11 +197,35 @@ function RoomRowSkeleton() {
     )
 }
 
-function RoomRow({room, from, until, is_first_room_row}) {
+function RoomRow({room, from, until, is_first_room_row, pinnedClassrooms, setPinnedClassrooms, is_pinned}) {
 
     const link = "/room/" + String(room.id)
 
+    const {setNewMessageSnackbar} = useContext(SnackbarContext)
+
+    function onClick() {
+        if (!is_pinned && pinnedClassrooms.length >= 3) {
+            setNewMessageSnackbar("Can't pin more then 3 classrooms!")
+            return
+        }
+        const newPinnedClassrooms = []
+        let fl = false;
+        pinnedClassrooms.forEach((pinned_room) => {
+            if (pinned_room.id === room.id)
+                fl = true
+            if (!is_pinned || pinned_room.id !== room.id)
+                newPinnedClassrooms.push(pinned_room)
+        })
+        if (!fl)
+            newPinnedClassrooms.push(room)
+        setPinnedClassrooms(newPinnedClassrooms)
+    }
+
     return (
+        <Stack direction="row" spacing={2} justifyContent="space-around">
+            <IconButton>
+                <PushPinIcon onClick={onClick}/>
+            </IconButton>
             <ListItemButton href={link} data-test-id={"link-" + room.id}>
                 <Stack direction="row" alignItems="center" width="100%" spacing={5}>
                     <Box fontSize={20} sx={{width: 5/100}}>
@@ -211,8 +237,25 @@ function RoomRow({room, from, until, is_first_room_row}) {
                     <TimelineForRoom room={room} fromDate={from} untilDate={until} show_time_labels={is_first_room_row}/>
                 </Stack>
             </ListItemButton>
-
+        </Stack>
     );
+}
+
+export function SavePinnedClassroomsIntoStorage(data) {
+    console.log(data, JSON.stringify(data))
+    localStorage.setItem('roomkn-pinned-classrooms', JSON.stringify(data));
+}
+
+export function getPinnedClassroomsFromStorage() {
+    const dataString = localStorage.getItem('roomkn-pinned-classrooms');
+    if (dataString == null) {
+        return []
+    }
+    try {
+        return JSON.parse(dataString)
+    } catch (e) {
+        return []
+    }
 }
 
 function RoomList() {
@@ -221,6 +264,11 @@ function RoomList() {
 
     const [from, setFrom] = useState(today)
     const [until, setUntil] = useState(today)
+
+    const [pinnedClassrooms, setPinnedClassrooms] = useState(getPinnedClassroomsFromStorage())
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => SavePinnedClassroomsIntoStorage(pinnedClassrooms), [pinnedClassrooms])
 
     function resultHandler(result, statusCode, elementsOnPage) {
         let is_first_room_row = true
@@ -232,6 +280,8 @@ function RoomList() {
                         <RoomRow room={room}
                                  from={from}
                                  until={until}
+                                 pinnedClassrooms={pinnedClassrooms}
+                                 setPinnedClassrooms={setPinnedClassrooms}
                                  is_first_room_row={is_first_room_row}/>
                     </>
                 )
@@ -246,10 +296,30 @@ function RoomList() {
         return new_draw_list
     }
 
+    let is_first_room_row = true
+    const new_draw_list = []
+    pinnedClassrooms.forEach((room) => {
+        new_draw_list.push(
+            <>
+                <RoomRow room={room}
+                         from={from}
+                         until={until}
+                         pinnedClassrooms={pinnedClassrooms}
+                         setPinnedClassrooms={setPinnedClassrooms}
+                         is_pinned={true}
+                         is_first_room_row={is_first_room_row}/>
+            </>
+        )
+        is_first_room_row = false
+    })
+
+
     return (
         <ContentWrapper page_name="Classrooms">
             <PaginatedList endpoint={'/api/v0/rooms'} resultHandler={resultHandler} additional_deps={[from, until]} limit={5}>
                 <DateSelect from = {from} setFromDate={setFrom} until = {until} setUntilDate={setUntil}/>
+                {new_draw_list}
+                {pinnedClassrooms.length > 0 ?   <Divider /> : ""}
             </PaginatedList>
         </ContentWrapper>
     );
