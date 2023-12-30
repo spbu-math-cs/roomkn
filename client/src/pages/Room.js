@@ -9,7 +9,7 @@ import {CurrentUserContext, IsAuthorizedContext} from "../components/Auth";
 import {
     Box,
     Button, Fab,
-    FormControl,
+    FormControl, IconButton,
     InputLabel,
     Select,
     Skeleton,
@@ -24,6 +24,8 @@ import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from "dayjs";
 import MenuItem from "@mui/material/MenuItem";
+import PushPinIcon from "@mui/icons-material/PushPin";
+import {getPinnedClassroomsFromStorage, SavePinnedClassroomsIntoStorage} from "../components/PinnedClassrooms";
 import EditIcon from '@mui/icons-material/Edit';
 
 const CurrentReservationContext = createContext()
@@ -390,6 +392,51 @@ function RoomDate({date, setDate}) {
     )
 }
 
+function RoomPin({room_info}) {
+
+    const {setNewMessageSnackbar} = useContext(SnackbarContext)
+
+    const [pinnedClassrooms, setPinnedClassrooms] = useState(getPinnedClassroomsFromStorage())
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => SavePinnedClassroomsIntoStorage(pinnedClassrooms), [pinnedClassrooms])
+
+    let is_pinned = false;
+    pinnedClassrooms.forEach((pinned_room) => {
+        if (pinned_room.id === room_info.id)
+            is_pinned = true
+    })
+
+    function onClick() {
+        if (!is_pinned && pinnedClassrooms.length >= 3) {
+            setNewMessageSnackbar("Can't pin more then 3 classrooms!")
+            return
+        }
+        const newPinnedClassrooms = []
+        pinnedClassrooms.forEach((pinned_room) => {
+            if (!is_pinned || pinned_room.id !== room_info.id)
+                newPinnedClassrooms.push(pinned_room)
+        })
+        if (is_pinned) {
+            setNewMessageSnackbar("Classroom unpinned")
+        } else {
+            newPinnedClassrooms.push({
+                id: room_info.id,
+                name: room_info.name
+            })
+            setNewMessageSnackbar("Classroom pinned")
+        }
+
+        setPinnedClassrooms(newPinnedClassrooms)
+    }
+
+    return (
+        <IconButton color={is_pinned ? "primary" : "black"}>
+            <PushPinIcon onClick={onClick}/>
+        </IconButton>
+    )
+}
+
 
 function Room() {
 
@@ -412,6 +459,7 @@ function Room() {
         <Stack direction="row" spacing={2} alignItems="flex-end">
             <Box>Classroom:</Box>
             <Typography variant="h4">{room_name}</Typography>
+            <RoomPin room_info={room_info}/>
         </Stack>
     )
 
