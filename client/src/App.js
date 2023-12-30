@@ -30,6 +30,11 @@ import AdminReservations from "./pages/admin/AdminReservations";
 import RoomScreenPage from "./pages/RoomScreenPage";
 import {Footer} from "./components/Footer";
 
+import dayjs_en from 'dayjs/locale/en-gb'
+import dayjs from "dayjs";
+
+dayjs.locale(dayjs_en)
+
 
 function PageNotFound() {
     return (
